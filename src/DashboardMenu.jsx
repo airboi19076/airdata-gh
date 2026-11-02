@@ -5,10 +5,10 @@ export default function DashboardMenu() {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    { icon: "⌂", label: "Home", link: "#home" },
+    { icon: "⌂", label: "Home", link: "/" },
     { icon: "▦", label: "Dashboard", link: "#dashboard" },
     { icon: "＋", label: "Top Up / Deposit", link: "#deposit" },
-    { icon: "◉", label: "Buy Data Bundles", link: "#buy-data" },
+    { icon: "◉", label: "Buy Data Bundles", link: "#bundles" },
     { icon: "▤", label: "My Transactions", link: "#transactions" },
     { icon: "◷", label: "Transaction History", link: "#history" },
     { icon: "♙", label: "My Profile", link: "#profile" },
