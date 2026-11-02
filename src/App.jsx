@@ -25,6 +25,8 @@ const bundles = [
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
+  const [authMode, setAuthMode] = useState('login');
+const [authMessage, setAuthMessage] = useState('');
 
 useEffect(() => {
   const splashTimer = setTimeout(() => {
@@ -104,6 +106,111 @@ useEffect(() => {
   </div>
 )}
       <header>
+              {!showSplash && (
+        <section className="authScreen">
+          <div className="authCard">
+
+            <div className="authLogo">AD</div>
+
+            <h1>Welcome to AirData GH</h1>
+            <p className="authSubtitle">
+              Your connection. Our priority.
+            </p>
+
+            <div className="authTabs">
+              <button
+                className={authMode === 'login' ? 'authActive' : ''}
+                onClick={() => {
+                  setAuthMode('login');
+                  setAuthMessage('');
+                }}
+              >
+                Login
+              </button>
+
+              <button
+                className={authMode === 'signup' ? 'authActive' : ''}
+                onClick={() => {
+                  setAuthMode('signup');
+                  setAuthMessage('');
+                }}
+              >
+                Sign Up
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setAuthMessage(
+                  'Your secure account system will be activated when we connect authentication.'
+                );
+              }}
+            >
+
+              {authMode === 'signup' && (
+                <>
+                  <label>Full Name</label>
+                  <input
+                    type="text"
+                    placeholder="Enter your full name"
+                    required
+                  />
+
+                  <label>Phone Number</label>
+                  <input
+                    type="tel"
+                    placeholder="e.g. 0241234567"
+                    required
+                  />
+                </>
+              )}
+
+              <label>Email Address</label>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                autoComplete="email"
+                required
+              />
+
+              <label>Password</label>
+              <input
+                type="password"
+                placeholder="Enter your password"
+                autoComplete={
+                  authMode === 'login'
+                    ? 'current-password'
+                    : 'new-password'
+                }
+                minLength={8}
+                required
+              />
+
+              {authMode === 'login' && (
+                <p className="forgotPassword">
+                  Forgot password?
+                </p>
+              )}
+
+              <button className="authSubmit" type="submit">
+                {authMode === 'login'
+                  ? 'Login to Your Account'
+                  : 'Create My Account'}
+              </button>
+
+              {authMessage && (
+                <p className="authMessage">{authMessage}</p>
+              )}
+            </form>
+
+            <p className="authFooter">
+              Secure access to your AirData GH account.
+            </p>
+
+          </div>
+        </section>
+      )}
   <div className="headerTop">
     <div>
       <h1>AirData <span>GH</span></h1>
