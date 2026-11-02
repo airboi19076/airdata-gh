@@ -206,3 +206,147 @@ footer small {
     padding: 20px;
   }
 }
+/* PREMIUM ORDER TRACKING DESIGN */
+.tracking {
+  padding: 65px 7%;
+  background: linear-gradient(180deg, #eaf1fa, #f4f7fc);
+}
+
+.trackingCard {
+  max-width: 650px;
+  margin: 0 auto;
+  padding: 42px 28px;
+  text-align: center;
+  color: white;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #06152e, #0b3970, #075da8);
+  box-shadow: 0 18px 45px rgba(5, 40, 85, 0.22);
+  position: relative;
+  overflow: hidden;
+  animation: trackingAppear 0.9s ease both;
+}
+
+.trackingCard::before {
+  content: "";
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  top: -110px;
+  right: -70px;
+  border-radius: 50%;
+  background: rgba(65, 174, 255, 0.16);
+}
+
+.trackingIcon {
+  width: 65px;
+  height: 65px;
+  margin: 0 auto 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.13);
+  font-size: 30px;
+  animation: trackingFloat 3s ease-in-out infinite;
+}
+
+.trackingTag {
+  color: #79caff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  margin-bottom: 13px;
+}
+
+.trackingCard h2 {
+  font-size: clamp(27px, 6vw, 36px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin-bottom: 13px;
+}
+
+.trackingText {
+  max-width: 440px;
+  margin: 0 auto 25px;
+  color: #d4e6f8;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.trackingForm {
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.trackingForm input {
+  width: 100%;
+  padding: 17px;
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 12px;
+  outline: none;
+  background: rgba(255,255,255,0.96);
+  color: #10213d;
+  font-size: 15px;
+  margin-bottom: 13px;
+}
+
+.trackingForm input:focus {
+  border-color: #55bdff;
+  box-shadow: 0 0 0 4px rgba(85,189,255,0.2);
+}
+
+.trackingButton {
+  width: 100%;
+  padding: 17px;
+  border: none;
+  border-radius: 12px;
+  color: #061a34;
+  background: linear-gradient(90deg, #79d1ff, #ffffff);
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  animation: trackingGlow 2.5s ease-in-out infinite;
+}
+
+.trackingButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(87,190,255,0.3);
+}
+
+.trackingNote {
+  color: #b9d8f2;
+  font-size: 12px;
+  margin-top: 20px;
+}
+
+@keyframes trackingAppear {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes trackingFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes trackingGlow {
+  0%, 100% { box-shadow: 0 0 0 rgba(85,189,255,0); }
+  50% { box-shadow: 0 0 20px rgba(85,189,255,0.35); }
+}
+
+@media (max-width: 480px) {
+  .tracking {
+    padding: 45px 5%;
+  }
+
+  .trackingCard {
+    padding: 35px 20px;
+    border-radius: 20px;
+  }
+}
