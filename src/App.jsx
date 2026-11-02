@@ -141,72 +141,108 @@ useEffect(() => {
             </div>
 
             <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setAuthMessage(
-                  'Your secure account system will be activated when we connect authentication.'
-                );
-              }}
-            >
+  onSubmit={async (e) => {
+    e.preventDefault();
 
-              {authMode === 'signup' && (
-                <>
-                  <label>Full Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="Enter your full name"
-                    required
-                  />
+    const formData = new FormData(e.currentTarget);
 
-                  <label>Phone Number</label>
-                  <input
-                    type="tel"
-                    placeholder="e.g. 0241234567"
-                    required
-                  />
-                </>
-              )}
+    const email = String(formData.get('email') || '');
+    const password = String(formData.get('password') || '');
+    const name = String(formData.get('name') || '');
 
-              <label>Email Address</label>
-              <input
-                type="email"
-                email="email"
-                placeholder="Enter your email"
-                autoComplete="email"
-                required
-              />
+    setAuthMessage('Please wait...');
 
-              <label>Password</label>
-              <input
-                type="password"
-                name="password"
-                placeholder="Enter your password"
-                autoComplete={
-                  authMode === 'login'
-                    ? 'current-password'
-                    : 'new-password'
-                }
-                minLength={8}
-                required
-              />
+    try {
+      let result;
 
-              {authMode === 'login' && (
-                <p className="forgotPassword">
-                  Forgot password?
-                </p>
-              )}
+      if (authMode === 'signup') {
+        result = await authClient.signUp.email({
+          name,
+          email,
+          password,
+        });
+      } else {
+        result = await authClient.signIn.email({
+          email,
+          password,
+        });
+      }
 
-              <button className="authSubmit" type="submit">
-                {authMode === 'login'
-                  ? 'Login to Your Account'
-                  : 'Create My Account'}
-              </button>
+      if (result.error) {
+        throw new Error(result.error.message || 'Authentication failed.');
+      }
 
-              {authMessage && (
-                <p className="authMessage">{authMessage}</p>
-              )}
-            </form>
+      setAuthMessage(
+        authMode === 'signup'
+          ? 'Your account has been created successfully!'
+          : 'Login successful! Welcome back.'
+      );
+
+    } catch (error) {
+      setAuthMessage(
+        error.message || 'Something went wrong. Please try again.'
+      );
+    }
+  }}
+>
+  {authMode === 'signup' && (
+    <>
+      <label>Full Name</label>
+      <input
+        type="text"
+        name="name"
+        placeholder="Enter your full name"
+        required
+      />
+
+      <label>Phone Number</label>
+      <input
+        type="tel"
+        placeholder="e.g. 0241234567"
+        required
+      />
+    </>
+  )}
+
+  <label>Email Address</label>
+  <input
+    type="email"
+    name="email"
+    placeholder="Enter your email"
+    autoComplete="email"
+    required
+  />
+
+  <label>Password</label>
+  <input
+    type="password"
+    name="password"
+    placeholder="Enter your password"
+    autoComplete={
+      authMode === 'login'
+        ? 'current-password'
+        : 'new-password'
+    }
+    minLength={8}
+    required
+  />
+
+  {authMode === 'login' && (
+    <p className="forgotPassword">
+      Forgot password?
+    </p>
+  )}
+
+  <button className="authSubmit" type="submit">
+    {authMode === 'login'
+      ? 'Login to Your Account'
+      : 'Create My Account'}
+  </button>
+
+  {authMessage && (
+    <p className="authMessage">{authMessage}</p>
+  )}
+</form>
 
             <p className="authFooter">
               Secure access to your AirData GH account.
