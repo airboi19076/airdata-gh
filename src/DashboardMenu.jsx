@@ -5,16 +5,15 @@ export default function DashboardMenu() {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    { icon: "⌂", label: "Home", link: "/" },
-    { icon: "▦", label: "Dashboard", link: "#dashboard" },
-    { icon: "＋", label: "Top Up / Deposit", link: "#deposit" },
-    { icon: "◉", label: "Buy Data Bundles", link: "#bundles" },
-    { icon: "▤", label: "My Transactions", link: "#transactions" },
-    { icon: "◷", label: "Transaction History", link: "#history" },
-    { icon: "♙", label: "My Profile", link: "#profile" },
-    { icon: "☏", label: "Customer Support", link: "#support" },
-    { icon: "⚙", label: "Settings", link: "#settings" },
-  ];
+  { icon: "⌂", label: "Home", link: "/?page=dashboard" },
+  { icon: "▦", label: "Dashboard", link: "/?page=dashboard" },
+  { icon: "＋", label: "Top Up / Deposit", link: "/?page=deposit" },
+  { icon: "◉", label: "Buy Data Bundles", link: "/?page=buy-data" },
+  { icon: "▤", label: "My Transactions", link: "/?page=transactions" },
+  { icon: "♙", label: "My Profile", link: "/?page=profile" },
+  { icon: "☏", label: "Customer Support", link: "/?page=support" },
+  { icon: "⚙", label: "Settings", link: "/?page=settings" }
+];
 
   return (
     <>
