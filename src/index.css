@@ -350,3 +350,90 @@ footer small {
     border-radius: 20px;
   }
 }
+/* AIRDATA GH DAY AND NIGHT MODE */
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.themeToggle {
+  background: #ffffff20;
+  color: white;
+  border: 1px solid #ffffff55;
+  border-radius: 25px;
+  padding: 12px 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.headerClock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 15px;
+  color: #c5d5eb;
+  font-size: 13px;
+}
+
+.headerClock strong {
+  color: white;
+  font-size: 16px;
+}
+
+main {
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+}
+
+.dark-mode {
+  background: #071426;
+  color: #e5eefb;
+}
+
+.dark-mode .section,
+.dark-mode .tracking {
+  background: #0b1d33;
+  color: #e5eefb;
+}
+
+.dark-mode .sub {
+  color: #a9bdd4;
+}
+
+.dark-mode .bundle,
+.dark-mode .order,
+.dark-mode .serviceGrid div {
+  background: #122943;
+  color: #e5eefb;
+  border-color: #294766;
+}
+
+.dark-mode .bundle span,
+.dark-mode .order small {
+  color: #b8c8dd;
+}
+
+.dark-mode .bundle.active {
+  background: #123b60;
+  border-color: #39a7ff;
+}
+
+.dark-mode .services {
+  background: #0d223b;
+  color: #e5eefb;
+}
+
+.dark-mode .tracking {
+  background: linear-gradient(180deg, #0b1d33, #071426);
+}
+
+.dark-mode .order input {
+  background: #091a2d;
+  color: white;
+  border-color: #34516f;
+    }
