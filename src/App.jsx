@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { authClient } from './auth-client';
+import Admin from './Admin';
 
 const bundles = [
   ['1GB', '4.30'],
