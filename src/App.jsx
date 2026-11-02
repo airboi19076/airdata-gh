@@ -291,7 +291,7 @@ setAuthUser(
   </div>
 </header>
 
-      <section className="hero">
+      <section id="dashboard" className="hero">
         <p className="tag">FAST • AFFORDABLE • RELIABLE</p>
         <h2>Stay connected for less.</h2>
         <p>Get affordable MTN data bundles delivered with ease.</p>
