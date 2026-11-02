@@ -176,6 +176,10 @@ if (window.location.pathname === '/admin') {
       if (result.error) {
         throw new Error(result.error.message || 'Authentication failed.');
       }
+      const sessionResult = await authClient.getSession();
+setAuthUser(
+  result.data?.user ?? sessionResult.data?.user ?? null
+);
 
       setAuthMessage(
         authMode === 'signup'
