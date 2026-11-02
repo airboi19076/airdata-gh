@@ -30,6 +30,13 @@ export default function App() {
   const [authMode, setAuthMode] = useState('login');
 const [authMessage, setAuthMessage] = useState('');
 const [authUser, setAuthUser] = useState(null);
+  useEffect(() => {
+  authClient.getSession()
+    .then(({ data, error }) => {
+      if (!error) setAuthUser(data?.user ?? null);
+    })
+    .catch(() => {});
+}, []);
 
 useEffect(() => {
   const splashTimer = setTimeout(() => {
