@@ -76,6 +76,26 @@ export default function App() {
   return (
     <main className={darkMode ? 'dark-mode' : 'light-mode'}>
       <header>
+  <div className="headerTop">
+    <div>
+      <h1>AirData <span>GH</span></h1>
+      <p>Your connection. Our priority.</p>
+    </div>
+
+    <button
+      className="themeToggle"
+      onClick={() => setDarkMode(!darkMode)}
+    >
+      {darkMode ? '☀️ Day mode' : '🌙 Night mode'}
+    </button>
+  </div>
+
+  <div className="headerClock">
+    <span>{ghanaDate}</span>
+    <strong>{ghanaTime}</strong>
+    <small>Ghana Time (GMT)</small>
+  </div>
+</header>
         <h1>AirData <span>GH</span></h1>
         <p>Your connection. Our priority.</p>
       </header>
