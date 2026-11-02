@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { authClient } from './auth-client';
 import Admin from './Admin';
+import DashboardMenu from "./DashboardMenu";
 
 const bundles = [
   ['1GB', '4.30'],
