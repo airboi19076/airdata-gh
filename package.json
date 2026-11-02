@@ -3,6 +3,7 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@neondatabase/auth": "latest",
     "@vitejs/plugin-react": "latest",
     "vite": "latest",
     "react": "latest",
