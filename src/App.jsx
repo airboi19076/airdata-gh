@@ -99,6 +99,20 @@ export default function App() {
         </div>
       </section>
 
+           <section className="tracking">
+        <h2>Track Your Order</h2>
+        <p>Having trouble receiving your MTN data? Enter your order reference below.</p>
+        <input
+          type="text"
+          placeholder="Enter your order reference"
+          id="trackingReference"
+        />
+        <button
+          onClick={() => alert('Live order tracking will be available after payment system activation. Please contact AirData GH on WhatsApp for assistance.')}
+        >
+          Check Status
+        </button>
+      </section>
       <footer>
         <h2>AirData GH</h2>
         <p>Affordable data. Reliable service.</p>
