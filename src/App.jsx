@@ -24,6 +24,39 @@ const bundles = [
 ];
 
 export default function App() {
+    const [darkMode, setDarkMode] = useState(
+    () => localStorage.getItem('airdata-theme') === 'dark'
+  );
+
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    localStorage.setItem('airdata-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const ghanaDate = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Africa/Accra',
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  }).format(currentTime);
+
+  const ghanaTime = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Africa/Accra',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  }).format(currentTime);
   const [selected, setSelected] = useState(bundles[0]);
   const [phone, setPhone] = useState('');
 
@@ -41,7 +74,7 @@ export default function App() {
   }
 
   return (
-    <main>
+    <main className={darkMode ? 'dark-mode' : 'light-mode'}>
       <header>
         <h1>AirData <span>GH</span></h1>
         <p>Your connection. Our priority.</p>
