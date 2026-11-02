@@ -29,6 +29,7 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [authMode, setAuthMode] = useState('login');
 const [authMessage, setAuthMessage] = useState('');
+const [authUser, setAuthUser] = useState(null);
 
 useEffect(() => {
   const splashTimer = setTimeout(() => {
