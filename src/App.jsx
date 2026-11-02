@@ -351,7 +351,100 @@ setAuthUser(
     </button>
   </div>
 </section>
+      
+<section id="transactions" className="section">
+  <h2>My Transactions</h2>
+  <p className="sub">
+    View your recent AirData GH transactions.
+  </p>
 
+  <div className="order">
+    <h3>Transaction History</h3>
+    <p>You have no transactions to display yet.</p>
+    <small>
+      Your future wallet deposits and data purchases will appear here.
+    </small>
+  </div>
+</section>
+
+
+<section id="profile" className="section">
+  <h2>My Profile</h2>
+  <p className="sub">
+    Manage your AirData GH account.
+  </p>
+
+  <div className="order">
+    <h3>Account Information</h3>
+
+    <p>
+      Email: <strong>{authUser?.email || "Not available"}</strong>
+    </p>
+
+    <p>
+      Name: <strong>{authUser?.name || "Customer"}</strong>
+    </p>
+
+    <button
+      className="orderButton"
+      onClick={async () => {
+        await authClient.signOut();
+        setAuthUser(null);
+        setAuthMode("login");
+        setAuthMessage("You have logged out successfully.");
+      }}
+    >
+      Logout
+    </button>
+  </div>
+</section>
+
+<section id="support" className="section">
+  <h2>Customer Support</h2>
+  <p className="sub">
+    Need help with your account or data order? We are here to help.
+  </p>
+
+  <div className="order">
+    <h3>Contact AirData GH</h3>
+    <p>Our support team is available on WhatsApp.</p>
+
+    <a
+      className="orderButton"
+      href="https://wa.me/233548206175?text=Hello%20AirData%20GH%2C%20I%20need%20assistance."
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: "block",
+        textAlign: "center",
+        textDecoration: "none"
+      }}
+    >
+      Chat with Support on WhatsApp
+    </a>
+  </div>
+</section>
+
+<section id="settings" className="section">
+  <h2>Account Settings</h2>
+  <p className="sub">
+    Customize your AirData GH experience.
+  </p>
+
+  <div className="order">
+    <h3>Appearance</h3>
+    <p>Choose how your dashboard looks.</p>
+
+    <button
+      className="orderButton"
+      onClick={() => setDarkMode(!darkMode)}
+    >
+      {darkMode ? "☀️ Switch to Day Mode" : "🌙 Switch to Night Mode"}
+    </button>
+  </div>
+</section>
+
+      
       <section className="services">
         <h2>More Services Coming Soon</h2>
         <div className="serviceGrid">
