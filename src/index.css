@@ -1,0 +1,208 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f7fc;
+  color: #10213d;
+}
+
+header {
+  background: #071a36;
+  color: white;
+  padding: 22px 7%;
+}
+
+header h1 {
+  font-size: 28px;
+}
+
+header h1 span {
+  color: #39a7ff;
+}
+
+header p {
+  color: #b8c8dd;
+  margin-top: 5px;
+}
+
+.hero {
+  background: linear-gradient(135deg, #071a36, #104d91);
+  color: white;
+  padding: 65px 7%;
+}
+
+.hero .tag {
+  color: #7cc5ff;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.hero h2 {
+  font-size: clamp(32px, 7vw, 55px);
+  margin: 18px 0;
+  max-width: 600px;
+}
+
+.hero p {
+  line-height: 1.7;
+  max-width: 500px;
+}
+
+.hero a {
+  display: inline-block;
+  margin-top: 25px;
+  background: #fff;
+  color: #071a36;
+  padding: 14px 22px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.section {
+  padding: 45px 7%;
+}
+
+.section h2,
+.services h2 {
+  font-size: 27px;
+}
+
+.sub {
+  color: #718096;
+  margin: 10px 0 25px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+  gap: 12px;
+}
+
+.bundle {
+  background: white;
+  border: 1px solid #dce5f0;
+  border-radius: 12px;
+  padding: 19px 8px;
+  color: #10213d;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.bundle strong {
+  font-size: 21px;
+}
+
+.bundle span {
+  color: #64748b;
+}
+
+.bundle.active {
+  border: 2px solid #1684e8;
+  background: #eaf5ff;
+}
+
+.order {
+  background: white;
+  border-radius: 16px;
+  padding: 25px;
+  margin-top: 30px;
+  box-shadow: 0 8px 25px #10213d10;
+}
+
+.order h3 {
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+
+.order p {
+  margin-bottom: 22px;
+}
+
+.order label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 9px;
+}
+
+.order input {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.orderButton {
+  width: 100%;
+  margin-top: 15px;
+  padding: 16px;
+  border: none;
+  border-radius: 8px;
+  background: #087fce;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.order small {
+  display: block;
+  color: #718096;
+  margin-top: 12px;
+}
+
+.services {
+  padding: 40px 7%;
+  background: #eaf1fa;
+}
+
+.serviceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.serviceGrid div {
+  background: white;
+  padding: 20px 12px;
+  border-radius: 10px;
+  font-weight: bold;
+  text-align: center;
+}
+
+footer {
+  background: #071a36;
+  color: white;
+  text-align: center;
+  padding: 35px 15px;
+  line-height: 2;
+}
+
+footer small {
+  color: #b8c8dd;
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding-top: 48px;
+    padding-bottom: 48px;
+  }
+
+  .order {
+    padding: 20px;
+  }
+}
