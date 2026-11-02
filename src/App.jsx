@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { authClient } from './auth-client';
 import Admin from './Admin';
@@ -40,7 +41,6 @@ export default function App() {
     () => localStorage.getItem('airdata-theme') === 'dark'
   );
 
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [selected, setSelected] = useState(bundles[0]);
   const [phone, setPhone] = useState('');
 
@@ -63,30 +63,6 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('airdata-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const ghanaDate = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Africa/Accra',
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  }).format(currentTime);
-
-  const ghanaTime = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Africa/Accra',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true
-  }).format(currentTime);
 
   function orderNow() {
     if (!/^0\d{9}$/.test(phone)) {
@@ -315,12 +291,6 @@ export default function App() {
               >
                 {darkMode ? '☀️ Day mode' : '🌙 Night mode'}
               </button>
-            </div>
-
-            <div className="headerClock">
-              <span>{ghanaDate}</span>
-              <strong>{ghanaTime}</strong>
-              <small>Ghana Time (GMT)</small>
             </div>
           </header>
 
