@@ -99,19 +99,33 @@ export default function App() {
         </div>
       </section>
 
-           <section className="tracking">
-        <h2>Track Your Order</h2>
-        <p>Having trouble receiving your MTN data? Enter your order reference below.</p>
-        <input
-          type="text"
-          placeholder="Enter your order reference"
-          id="trackingReference"
-        />
-        <button
-          onClick={() => alert('Live order tracking will be available after payment system activation. Please contact AirData GH on WhatsApp for assistance.')}
-        >
-          Check Status
-        </button>
+                 <section className="tracking">
+        <div className="trackingCard">
+          <div className="trackingIcon">📦</div>
+          <p className="trackingTag">AIRDATA GH • ORDER SUPPORT</p>
+          <h2>Track Your Order</h2>
+          <p className="trackingText">
+            Waiting for your data bundle? Check your order progress using your order reference.
+          </p>
+
+          <div className="trackingForm">
+            <input
+              type="text"
+              placeholder="Enter your order reference"
+              id="trackingReference"
+            />
+            <button
+              className="trackingButton"
+              onClick={() => alert('Live order tracking will be available after payment system activation. Please contact AirData GH on WhatsApp for assistance.')}
+            >
+              Check Order Status →
+            </button>
+          </div>
+
+          <p className="trackingNote">
+            Need help? Our support team is here for you.
+          </p>
+        </div>
       </section>
       <footer>
         <h2>AirData GH</h2>
