@@ -24,6 +24,15 @@ const bundles = [
 ];
 
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+useEffect(() => {
+  const splashTimer = setTimeout(() => {
+    setShowSplash(false);
+  }, 3500);
+
+  return () => clearTimeout(splashTimer);
+}, []);
     const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem('airdata-theme') === 'dark'
   );
@@ -75,6 +84,25 @@ export default function App() {
 
   return (
     <main className={darkMode ? 'dark-mode' : 'light-mode'}>
+      {showSplash && (
+  <div className="splashScreen">
+    <div className="orbit orbitOne"></div>
+    <div className="orbit orbitTwo"></div>
+    <div className="orbit orbitThree"></div>
+
+    <div className="adLogo">AD</div>
+
+    <h1>AIRDATA GH</h1>
+    <p>YOUR CONNECTION. OUR PRIORITY.</p>
+
+    <button
+      className="skipIntro"
+      onClick={() => setShowSplash(false)}
+    >
+      Skip Intro →
+    </button>
+  </div>
+)}
       <header>
   <div className="headerTop">
     <div>
