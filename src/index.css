@@ -501,3 +501,107 @@ main {
     margin-left: 30px;
   }
   }
+/* AIRDATA GH AD INTRO */
+
+.splashScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: radial-gradient(circle, #102b55, #020817 75%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  color: white;
+  animation: splashFade 0.8s ease;
+}
+
+.adLogo {
+  font-size: 90px;
+  font-weight: 900;
+  letter-spacing: -8px;
+  color: #ffffff;
+  text-shadow: 0 0 15px #168bff, 0 0 45px #007bff;
+  z-index: 2;
+  animation: logoGlow 2s infinite alternate;
+}
+
+.splashScreen h1 {
+  font-size: 25px;
+  letter-spacing: 7px;
+  margin-top: 25px;
+  z-index: 2;
+}
+
+.splashScreen p {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: #8fcaff;
+  z-index: 2;
+}
+
+.orbit {
+  position: absolute;
+  width: 230px;
+  height: 230px;
+  border: 2px solid rgba(0, 145, 255, 0.7);
+  border-radius: 50%;
+  box-shadow: 0 0 20px #008cff;
+}
+
+.orbitOne {
+  animation: orbitSpin 4s linear infinite;
+}
+
+.orbitTwo {
+  width: 280px;
+  height: 150px;
+  transform: rotate(60deg);
+  animation: orbitSpin 5s linear infinite reverse;
+}
+
+.orbitThree {
+  width: 280px;
+  height: 150px;
+  transform: rotate(-60deg);
+  animation: orbitSpin 6s linear infinite;
+}
+
+.skipIntro {
+  position: absolute;
+  bottom: 45px;
+  background: transparent;
+  border: 1px solid #168bff;
+  color: white;
+  padding: 10px 22px;
+  border-radius: 25px;
+  cursor: pointer;
+}
+
+@keyframes orbitSpin {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes logoGlow {
+  from {
+    text-shadow: 0 0 10px #168bff;
+  }
+  to {
+    text-shadow: 0 0 35px #00aaff, 0 0 65px #007bff;
+  }
+}
+
+@keyframes splashFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+  }
