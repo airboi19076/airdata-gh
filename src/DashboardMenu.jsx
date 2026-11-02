@@ -1,4 +1,4 @@
-
+import { authClient } from "./auth-client";
 import React, { useState } from "react";
 
 export default function DashboardMenu() {
@@ -213,10 +213,14 @@ export default function DashboardMenu() {
 
         <div className="ad-menu-footer">
           <a
-            href="#logout"
-            className="ad-menu-item ad-logout"
-            onClick={() => setIsOpen(false)}
-          >
+  href="#logout"
+  className="ad-menu-item ad-logout"
+  onClick={async (e) => {
+    e.preventDefault();
+    await authClient.signOut();
+    window.location.href = "/";
+  }}
+>
             <span className="ad-menu-icon">⇥</span>
             <span>Logout</span>
           </a>
