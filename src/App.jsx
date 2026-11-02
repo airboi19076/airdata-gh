@@ -85,6 +85,9 @@ useEffect(() => {
       '_blank'
     );
   }
+if (window.location.pathname === '/admin') {
+  return <Admin />;
+            }
 
   return (
     <main className={darkMode ? 'dark-mode' : 'light-mode'}>
