@@ -333,6 +333,25 @@ setAuthUser(
         </div>
       </section>
 
+    
+<section id="deposit" className="section">
+  <h2>Wallet Top Up</h2>
+  <p className="sub">
+    Add funds to your AirData GH wallet to make purchasing data easier.
+  </p>
+
+  <div className="order">
+    <h3>Deposit to Your Wallet</h3>
+    <p>
+      Secure wallet deposits are being prepared.
+      Payment options will appear here once activation is complete.
+    </p>
+    <button className="orderButton" disabled>
+      Deposits Coming Soon
+    </button>
+  </div>
+</section>
+
       <section className="services">
         <h2>More Services Coming Soon</h2>
         <div className="serviceGrid">
