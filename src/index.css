@@ -605,3 +605,135 @@ main {
     opacity: 1;
   }
   }
+/* AIRDATA GH LOGIN AND SIGNUP */
+
+.authScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  min-height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 25px 15px;
+  background:
+    radial-gradient(circle at top, #123b70, transparent 55%),
+    #020817;
+  color: white;
+}
+
+.authCard {
+  width: 100%;
+  max-width: 410px;
+  padding: 30px 24px;
+  border: 1px solid rgba(35, 145, 255, 0.35);
+  border-radius: 22px;
+  background: rgba(8, 24, 48, 0.94);
+  box-shadow: 0 0 40px rgba(0, 119, 255, 0.18);
+}
+
+.authLogo {
+  width: 65px;
+  height: 65px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #168bff;
+  border-radius: 50%;
+  color: white;
+  font-size: 30px;
+  font-weight: 900;
+  box-shadow: 0 0 25px #007bff;
+}
+
+.authCard h1 {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.authSubtitle {
+  text-align: center;
+  color: #8fcaff;
+  font-size: 13px;
+  margin-bottom: 25px;
+}
+
+.authTabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.authTabs button {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #24517e;
+  border-radius: 9px;
+  background: #10243d;
+  color: white;
+  font-weight: bold;
+}
+
+.authTabs .authActive {
+  background: #087cff;
+  border-color: #087cff;
+}
+
+.authCard form label {
+  display: block;
+  margin: 14px 0 7px;
+  font-size: 13px;
+  color: #b9d9ff;
+}
+
+.authCard form input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px;
+  border: 1px solid #294a70;
+  border-radius: 9px;
+  background: #061426;
+  color: white;
+  outline: none;
+}
+
+.authCard form input:focus {
+  border-color: #168bff;
+  box-shadow: 0 0 10px rgba(22, 139, 255, 0.3);
+}
+
+.authSubmit {
+  width: 100%;
+  padding: 15px;
+  margin-top: 23px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #006bff, #00aaff);
+  color: white;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.forgotPassword {
+  text-align: right;
+  color: #63b5ff;
+  font-size: 12px;
+  margin-top: 12px;
+}
+
+.authFooter {
+  text-align: center;
+  color: #8caacb;
+  font-size: 11px;
+  margin-top: 22px;
+}
+
+.authMessage {
+  color: #ffd27a;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 15px;
+    }
