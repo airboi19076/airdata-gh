@@ -100,6 +100,7 @@ if (window.location.pathname === '/admin') {
 
   return (
     <main className={darkMode ? 'dark-mode' : 'light-mode'}>
+      {authUser && !showSplash && <DashboardMenu />}
       {showSplash && (
   <div className="splashScreen">
     <div className="orbit orbitOne"></div>
