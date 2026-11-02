@@ -154,6 +154,7 @@ useEffect(() => {
                   <label>Full Name</label>
                   <input
                     type="text"
+                    name="name"
                     placeholder="Enter your full name"
                     required
                   />
@@ -170,6 +171,7 @@ useEffect(() => {
               <label>Email Address</label>
               <input
                 type="email"
+                email="email"
                 placeholder="Enter your email"
                 autoComplete="email"
                 required
@@ -178,6 +180,7 @@ useEffect(() => {
               <label>Password</label>
               <input
                 type="password"
+                name="password"
                 placeholder="Enter your password"
                 autoComplete={
                   authMode === 'login'
