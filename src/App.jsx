@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { authClient } from './auth-client';
 import Admin from './Admin';
-import DashboardMenu from "./DashboardMenu";
+import DashboardMenu from './DashboardMenu';
 
 const bundles = [
   ['1GB', '4.30'],
@@ -29,28 +29,36 @@ const bundles = [
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [authMode, setAuthMode] = useState('login');
-const [authMessage, setAuthMessage] = useState('');
-const [authUser, setAuthUser] = useState(null);
-  useEffect(() => {
-  authClient.getSession()
-    .then(({ data, error }) => {
-      if (!error) setAuthUser(data?.user ?? null);
-    })
-    .catch(() => {});
-}, []);
+  const [authMessage, setAuthMessage] = useState('');
+  const [authUser, setAuthUser] = useState(null);
 
-useEffect(() => {
-  const splashTimer = setTimeout(() => {
-    setShowSplash(false);
-  }, 3500);
+  const [currentPage, setCurrentPage] = useState(
+    new URLSearchParams(window.location.search).get('page') || 'dashboard'
+  );
 
-  return () => clearTimeout(splashTimer);
-}, []);
-    const [darkMode, setDarkMode] = useState(
+  const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem('airdata-theme') === 'dark'
   );
 
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [selected, setSelected] = useState(bundles[0]);
+  const [phone, setPhone] = useState('');
+
+  useEffect(() => {
+    authClient.getSession()
+      .then(({ data, error }) => {
+        if (!error) setAuthUser(data?.user ?? null);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const splashTimer = setTimeout(() => {
+      setShowSplash(false);
+    }, 3500);
+
+    return () => clearTimeout(splashTimer);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('airdata-theme', darkMode ? 'dark' : 'light');
@@ -79,8 +87,6 @@ useEffect(() => {
     second: '2-digit',
     hour12: true
   }).format(currentTime);
-  const [selected, setSelected] = useState(bundles[0]);
-  const [phone, setPhone] = useState('');
 
   function orderNow() {
     if (!/^0\d{9}$/.test(phone)) {
@@ -89,43 +95,61 @@ useEffect(() => {
     }
 
     const message = `Hello AirData GH, I want to order MTN ${selected[0]} for ${phone}. Price: GH₵${selected[1]}.`;
+
     window.open(
       `https://wa.me/233548206175?text=${encodeURIComponent(message)}`,
       '_blank'
     );
   }
-if (window.location.pathname === '/admin') {
-  return <Admin />;
-            }
+
+  async function logout() {
+    await authClient.signOut();
+    setAuthUser(null);
+    setAuthMode('login');
+    setAuthMessage('You have logged out successfully.');
+    window.history.replaceState({}, '', '/');
+    setCurrentPage('dashboard');
+  }
+
+  if (window.location.pathname === '/admin') {
+    return <Admin />;
+  }
+
+  const pageTitles = {
+    dashboard: 'Dashboard',
+    deposit: 'Deposit',
+    'buy-data': 'Buy Data',
+    transactions: 'Transactions',
+    profile: 'My Profile',
+    support: 'Customer Support',
+    settings: 'Settings'
+  };
 
   return (
     <main className={darkMode ? 'dark-mode' : 'light-mode'}>
-      {authUser && !showSplash && <DashboardMenu />}
-      {authUser && !showSplash && <DashboardMenu />}
+
       {showSplash && (
-  <div className="splashScreen">
-    <div className="orbit orbitOne"></div>
-    <div className="orbit orbitTwo"></div>
-    <div className="orbit orbitThree"></div>
+        <div className="splashScreen">
+          <div className="orbit orbitOne"></div>
+          <div className="orbit orbitTwo"></div>
+          <div className="orbit orbitThree"></div>
 
-    <div className="adLogo">AD</div>
+          <div className="adLogo">AD</div>
+          <h1>AIRDATA GH</h1>
+          <p>YOUR CONNECTION. OUR PRIORITY.</p>
 
-    <h1>AIRDATA GH</h1>
-    <p>YOUR CONNECTION. OUR PRIORITY.</p>
+          <button
+            className="skipIntro"
+            onClick={() => setShowSplash(false)}
+          >
+            Skip Intro →
+          </button>
+        </div>
+      )}
 
-    <button
-      className="skipIntro"
-      onClick={() => setShowSplash(false)}
-    >
-      Skip Intro →
-    </button>
-  </div>
-)}
-      <header>
-              {!showSplash && !authUser && (
+      {!showSplash && !authUser && (
         <section className="authScreen">
           <div className="authCard">
-
             <div className="authLogo">AD</div>
 
             <h1>Welcome to AirData GH</h1>
@@ -156,339 +180,389 @@ if (window.location.pathname === '/admin') {
             </div>
 
             <form
-  onSubmit={async (e) => {
-    e.preventDefault();
+              onSubmit={async (e) => {
+                e.preventDefault();
 
-    const formData = new FormData(e.currentTarget);
+                const formData = new FormData(e.currentTarget);
+                const email = String(formData.get('email') || '');
+                const password = String(formData.get('password') || '');
+                const name = String(formData.get('name') || '');
 
-    const email = String(formData.get('email') || '');
-    const password = String(formData.get('password') || '');
-    const name = String(formData.get('name') || '');
+                setAuthMessage('Please wait...');
 
-    setAuthMessage('Please wait...');
+                try {
+                  let result;
 
-    try {
-      let result;
+                  if (authMode === 'signup') {
+                    result = await authClient.signUp.email({
+                      name,
+                      email,
+                      password
+                    });
+                  } else {
+                    result = await authClient.signIn.email({
+                      email,
+                      password
+                    });
+                  }
 
-      if (authMode === 'signup') {
-        result = await authClient.signUp.email({
-          name,
-          email,
-          password,
-        });
-      } else {
-        result = await authClient.signIn.email({
-          email,
-          password,
-        });
-      }
+                  if (result.error) {
+                    throw new Error(
+                      result.error.message || 'Authentication failed.'
+                    );
+                  }
 
-      if (result.error) {
-        throw new Error(result.error.message || 'Authentication failed.');
-      }
-      const sessionResult = await authClient.getSession();
-setAuthUser(
-  result.data?.user ?? sessionResult.data?.user ?? null
-);
+                  const sessionResult = await authClient.getSession();
 
-      setAuthMessage(
-        authMode === 'signup'
-          ? 'Your account has been created successfully!'
-          : 'Login successful! Welcome back.'
-      );
+                  setAuthUser(
+                    result.data?.user ??
+                    sessionResult.data?.user ??
+                    null
+                  );
 
-    } catch (error) {
-      setAuthMessage(
-        error.message || 'Something went wrong. Please try again.'
-      );
-    }
-  }}
->
-  {authMode === 'signup' && (
-    <>
-      <label>Full Name</label>
-      <input
-        type="text"
-        name="name"
-        placeholder="Enter your full name"
-        required
-      />
+                  setAuthMessage(
+                    authMode === 'signup'
+                      ? 'Your account has been created successfully!'
+                      : 'Login successful! Welcome back.'
+                  );
 
-      <label>Phone Number</label>
-      <input
-        type="tel"
-        placeholder="e.g. 0241234567"
-        required
-      />
-    </>
-  )}
+                } catch (error) {
+                  setAuthMessage(
+                    error.message || 'Something went wrong. Please try again.'
+                  );
+                }
+              }}
+            >
+              {authMode === 'signup' && (
+                <>
+                  <label>Full Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Enter your full name"
+                    required
+                  />
 
-  <label>Email Address</label>
-  <input
-    type="email"
-    name="email"
-    placeholder="Enter your email"
-    autoComplete="email"
-    required
-  />
+                  <label>Phone Number</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder="e.g. 0241234567"
+                    required
+                  />
+                </>
+              )}
 
-  <label>Password</label>
-  <input
-    type="password"
-    name="password"
-    placeholder="Enter your password"
-    autoComplete={
-      authMode === 'login'
-        ? 'current-password'
-        : 'new-password'
-    }
-    minLength={8}
-    required
-  />
+              <label>Email Address</label>
+              <input
+                type="email"
+                name="email"
+                placeholder="Enter your email"
+                autoComplete="email"
+                required
+              />
 
-  {authMode === 'login' && (
-    <p className="forgotPassword">
-      Forgot password?
-    </p>
-  )}
+              <label>Password</label>
+              <input
+                type="password"
+                name="password"
+                placeholder="Enter your password"
+                autoComplete={
+                  authMode === 'login'
+                    ? 'current-password'
+                    : 'new-password'
+                }
+                minLength={8}
+                required
+              />
 
-  <button className="authSubmit" type="submit">
-    {authMode === 'login'
-      ? 'Login to Your Account'
-      : 'Create My Account'}
-  </button>
+              {authMode === 'login' && (
+                <p className="forgotPassword">Forgot password?</p>
+              )}
 
-  {authMessage && (
-    <p className="authMessage">{authMessage}</p>
-  )}
-</form>
+              <button className="authSubmit" type="submit">
+                {authMode === 'login'
+                  ? 'Login to Your Account'
+                  : 'Create My Account'}
+              </button>
+
+              {authMessage && (
+                <p className="authMessage">{authMessage}</p>
+              )}
+            </form>
 
             <p className="authFooter">
               Secure access to your AirData GH account.
             </p>
-
           </div>
         </section>
       )}
-  <div className="headerTop">
-    <div>
-      <h1>AirData <span>GH</span></h1>
-      <p>Your connection. Our priority.</p>
-    </div>
 
-    <button
-      className="themeToggle"
-      onClick={() => setDarkMode(!darkMode)}
-    >
-      {darkMode ? '☀️ Day mode' : '🌙 Night mode'}
-    </button>
-  </div>
+      {!showSplash && authUser && (
+        <>
+          <DashboardMenu />
 
-  <div className="headerClock">
-    <span>{ghanaDate}</span>
-    <strong>{ghanaTime}</strong>
-    <small>Ghana Time (GMT)</small>
-  </div>
-</header>
+          <header>
+            <div className="headerTop">
+              <div>
+                <h1>AirData <span>GH</span></h1>
+                <p>Your connection. Our priority.</p>
+              </div>
 
-      <section id="dashboard" className="hero">
-        <p className="tag">FAST • AFFORDABLE • RELIABLE</p>
-        <h2>Stay connected for less.</h2>
-        <p>Get affordable MTN data bundles delivered with ease.</p>
-        <a href="#bundles">Explore bundles ↓</a>
-      </section>
+              <button
+                className="themeToggle"
+                onClick={() => setDarkMode(!darkMode)}
+              >
+                {darkMode ? '☀️ Day mode' : '🌙 Night mode'}
+              </button>
+            </div>
 
-      <section id="bundles" className="section">
-        <h2>MTN Data Bundles</h2>
-        <p className="sub">Choose your preferred data package.</p>
+            <div className="headerClock">
+              <span>{ghanaDate}</span>
+              <strong>{ghanaTime}</strong>
+              <small>Ghana Time (GMT)</small>
+            </div>
+          </header>
 
-        <div className="grid">
-          {bundles.map((bundle) => (
-            <button
-              key={bundle[0]}
-              className={`bundle ${selected[0] === bundle[0] ? 'active' : ''}`}
-              onClick={() => setSelected(bundle)}
-            >
-              <strong>{bundle[0]}</strong>
-              <span>GH₵{bundle[1]}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="order">
-          <h3>Complete Your Order</h3>
-          <p>Selected: <strong>{selected[0]} — GH₵{selected[1]}</strong></p>
-          <label htmlFor="phone">Recipient phone number</label>
-          <input
-            id="phone"
-            type="tel"
-            placeholder="e.g. 0241234567"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
-          <button className="orderButton" onClick={orderNow}>
-            Order via WhatsApp
-          </button>
-          <small>You'll confirm your order with us on WhatsApp.</small>
-        </div>
-      </section>
-
-    
-<section id="deposit" className="section">
-  <h2>Wallet Top Up</h2>
-  <p className="sub">
-    Add funds to your AirData GH wallet to make purchasing data easier.
-  </p>
-
-  <div className="order">
-    <h3>Deposit to Your Wallet</h3>
-    <p>
-      Secure wallet deposits are being prepared.
-      Payment options will appear here once activation is complete.
-    </p>
-    <button className="orderButton" disabled>
-      Deposits Coming Soon
-    </button>
-  </div>
-</section>
-      
-<section id="transactions" className="section">
-  <h2>My Transactions</h2>
-  <p className="sub">
-    View your recent AirData GH transactions.
-  </p>
-
-  <div className="order">
-    <h3>Transaction History</h3>
-    <p>You have no transactions to display yet.</p>
-    <small>
-      Your future wallet deposits and data purchases will appear here.
-    </small>
-  </div>
-</section>
-
-
-<section id="profile" className="section">
-  <h2>My Profile</h2>
-  <p className="sub">
-    Manage your AirData GH account.
-  </p>
-
-  <div className="order">
-    <h3>Account Information</h3>
-
-    <p>
-      Email: <strong>{authUser?.email || "Not available"}</strong>
-    </p>
-
-    <p>
-      Name: <strong>{authUser?.name || "Customer"}</strong>
-    </p>
-
-    <button
-      className="orderButton"
-      onClick={async () => {
-        await authClient.signOut();
-        setAuthUser(null);
-        setAuthMode("login");
-        setAuthMessage("You have logged out successfully.");
-      }}
-    >
-      Logout
-    </button>
-  </div>
-</section>
-
-<section id="support" className="section">
-  <h2>Customer Support</h2>
-  <p className="sub">
-    Need help with your account or data order? We are here to help.
-  </p>
-
-  <div className="order">
-    <h3>Contact AirData GH</h3>
-    <p>Our support team is available on WhatsApp.</p>
-
-    <a
-      className="orderButton"
-      href="https://wa.me/233548206175?text=Hello%20AirData%20GH%2C%20I%20need%20assistance."
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{
-        display: "block",
-        textAlign: "center",
-        textDecoration: "none"
-      }}
-    >
-      Chat with Support on WhatsApp
-    </a>
-  </div>
-</section>
-
-<section id="settings" className="section">
-  <h2>Account Settings</h2>
-  <p className="sub">
-    Customize your AirData GH experience.
-  </p>
-
-  <div className="order">
-    <h3>Appearance</h3>
-    <p>Choose how your dashboard looks.</p>
-
-    <button
-      className="orderButton"
-      onClick={() => setDarkMode(!darkMode)}
-    >
-      {darkMode ? "☀️ Switch to Day Mode" : "🌙 Switch to Night Mode"}
-    </button>
-  </div>
-</section>
-
-      
-      <section className="services">
-        <h2>More Services Coming Soon</h2>
-        <div className="serviceGrid">
-          <div>Telecel Data</div>
-          <div>AirtelTigo Data</div>
-          <div>Airtime Top-up</div>
-          <div>DStv Subscription</div>
-        </div>
-      </section>
-
-                 <section className="tracking">
-        <div className="trackingCard">
-          <div className="trackingIcon">📦</div>
-          <p className="trackingTag">AIRDATA GH • ORDER SUPPORT</p>
-          <h2>Track Your Order</h2>
-          <p className="trackingText">
-            Waiting for your data bundle? Check your order progress using your order reference.
-          </p>
-
-          <div className="trackingForm">
-            <input
-              type="text"
-              placeholder="Enter your order reference"
-              id="trackingReference"
-            />
-            <button
-              className="trackingButton"
-              onClick={() => alert('Live order tracking will be available after payment system activation. Please contact AirData GH on WhatsApp for assistance.')}
-            >
-              Check Order Status →
-            </button>
+          <div className="pageHeading">
+            <h2>{pageTitles[currentPage] || 'Dashboard'}</h2>
           </div>
 
-          <p className="trackingNote">
-            Need help? Our support team is here for you.
-          </p>
-        </div>
-      </section>
-      <footer>
-        <h2>AirData GH</h2>
-        <p>Affordable data. Reliable service.</p>
-        <p>WhatsApp: 0548 206 175</p>
-        <small>© 2026 AirData GH. All rights reserved.</small>
-      </footer>
+          {currentPage === 'dashboard' && (
+            <>
+              <section id="dashboard" className="hero">
+                <p className="tag">FAST • AFFORDABLE • RELIABLE</p>
+                <h2>Welcome to AirData GH!</h2>
+                <p>Get affordable MTN data bundles delivered with ease.</p>
+                <a href="/?page=buy-data">Buy Data Now →</a>
+              </section>
+
+              <section className="section">
+                <h2>My Wallet</h2>
+                <div className="order">
+                  <h3>Available Balance</h3>
+                  <h2>GH₵0.00</h2>
+                  <small>
+                    Your wallet balance will appear here when deposits are activated.
+                  </small>
+                  <p>
+                    <a href="/?page=deposit">Go to Deposit →</a>
+                  </p>
+                </div>
+              </section>
+
+              <section className="section">
+                <h2>Quick Actions</h2>
+                <div className="serviceGrid">
+                  <a href="/?page=buy-data">📱 Buy Data</a>
+                  <a href="/?page=deposit">💳 Deposit</a>
+                  <a href="/?page=transactions">📄 Transactions</a>
+                  <a href="/?page=support">💬 Support</a>
+                </div>
+              </section>
+
+              <section className="tracking">
+                <div className="trackingCard">
+                  <div className="trackingIcon">📦</div>
+                  <p className="trackingTag">AIRDATA GH • ORDER SUPPORT</p>
+                  <h2>Track Your Order</h2>
+                  <p className="trackingText">
+                    Need help with an order? Contact our support team.
+                  </p>
+                  <a
+                    className="trackingButton"
+                    href="/?page=support"
+                  >
+                    Get Order Support →
+                  </a>
+                </div>
+              </section>
+            </>
+          )}
+
+          {currentPage === 'buy-data' && (
+            <section id="bundles" className="section">
+              <h2>MTN Data Bundles</h2>
+              <p className="sub">
+                Choose your preferred data package.
+              </p>
+
+              <div className="grid">
+                {bundles.map((bundle) => (
+                  <button
+                    key={bundle[0]}
+                    className={`bundle ${
+                      selected[0] === bundle[0] ? 'active' : ''
+                    }`}
+                    onClick={() => setSelected(bundle)}
+                  >
+                    <strong>{bundle[0]}</strong>
+                    <span>GH₵{bundle[1]}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="order">
+                <h3>Complete Your Order</h3>
+                <p>
+                  Selected: <strong>{selected[0]} — GH₵{selected[1]}</strong>
+                </p>
+
+                <label htmlFor="phone">Recipient phone number</label>
+                <input
+                  id="phone"
+                  type="tel"
+                  placeholder="e.g. 0241234567"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+
+                <button className="orderButton" onClick={orderNow}>
+                  Order via WhatsApp
+                </button>
+
+                <small>
+                  You'll confirm your order with us on WhatsApp.
+                </small>
+              </div>
+            </section>
+          )}
+
+          {currentPage === 'deposit' && (
+            <section className="section">
+              <h2>Wallet Deposit</h2>
+              <p className="sub">
+                Add funds to your AirData GH wallet.
+              </p>
+
+              <div className="order">
+                <h3>Deposit to Your Wallet</h3>
+
+                <label htmlFor="depositAmount">Deposit Amount (GH₵)</label>
+                <input
+                  id="depositAmount"
+                  type="number"
+                  min="0.10"
+                  step="0.01"
+                  placeholder="Minimum deposit: GH₵0.10"
+                />
+
+                <p><strong>Minimum deposit: GH₵0.10</strong></p>
+
+                <p>
+                  Payment options are being prepared. Deposits are not
+                  available yet.
+                </p>
+
+                <button className="orderButton" disabled>
+                  Deposits Coming Soon
+                </button>
+              </div>
+            </section>
+          )}
+
+          {currentPage === 'transactions' && (
+            <section className="section">
+              <h2>My Transactions</h2>
+              <p className="sub">
+                View your deposits and data purchase history.
+              </p>
+
+              <div className="order">
+                <h3>Transaction History</h3>
+                <p>No transactions to display yet.</p>
+                <small>
+                  Your transaction history will appear here when the
+                  transaction system is connected.
+                </small>
+              </div>
+            </section>
+          )}
+
+          {currentPage === 'profile' && (
+            <section className="section">
+              <h2>My Profile</h2>
+              <p className="sub">
+                Manage your AirData GH account.
+              </p>
+
+              <div className="order">
+                <h3>Account Information</h3>
+
+                <p>
+                  Email: <strong>{authUser?.email || 'Not available'}</strong>
+                </p>
+
+                <p>
+                  Name: <strong>{authUser?.name || 'Customer'}</strong>
+                </p>
+
+                <button className="orderButton" onClick={logout}>
+                  Logout
+                </button>
+              </div>
+            </section>
+          )}
+
+          {currentPage === 'support' && (
+            <section className="section">
+              <h2>Customer Support</h2>
+              <p className="sub">
+                Need help with your account or data order?
+              </p>
+
+              <div className="order">
+                <h3>Contact AirData GH</h3>
+                <p>Our support team is available on WhatsApp.</p>
+
+                <a
+                  className="orderButton"
+                  href="https://wa.me/233548206175?text=Hello%20AirData%20GH%2C%20I%20need%20assistance."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'block',
+                    textAlign: 'center',
+                    textDecoration: 'none'
+                  }}
+                >
+                  Chat with Support on WhatsApp
+                </a>
+              </div>
+            </section>
+          )}
+
+          {currentPage === 'settings' && (
+            <section className="section">
+              <h2>Account Settings</h2>
+              <p className="sub">
+                Customize your AirData GH experience.
+              </p>
+
+              <div className="order">
+                <h3>Appearance</h3>
+                <p>Choose how your dashboard looks.</p>
+
+                <button
+                  className="orderButton"
+                  onClick={() => setDarkMode(!darkMode)}
+                >
+                  {darkMode
+                    ? '☀️ Switch to Day Mode'
+                    : '🌙 Switch to Night Mode'}
+                </button>
+              </div>
+            </section>
+          )}
+
+          <footer>
+            <h2>AirData GH</h2>
+            <p>Affordable data. Reliable service.</p>
+            <p>WhatsApp: 0548 206 175</p>
+            <small>© 2026 AirData GH. All rights reserved.</small>
+          </footer>
+        </>
+      )}
     </main>
   );
 }
