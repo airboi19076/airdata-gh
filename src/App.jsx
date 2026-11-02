@@ -112,7 +112,7 @@ if (window.location.pathname === '/admin') {
   </div>
 )}
       <header>
-              {!showSplash && (
+              {!showSplash && !authUser && (
         <section className="authScreen">
           <div className="authCard">
 
