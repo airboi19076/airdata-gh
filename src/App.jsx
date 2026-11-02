@@ -96,9 +96,6 @@ export default function App() {
     <small>Ghana Time (GMT)</small>
   </div>
 </header>
-        <h1>AirData <span>GH</span></h1>
-        <p>Your connection. Our priority.</p>
-      </header>
 
       <section className="hero">
         <p className="tag">FAST • AFFORDABLE • RELIABLE</p>
