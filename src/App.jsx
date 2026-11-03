@@ -5,7 +5,7 @@ import Admin from './Admin';
 import DashboardMenu from './DashboardMenu';
 
 const bundles = [
-  ['1GasB', '4.30'],
+  ['1GB', '4.30'],
   ['2GB', '8.60'],
   ['3GB', '12.90'],
   ['4GB', '17.20'],
