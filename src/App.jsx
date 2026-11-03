@@ -43,20 +43,26 @@ export default function App() {
 
   const [selected, setSelected] = useState(bundles[0]);
   const [phone, setPhone] = useState('');
-  const [walletBalance, setWalletBalance] = useState(0);
-const [walletTransactions, setWalletTransactions] = useState([]);
-const [depositAmount, setDepositAmount] = useState('');
-const [walletLoading, setWalletLoading] = useState(false);
-const [walletMessage, setWalletMessage] = useState('');
 
+  // Wallet states
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [walletTransactions, setWalletTransactions] = useState([]);
+  const [depositAmount, setDepositAmount] = useState('');
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [walletMessage, setWalletMessage] = useState('');
+
+  // Get the user's login session
   useEffect(() => {
     authClient.getSession()
       .then(({ data, error }) => {
-        if (!error) setAuthUser(data?.user ?? null);
+        if (!error) {
+          setAuthUser(data?.user ?? null);
+        }
       })
       .catch(() => {});
   }, []);
 
+  // Splash screen
   useEffect(() => {
     const splashTimer = setTimeout(() => {
       setShowSplash(false);
@@ -65,17 +71,172 @@ const [walletMessage, setWalletMessage] = useState('');
     return () => clearTimeout(splashTimer);
   }, []);
 
+  // Save appearance preference
   useEffect(() => {
     localStorage.setItem('airdata-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
+  // Get the authenticated user's API token
+  async function getWalletToken() {
+    const token = await authClient.getJWTToken();
+
+    if (!token) {
+      throw new Error('Your session has expired. Please log in again.');
+    }
+
+    return token;
+  }
+
+  // Load wallet balance and transaction history
+  async function loadWallet() {
+    try {
+      const token = await getWalletToken();
+
+      const response = await fetch('/api/wallet/balance', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Could not load wallet.');
+      }
+
+      setWalletBalance(Number(result.balance || 0));
+      setWalletTransactions(result.transactions || []);
+    } catch (error) {
+      setWalletMessage(error.message || 'Could not load wallet.');
+    }
+  }
+
+  // Load wallet whenever a user signs in
+  useEffect(() => {
+    if (authUser) {
+      loadWallet();
+    } else {
+      setWalletBalance(0);
+      setWalletTransactions([]);
+    }
+  }, [authUser]);
+
+  // Verify Paystack payment after returning to the website
+  useEffect(() => {
+    if (!authUser) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const reference =
+      params.get('reference') || params.get('trxref');
+
+    if (!reference) return;
+
+    // Remove payment reference from the address bar
+    window.history.replaceState({}, '', '/?page=deposit');
+    setCurrentPage('deposit');
+
+    async function verifyPayment() {
+      setWalletLoading(true);
+      setWalletMessage('Verifying your payment with Paystack...');
+
+      try {
+        const token = await getWalletToken();
+
+        const response = await fetch('/api/wallet/verify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ reference })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.error || 'Payment verification was unsuccessful.'
+          );
+        }
+
+        setWalletBalance(Number(result.balance || 0));
+
+        setWalletMessage(
+          result.already_credited
+            ? 'This payment has already been added to your wallet.'
+            : 'Payment successful! Your wallet has been credited.'
+        );
+
+        await loadWallet();
+        setDepositAmount('');
+
+      } catch (error) {
+        setWalletMessage(
+          error.message || 'We could not verify your payment.'
+        );
+      } finally {
+        setWalletLoading(false);
+      }
+    }
+
+    verifyPayment();
+  }, [authUser]);
+
+  // Start a wallet deposit using Paystack
+  async function startDeposit() {
+    const amount = Number(depositAmount);
+
+    if (!Number.isFinite(amount) || amount < 0.10 || amount > 10000) {
+      setWalletMessage(
+        'Enter an amount between GH₵0.10 and GH₵10,000.'
+      );
+      return;
+    }
+
+    setWalletLoading(true);
+    setWalletMessage('Preparing your secure Paystack payment...');
+
+    try {
+      const token = await getWalletToken();
+
+      const response = await fetch('/api/wallet/initialize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ amount })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.authorization_url) {
+        throw new Error(
+          result.error || 'Could not start your payment.'
+        );
+      }
+
+      // Open Paystack checkout
+      window.location.assign(result.authorization_url);
+
+    } catch (error) {
+      setWalletMessage(
+        error.message || 'Could not initialize your deposit.'
+      );
+      setWalletLoading(false);
+    }
+  }
+
+  // Buy data through WhatsApp
   function orderNow() {
     if (!/^0\d{9}$/.test(phone)) {
       alert('Enter a valid 10-digit Ghana phone number.');
       return;
     }
 
-    const message = `Hello AirData GH, I want to order MTN ${selected[0]} for ${phone}. Price: GH₵${selected[1]}.`;
+    const message =
+      `Hello AirData GH, I want to order MTN ${selected[0]} for ${phone}. Price: GH₵${selected[1]}.`;
 
     window.open(
       `https://wa.me/233548206175?text=${encodeURIComponent(message)}`,
@@ -83,11 +244,14 @@ const [walletMessage, setWalletMessage] = useState('');
     );
   }
 
+  // Logout
   async function logout() {
     await authClient.signOut();
+
     setAuthUser(null);
     setAuthMode('login');
     setAuthMessage('You have logged out successfully.');
+
     window.history.replaceState({}, '', '/');
     setCurrentPage('dashboard');
   }
@@ -109,6 +273,7 @@ const [walletMessage, setWalletMessage] = useState('');
   return (
     <main className={darkMode ? 'dark-mode' : 'light-mode'}>
 
+      {/* SPLASH SCREEN */}
       {showSplash && (
         <div className="splashScreen">
           <div className="orbit orbitOne"></div>
@@ -128,6 +293,7 @@ const [walletMessage, setWalletMessage] = useState('');
         </div>
       )}
 
+      {/* LOGIN AND SIGNUP */}
       {!showSplash && !authUser && (
         <section className="authScreen">
           <div className="authCard">
@@ -279,6 +445,7 @@ const [walletMessage, setWalletMessage] = useState('');
         </section>
       )}
 
+      {/* MAIN CUSTOMER DASHBOARD */}
       {!showSplash && authUser && (
         <>
           <DashboardMenu />
@@ -303,31 +470,49 @@ const [walletMessage, setWalletMessage] = useState('');
             <h2>{pageTitles[currentPage] || 'Dashboard'}</h2>
           </div>
 
+          {/* DASHBOARD */}
           {currentPage === 'dashboard' && (
             <>
               <section id="dashboard" className="hero">
                 <p className="tag">FAST • AFFORDABLE • RELIABLE</p>
                 <h2>Welcome to AirData GH!</h2>
-                <p>Get affordable MTN data bundles delivered with ease.</p>
+                <p>
+                  Get affordable MTN data bundles delivered with ease.
+                </p>
                 <a href="/?page=buy-data">Buy Data Now →</a>
               </section>
 
               <section className="section">
                 <h2>My Wallet</h2>
+
                 <div className="order">
                   <h3>Available Balance</h3>
-                  <h2>GH₵0.00</h2>
+
+                  <h2>
+                    GH₵{walletBalance.toFixed(2)}
+                  </h2>
+
                   <small>
-                    Your wallet balance will appear here when deposits are activated.
+                    Your available AirData GH wallet balance.
                   </small>
+
                   <p>
-                    <a href="/?page=deposit">Go to Deposit →</a>
+                    <a href="/?page=deposit">Add Money to Wallet →</a>
                   </p>
+
+                  <button
+                    className="orderButton"
+                    onClick={loadWallet}
+                    disabled={walletLoading}
+                  >
+                    {walletLoading ? 'Refreshing...' : 'Refresh Balance'}
+                  </button>
                 </div>
               </section>
 
               <section className="section">
                 <h2>Quick Actions</h2>
+
                 <div className="serviceGrid">
                   <a href="/?page=buy-data">📱 Buy Data</a>
                   <a href="/?page=deposit">💳 Deposit</a>
@@ -339,7 +524,9 @@ const [walletMessage, setWalletMessage] = useState('');
               <section className="tracking">
                 <div className="trackingCard">
                   <div className="trackingIcon">📦</div>
-                  <p className="trackingTag">AIRDATA GH • ORDER SUPPORT</p>
+                  <p className="trackingTag">
+                    AIRDATA GH • ORDER SUPPORT
+                  </p>
                   <h2>Track Your Order</h2>
                   <p className="trackingText">
                     Need help with an order? Contact our support team.
@@ -355,6 +542,7 @@ const [walletMessage, setWalletMessage] = useState('');
             </>
           )}
 
+          {/* BUY DATA */}
           {currentPage === 'buy-data' && (
             <section id="bundles" className="section">
               <h2>MTN Data Bundles</h2>
@@ -379,6 +567,7 @@ const [walletMessage, setWalletMessage] = useState('');
 
               <div className="order">
                 <h3>Complete Your Order</h3>
+
                 <p>
                   Selected: <strong>{selected[0]} — GH₵{selected[1]}</strong>
                 </p>
@@ -403,60 +592,140 @@ const [walletMessage, setWalletMessage] = useState('');
             </section>
           )}
 
+          {/* WALLET DEPOSIT */}
           {currentPage === 'deposit' && (
             <section className="section">
               <h2>Wallet Deposit</h2>
+
               <p className="sub">
-                Add funds to your AirData GH wallet.
+                Add funds to your AirData GH wallet securely.
               </p>
+
+              <div className="order">
+                <h3>Available Balance</h3>
+                <h2>GH₵{walletBalance.toFixed(2)}</h2>
+              </div>
 
               <div className="order">
                 <h3>Deposit to Your Wallet</h3>
 
-                <label htmlFor="depositAmount">Deposit Amount (GH₵)</label>
+                <label htmlFor="depositAmount">
+                  Deposit Amount (GH₵)
+                </label>
+
                 <input
                   id="depositAmount"
                   type="number"
                   min="0.10"
+                  max="10000"
                   step="0.01"
-                  placeholder="Minimum deposit: GH₵0.10"
+                  placeholder="Enter amount"
+                  value={depositAmount}
+                  onChange={(e) => setDepositAmount(e.target.value)}
+                  disabled={walletLoading}
                 />
 
-                <p><strong>Minimum deposit: GH₵0.10</strong></p>
-
                 <p>
-                  Payment options are being prepared. Deposits are not
-                  available yet.
+                  <strong>
+                    Minimum: GH₵0.10 | Maximum: GH₵10,000
+                  </strong>
                 </p>
 
-                <button className="orderButton" disabled>
-                  Deposits Coming Soon
+                <button
+                  className="orderButton"
+                  onClick={startDeposit}
+                  disabled={walletLoading}
+                >
+                  {walletLoading
+                    ? 'Please wait...'
+                    : 'Deposit Now'}
                 </button>
-              </div>
-            </section>
-          )}
 
-          {currentPage === 'transactions' && (
-            <section className="section">
-              <h2>My Transactions</h2>
-              <p className="sub">
-                View your deposits and data purchase history.
-              </p>
+                {walletMessage && (
+                  <p className="authMessage" role="status">
+                    {walletMessage}
+                  </p>
+                )}
 
-              <div className="order">
-                <h3>Transaction History</h3>
-                <p>No transactions to display yet.</p>
                 <small>
-                  Your transaction history will appear here when the
-                  transaction system is connected.
+                  Payments are processed securely through Paystack.
+                  Your wallet is credited only after payment verification.
                 </small>
               </div>
             </section>
           )}
 
+          {/* TRANSACTION HISTORY */}
+          {currentPage === 'transactions' && (
+            <section className="section">
+              <h2>My Transactions</h2>
+
+              <p className="sub">
+                View your wallet deposit history.
+              </p>
+
+              <div className="order">
+                <h3>Current Wallet Balance</h3>
+                <h2>GH₵{walletBalance.toFixed(2)}</h2>
+
+                <button
+                  className="orderButton"
+                  onClick={loadWallet}
+                  disabled={walletLoading}
+                >
+                  {walletLoading ? 'Refreshing...' : 'Refresh History'}
+                </button>
+              </div>
+
+              <div className="order">
+                <h3>Transaction History</h3>
+
+                {walletTransactions.length === 0 ? (
+                  <p>No transactions to display yet.</p>
+                ) : (
+                  <div className="transactionList">
+                    {walletTransactions.map((transaction) => (
+                      <div
+                        className="transactionItem"
+                        key={transaction.reference}
+                      >
+                        <h4>Wallet Deposit</h4>
+
+                        <p>
+                          Amount: <strong>
+                            GH₵{Number(transaction.amount).toFixed(2)}
+                          </strong>
+                        </p>
+
+                        <p>
+                          Status:{' '}
+                          <strong>{transaction.status.toUpperCase()}</strong>
+                        </p>
+
+                        <small>
+                          Reference: {transaction.reference}
+                        </small>
+
+                        <br />
+
+                        <small>
+                          {new Date(
+                            transaction.created_at
+                          ).toLocaleString()}
+                        </small>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* PROFILE */}
           {currentPage === 'profile' && (
             <section className="section">
               <h2>My Profile</h2>
+
               <p className="sub">
                 Manage your AirData GH account.
               </p>
@@ -479,16 +748,20 @@ const [walletMessage, setWalletMessage] = useState('');
             </section>
           )}
 
+          {/* CUSTOMER SUPPORT */}
           {currentPage === 'support' && (
             <section className="section">
               <h2>Customer Support</h2>
+
               <p className="sub">
                 Need help with your account or data order?
               </p>
 
               <div className="order">
                 <h3>Contact AirData GH</h3>
-                <p>Our support team is available on WhatsApp.</p>
+                <p>
+                  Our support team is available on WhatsApp.
+                </p>
 
                 <a
                   className="orderButton"
@@ -507,9 +780,11 @@ const [walletMessage, setWalletMessage] = useState('');
             </section>
           )}
 
+          {/* SETTINGS */}
           {currentPage === 'settings' && (
             <section className="section">
               <h2>Account Settings</h2>
+
               <p className="sub">
                 Customize your AirData GH experience.
               </p>
@@ -530,6 +805,7 @@ const [walletMessage, setWalletMessage] = useState('');
             </section>
           )}
 
+          {/* FOOTER */}
           <footer>
             <h2>AirData GH</h2>
             <p>Affordable data. Reliable service.</p>
