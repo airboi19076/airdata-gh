@@ -1134,3 +1134,324 @@ footer small {
     transition-duration: .01ms !important;
   }
 }
+
+/* ==========================================
+   AIRDATA GH — NEW PREMIUM SPLASH DESIGN
+   Isolated orbit classes to avoid admin CSS
+   ========================================== */
+
+.splashScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 25px 15px;
+  color: #fff;
+  background:
+    radial-gradient(ellipse at 50% 42%, #123f79 0%, transparent 48%),
+    radial-gradient(circle at 10% 10%, #087cff24, transparent 35%),
+    linear-gradient(145deg, #020817, #061a36 55%, #031027);
+  animation: airSplashAppear 1s ease both;
+}
+
+.splashScreen::before,
+.splashScreen::after {
+  content: "";
+  position: absolute;
+  border: 1px solid #39baff18;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.splashScreen::before {
+  width: 430px;
+  height: 430px;
+  animation: airBackgroundPulse 5s ease-in-out infinite;
+}
+
+.splashScreen::after {
+  width: 570px;
+  height: 570px;
+  animation: airBackgroundPulse 7s ease-in-out infinite reverse;
+}
+
+/* CENTRED LOGO STAGE */
+
+.splash-logo-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 310px;
+  height: 310px;
+  flex-shrink: 0;
+  margin-bottom: 8px;
+  isolation: isolate;
+}
+
+/* LOGO */
+
+.splash-logo {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+  border: 2px solid #48caff;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 20%, #278bff, #08254c 70%);
+  color: white;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 49px;
+  font-weight: 900;
+  letter-spacing: -5px;
+  text-shadow: 0 0 20px #43c8ff;
+  box-shadow:
+    0 0 15px #078cff,
+    0 0 40px #087cff80,
+    inset 0 0 25px #36c8ff35;
+  animation: airLogoGlow 2.5s ease-in-out infinite alternate;
+}
+
+/* ALL ORBITS STAY AROUND THE LOGO */
+
+.splashScreen .splash-orbit {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border: 1.5px solid #29baff;
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow:
+    0 0 10px #078cff80,
+    inset 0 0 10px #078cff20;
+  transform-origin: center;
+}
+
+.splash-orbit-one {
+  width: 175px;
+  height: 175px;
+  margin-left: -87.5px;
+  margin-top: -87.5px;
+  animation: airOrbitOne 5s linear infinite;
+}
+
+.splash-orbit-two {
+  width: 245px;
+  height: 125px;
+  margin-left: -122.5px;
+  margin-top: -62.5px;
+  border-color: #50d8ff !important;
+  animation: airOrbitTwo 6s linear infinite;
+}
+
+.splash-orbit-three {
+  width: 270px;
+  height: 145px;
+  margin-left: -135px;
+  margin-top: -72.5px;
+  border-color: #087cff !important;
+  animation: airOrbitThree 8s linear infinite reverse;
+}
+
+/* ORBIT LIGHT POINTS */
+
+.splash-orbit-one::after,
+.splash-orbit-two::after,
+.splash-orbit-three::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 10px #fff, 0 0 20px #00baff;
+}
+
+.splash-orbit-two::after {
+  background: #42d9ff;
+}
+
+.splash-orbit-three::after {
+  background: #168bff;
+}
+
+/* BRAND NAME */
+
+.splashScreen h1 {
+  position: relative;
+  z-index: 3;
+  margin-top: 0;
+  color: #fff;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: clamp(25px, 6vw, 34px);
+  font-weight: 900;
+  letter-spacing: 5px;
+  text-align: center;
+  text-shadow: 0 0 25px #168bff70;
+}
+
+.splashScreen > p {
+  position: relative;
+  z-index: 3;
+  margin-top: 11px;
+  color: #8bdcff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-align: center;
+}
+
+/* CONNECTION STATUS */
+
+.splash-status {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 27px;
+  color: #9ab9d9;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.splash-status span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #20e6a0;
+  box-shadow: 0 0 12px #20e6a0;
+  animation: airStatusBlink 1.4s infinite;
+}
+
+/* SKIP BUTTON */
+
+.splashScreen .skipIntro {
+  position: absolute;
+  z-index: 5;
+  bottom: 38px;
+  padding: 12px 25px;
+  border: 1px solid #168bff80;
+  border-radius: 30px;
+  background: #087cff18;
+  color: white;
+  font-size: 12px;
+  font-weight: 800;
+  backdrop-filter: blur(12px);
+  transition: .3s ease;
+}
+
+.splashScreen .skipIntro:hover {
+  border-color: #50d8ff;
+  background: #087cff;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px #087cff55;
+}
+
+/* ANIMATIONS */
+
+@keyframes airOrbitOne {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes airOrbitTwo {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes airOrbitThree {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes airLogoGlow {
+  from {
+    box-shadow: 0 0 15px #078cff,
+      0 0 30px #087cff70;
+  }
+  to {
+    box-shadow: 0 0 25px #36c8ff,
+      0 0 60px #087cff;
+  }
+}
+
+@keyframes airBackgroundPulse {
+  0%, 100% { transform: scale(.94); opacity: .3; }
+  50% { transform: scale(1.05); opacity: .8; }
+}
+
+@keyframes airSplashAppear {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes airStatusBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .25; }
+}
+
+/* MOBILE */
+
+@media (max-width: 480px) {
+  .splash-logo-stage {
+    width: 290px;
+    height: 290px;
+  }
+
+  .splash-logo {
+    width: 100px;
+    height: 100px;
+    font-size: 44px;
+  }
+
+  .splash-orbit-one {
+    width: 160px;
+    height: 160px;
+    margin-left: -80px;
+    margin-top: -80px;
+  }
+
+  .splash-orbit-two {
+    width: 225px;
+    height: 115px;
+    margin-left: -112.5px;
+    margin-top: -57.5px;
+  }
+
+  .splash-orbit-three {
+    width: 250px;
+    height: 135px;
+    margin-left: -125px;
+    margin-top: -67.5px;
+  }
+
+  .splashScreen h1 {
+    font-size: 25px;
+    letter-spacing: 3px;
+  }
+
+  .splashScreen > p {
+    font-size: 9px;
+    letter-spacing: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splashScreen *,
+  .splashScreen::before,
+  .splashScreen::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
