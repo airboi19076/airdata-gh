@@ -480,7 +480,7 @@ export default function App() {
                 <p>
                   Get affordable MTN data bundles delivered with ease.
                 </p>
-                <a href="/?page=buy-data">Buy Data Now →</a>
+                <a href="/?page=buy-data">Buy Data →</a>
               </section>
 
               <section className="section">
