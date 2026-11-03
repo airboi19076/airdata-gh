@@ -43,6 +43,11 @@ export default function App() {
 
   const [selected, setSelected] = useState(bundles[0]);
   const [phone, setPhone] = useState('');
+  const [walletBalance, setWalletBalance] = useState(0);
+const [walletTransactions, setWalletTransactions] = useState([]);
+const [depositAmount, setDepositAmount] = useState('');
+const [walletLoading, setWalletLoading] = useState(false);
+const [walletMessage, setWalletMessage] = useState('');
 
   useEffect(() => {
     authClient.getSession()
