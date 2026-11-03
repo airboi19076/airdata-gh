@@ -44,14 +44,12 @@ export default function App() {
   const [selected, setSelected] = useState(bundles[0]);
   const [phone, setPhone] = useState('');
 
-  // Wallet states
   const [walletBalance, setWalletBalance] = useState(0);
   const [walletTransactions, setWalletTransactions] = useState([]);
   const [depositAmount, setDepositAmount] = useState('');
   const [walletLoading, setWalletLoading] = useState(false);
   const [walletMessage, setWalletMessage] = useState('');
 
-  // Get the user's login session
   useEffect(() => {
     authClient.getSession()
       .then(({ data, error }) => {
@@ -62,7 +60,6 @@ export default function App() {
       .catch(() => {});
   }, []);
 
-  // Splash screen
   useEffect(() => {
     const splashTimer = setTimeout(() => {
       setShowSplash(false);
@@ -71,12 +68,10 @@ export default function App() {
     return () => clearTimeout(splashTimer);
   }, []);
 
-  // Save appearance preference
   useEffect(() => {
     localStorage.setItem('airdata-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
-  // Get the authenticated user's API token
   async function getWalletToken() {
     const token = await authClient.getJWTToken();
 
@@ -87,7 +82,6 @@ export default function App() {
     return token;
   }
 
-  // Load wallet balance and transaction history
   async function loadWallet() {
     try {
       const token = await getWalletToken();
@@ -112,7 +106,6 @@ export default function App() {
     }
   }
 
-  // Load wallet whenever a user signs in
   useEffect(() => {
     if (authUser) {
       loadWallet();
@@ -122,17 +115,14 @@ export default function App() {
     }
   }, [authUser]);
 
-  // Verify Paystack payment after returning to the website
   useEffect(() => {
     if (!authUser) return;
 
     const params = new URLSearchParams(window.location.search);
-    const reference =
-      params.get('reference') || params.get('trxref');
+    const reference = params.get('reference') || params.get('trxref');
 
     if (!reference) return;
 
-    // Remove payment reference from the address bar
     window.history.replaceState({}, '', '/?page=deposit');
     setCurrentPage('deposit');
 
@@ -170,7 +160,6 @@ export default function App() {
 
         await loadWallet();
         setDepositAmount('');
-
       } catch (error) {
         setWalletMessage(
           error.message || 'We could not verify your payment.'
@@ -183,7 +172,6 @@ export default function App() {
     verifyPayment();
   }, [authUser]);
 
-  // Start a wallet deposit using Paystack
   async function startDeposit() {
     const amount = Number(depositAmount);
 
@@ -217,9 +205,7 @@ export default function App() {
         );
       }
 
-      // Open Paystack checkout
       window.location.assign(result.authorization_url);
-
     } catch (error) {
       setWalletMessage(
         error.message || 'Could not initialize your deposit.'
@@ -228,7 +214,6 @@ export default function App() {
     }
   }
 
-  // Buy data through WhatsApp
   function orderNow() {
     if (!/^0\d{9}$/.test(phone)) {
       alert('Enter a valid 10-digit Ghana phone number.');
@@ -244,7 +229,6 @@ export default function App() {
     );
   }
 
-  // Logout
   async function logout() {
     await authClient.signOut();
 
@@ -273,16 +257,32 @@ export default function App() {
   return (
     <main className={darkMode ? 'dark-mode' : 'light-mode'}>
 
-      {/* SPLASH SCREEN */}
+      {/* PREMIUM AIRDATA GH SPLASH SCREEN */}
       {showSplash && (
         <div className="splashScreen">
-          <div className="orbit orbitOne"></div>
-          <div className="orbit orbitTwo"></div>
-          <div className="orbit orbitThree"></div>
 
-          <div className="adLogo">AD</div>
+          <div className="splash-background-glow"></div>
+
+          <div className="splash-logo-stage">
+
+            <div className="splash-orbit splash-orbit-one"></div>
+            <div className="splash-orbit splash-orbit-two"></div>
+            <div className="splash-orbit splash-orbit-three"></div>
+
+            <div className="splash-logo">
+              AD
+            </div>
+
+          </div>
+
           <h1>AIRDATA GH</h1>
+
           <p>YOUR CONNECTION. OUR PRIORITY.</p>
+
+          <div className="splash-status">
+            <span></span>
+            CONNECTING YOU TO BETTER DATA
+          </div>
 
           <button
             className="skipIntro"
@@ -290,6 +290,7 @@ export default function App() {
           >
             Skip Intro →
           </button>
+
         </div>
       )}
 
@@ -488,9 +489,7 @@ export default function App() {
                 <div className="order">
                   <h3>Available Balance</h3>
 
-                  <h2>
-                    GH₵{walletBalance.toFixed(2)}
-                  </h2>
+                  <h2>GH₵{walletBalance.toFixed(2)}</h2>
 
                   <small>
                     Your available AirData GH wallet balance.
@@ -636,9 +635,7 @@ export default function App() {
                   onClick={startDeposit}
                   disabled={walletLoading}
                 >
-                  {walletLoading
-                    ? 'Please wait...'
-                    : 'Deposit Now'}
+                  {walletLoading ? 'Please wait...' : 'Deposit Now'}
                 </button>
 
                 {walletMessage && (
