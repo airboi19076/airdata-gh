@@ -56,56 +56,64 @@ export default function Admin() {
     }
   }, [loggedIn, loadUsers]);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage('');
+  
+const handleLogin = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setMessage('');
 
-    try {
-      if (email.trim().toLowerCase() !== ADMIN_EMAIL) {
-        throw new Error('Administrator email required.');
-      }
+  let stage = 'Checking administrator email';
 
-      const result = await authClient.signIn.email({
-        email: email.trim(),
-        password,
-      });
-
-      if (result.error) {
-        throw new Error(result.error.message);
-      }
-
-      const token = result.data?.session?.access_token;
-
-if (!token) {
-  throw new Error(
-    'Sign-in succeeded, but no access token was returned. Please try again.'
-  );
-}
-
-const verification = await fetch('/api/admin/verify', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const verificationData = await verification.json();
-
-      if (!verification.ok || !verificationData.authorised) {
-        throw new Error(
-          verificationData.error || 'Administrator verification failed.'
-        );
-      }
-
-      setLoggedIn(true);
-    } catch (error) {
-      setMessage(error.message || 'Login failed. Please try again.');
-    } finally {
-      setLoading(false);
+  try {
+    if (email.trim().toLowerCase() !== ADMIN_EMAIL) {
+      throw new Error('Administrator email required.');
     }
-  };
 
+    stage = 'Signing in through Neon Auth';
+
+    const result = await authClient.signIn.email({
+      email: email.trim(),
+      password,
+    });
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    stage = 'Reading authentication token';
+
+    const token = result.data?.session?.access_token;
+
+    if (!token) {
+      throw new Error('No access token was returned.');
+    }
+
+    stage = 'Verifying administrator access';
+
+    const verification = await fetch('/api/admin/verify', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const verificationData = await verification.json();
+
+    if (!verification.ok || !verificationData.authorised) {
+      throw new Error(
+        `Verification API returned ${verification.status}: ${
+          verificationData.error || 'Access denied'
+        }`
+      );
+    }
+
+    setLoggedIn(true);
+  } catch (error) {
+    setMessage(`${stage}: ${error.message || 'Login failed.'}`);
+  } finally {
+    setLoading(false);
+  }
+};
   const handleLogout = async () => {
     try {
       await authClient.signOut();
