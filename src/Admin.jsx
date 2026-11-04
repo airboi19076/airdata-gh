@@ -75,9 +75,15 @@ export default function Admin() {
         throw new Error(result.error.message);
       }
 
-      const token = await authClient.getJWTToken();
+      const token = result.data?.session?.access_token;
 
-      const verification = await fetch('/api/admin/verify', {
+if (!token) {
+  throw new Error(
+    'Sign-in succeeded, but no access token was returned. Please try again.'
+  );
+}
+
+const verification = await fetch('/api/admin/verify', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
