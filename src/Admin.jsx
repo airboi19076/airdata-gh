@@ -46,12 +46,15 @@ export default function Admin() {
         <div style={styles.dashboard}>
           <h1 style={styles.heading}>AirData GH Admin</h1>
           <p>Welcome, Administrator.</p>
+
           <div style={styles.grid}>
             {['Dashboard', 'Users', 'Orders', 'Wallets', 'Deposits', 'Settings'].map((item) => (
               <button
                 key={item}
                 style={styles.card}
-                onClick={() => window.alert(`${item} section is awaiting secure data connection.`)}
+                onClick={() =>
+                  window.alert(`${item} section is awaiting secure data connection.`)
+                }
               >
                 <h3>{item}</h3>
                 <p>Open {item} management</p>
@@ -66,153 +69,166 @@ export default function Admin() {
 
   return (
     <main className="admin-login-page">
-      <div className="login-background">
-        <div className="login-glow glow-one"></div>
-        <div className="login-glow glow-two"></div>
-        <div className="login-grid"></div>
-        <div className="floating-orb orb-one"></div>
-        <div className="floating-orb orb-two"></div>
-        <div className="floating-orb orb-three"></div>
-      </div>
+      <div className="admin-background-glow glow-left" />
+      <div className="admin-background-glow glow-right" />
 
-      <div className="login-layout">
-        <section className="login-showcase">
+      <div className="admin-container">
+
+        <header className="admin-header">
           <div className="admin-brand">
-            <div className="orbital-logo">
-              <div className="orbit orbit-one"></div>
-              <div className="orbit orbit-two"></div>
-              <div className="orbit orbit-three"></div>
-              <div className="orbit-core">AD</div>
-              <span className="orbit-star">✦</span>
-            </div>
-            <span>AIRDATA <strong>GH</strong></span>
-          </div>
-
-          <div className="showcase-content">
-            <span className="showcase-label">
-              <span className="live-dot"></span>
-              ADMIN CONTROL CENTER
-            </span>
-
-            <h1>
-              Your platform.
-              <br />
-              <span>Your control.</span>
-            </h1>
-
-            <p>
-              A smarter command center for managing your AirData GH
-              platform with confidence, clarity and complete control.
-            </p>
-
-            <div className="showcase-features">
-              <div className="feature-item">
-                <span className="feature-icon">✦</span>
-                <div>
-                  <strong>Smart Management</strong>
-                  <small>Everything in one place</small>
-                </div>
-              </div>
-              <div className="feature-item">
-                <span className="feature-icon">◈</span>
-                <div>
-                  <strong>Secure Access</strong>
-                  <small>Administrator sign-in</small>
-                </div>
-              </div>
+            <div className="admin-logo">AD</div>
+            <div className="admin-brand-text">
+              AIRDATA <span>GH</span>
             </div>
           </div>
+          <div className="admin-header-status">
+            <span className="admin-status-dot" />
+            ADMINISTRATOR PORTAL
+          </div>
+        </header>
 
-          <div className="showcase-footer">
-            AIRDATA GH <span>•</span> MANAGEMENT SYSTEM
+        <section className="admin-intro">
+          <div className="admin-label">
+            <span className="admin-label-line" />
+            YOUR MANAGEMENT SPACE
+          </div>
+
+          <h1>
+            Control your
+            <br />
+            <span>business smarter.</span>
+          </h1>
+
+          <p>
+            Welcome to the AirData GH command center.
+            Manage your platform with clarity, confidence
+            and secure administrator access.
+          </p>
+
+          <div className="admin-highlights">
+            <div className="admin-highlight">
+              <span className="highlight-icon">✦</span>
+              <div>
+                <strong>Smart Management</strong>
+                <small>Your platform, one place</small>
+              </div>
+            </div>
+
+            <div className="admin-highlight">
+              <span className="highlight-icon">◇</span>
+              <div>
+                <strong>Secure Access</strong>
+                <small>Protected administrator login</small>
+              </div>
+            </div>
           </div>
         </section>
 
-        <section className="login-form-side">
-          <div className="login-card">
-            <div className="login-card-top">
-              <div className="login-mini-logo">AD</div>
-              <span className="secure-label">
-                <span className="live-dot"></span>
-                SECURE PORTAL
-              </span>
+        <section className="admin-login-card">
+
+          <div className="admin-card-header">
+            <div className="admin-card-logo">AD</div>
+
+            <div className="admin-secure-status">
+              <span />
+              SECURE CONNECTION
+            </div>
+          </div>
+
+          <div className="admin-card-heading">
+            <span className="admin-eyebrow">WELCOME BACK</span>
+            <h2>Admin <span>Login</span></h2>
+            <p>Sign in to access your management dashboard.</p>
+          </div>
+
+          <form onSubmit={handleLogin}>
+
+            <label htmlFor="admin-email">
+              Administrator Email
+            </label>
+
+            <div className="admin-input-box">
+              <span className="admin-input-icon">✉</span>
+              <input
+                id="admin-email"
+                type="email"
+                placeholder="Enter your admin email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="username"
+                required
+              />
             </div>
 
-            <div className="login-heading">
-              <span className="eyebrow">WELCOME BACK</span>
-              <h2>Admin <span>Login</span></h2>
-              <p>Sign in to access your management dashboard.</p>
-            </div>
+            <label htmlFor="admin-password">
+              Password
+            </label>
 
-            <form onSubmit={handleLogin}>
-              <label htmlFor="admin-email">Administrator Email</label>
-              <div className="login-input-wrap">
-                <span className="input-icon">✉</span>
-                <input
-                  id="admin-email"
-                  type="email"
-                  placeholder="Enter your admin email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="username"
-                  required
-                />
-              </div>
-
-              <label htmlFor="admin-password">Password</label>
-              <div className="login-input-wrap">
-                <span className="input-icon">♙</span>
-                <input
-                  id="admin-password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                  required
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
-
-              {message && (
-                <div className="login-error">
-                  <span>!</span> {message}
-                </div>
-              )}
+            <div className="admin-input-box">
+              <span className="admin-input-icon">◆</span>
+              <input
+                id="admin-password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+              />
 
               <button
-                className="admin-login-button"
-                type="submit"
-                disabled={loading}
+                type="button"
+                className="admin-password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
               >
-                <span>{loading ? 'VERIFYING ACCESS...' : 'ACCESS ADMIN DASHBOARD'}</span>
-                {!loading && <span className="button-arrow">→</span>}
-                {loading && <span className="login-spinner"></span>}
+                {showPassword ? 'HIDE' : 'SHOW'}
               </button>
-            </form>
-
-            <div className="login-divider">
-              <span></span>
-              <small>AUTHORIZED PERSONNEL ONLY</small>
-              <span></span>
             </div>
 
-            <div className="login-security">
-              <span>◈</span>
-              Your session is protected by account authentication.
-            </div>
+            {message && (
+              <div className="admin-error">
+                <span>!</span>
+                {message}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="admin-submit-button"
+              disabled={loading}
+            >
+              <span>
+                {loading ? 'VERIFYING ACCESS...' : 'SIGN IN TO ADMIN PORTAL'}
+              </span>
+
+              {loading ? (
+                <span className="admin-spinner" />
+              ) : (
+                <span className="admin-arrow">→</span>
+              )}
+            </button>
+
+          </form>
+
+          <div className="admin-divider">
+            <span />
+            AUTHORIZED PERSONNEL ONLY
+            <span />
           </div>
 
-          <p className="login-copyright">
-            © {new Date().getFullYear()} AirData GH. All rights reserved.
-          </p>
+          <div className="admin-security-note">
+            <span>◇</span>
+            Your account is protected by secure authentication.
+          </div>
+
         </section>
+
+        <footer className="admin-footer">
+          © {new Date().getFullYear()} AIRDATA GH
+          <span>•</span>
+          ALL RIGHTS RESERVED
+        </footer>
+
       </div>
     </main>
   );
