@@ -80,7 +80,7 @@ const handleLogin = async (e) => {
       throw new Error(result.error.message);
     }
 
-    stage = 'Reading authentication token';
+    stage = 'Refreshing login session';
 
 const sessionResult = await authClient.getSession();
 
@@ -88,12 +88,12 @@ if (sessionResult.error) {
   throw new Error(sessionResult.error.message);
 }
 
-const token =
-  sessionResult.data?.session?.access_token ||
-  await authClient.getJWTToken();
+stage = 'Requesting JWT from Neon Auth';
+
+const token = await authClient.getJWTToken();
 
 if (!token) {
-  throw new Error('No access token was returned. Please log in again.');
+  throw new Error('Neon Auth returned no JWT token.');
 }
 
     stage = 'Verifying administrator access';
