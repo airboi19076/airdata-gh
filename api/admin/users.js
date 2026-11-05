@@ -3,25 +3,17 @@ import { requireUser, getDatabase } from '../_lib/wallet.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
-    return res.status(405).json({
-      error: 'Method not allowed.'
-    });
+    return res.status(405).json({ error: 'Method not allowed.' });
   }
 
-  const adminEmail = String(
-    process.env.ADMIN_EMAIL || ''
-  ).trim().toLowerCase();
+  const adminEmail = String(process.env.ADMIN_EMAIL || '')
+    .trim()
+    .toLowerCase();
 
-  if (!adminEmail) {
-    return res.status(500).json({
-      error: 'Admin access is not configured.'
-    });
-  }
+  const admin = await requireUser(req, res);
+  if (!admin) return;
 
-  const user = await requireUser(req, res);
-  if (!user) return;
-
-  if (user.email !== adminEmail) {
+  if (!adminEmail || admin.email !== adminEmail) {
     return res.status(403).json({
       error: 'Administrator access required.'
     });
@@ -32,19 +24,21 @@ export default async function handler(req, res) {
 
     const users = await sql`
       SELECT
-        id,
-        name,
-        email,
-        "emailVerified",
-        "createdAt",
-        COALESCE(banned, false) AS banned
-      FROM neon_auth."user"
-      ORDER BY "createdAt" DESC
-      LIMIT 200
+        u.id,
+        u.name,
+        u.email,
+        u."emailVerified",
+        u."createdAt",
+        COALESCE(u.banned, false) AS banned,
+        p.phone
+      FROM neon_auth."user" u
+      LEFT JOIN public.airdata_customer_profiles p
+        ON p.user_id = u.id
+      ORDER BY u."createdAt" DESC
+      LIMIT 500
     `;
 
     return res.status(200).json({ users });
-
   } catch (error) {
     console.error('Admin users lookup failed:', error);
 
