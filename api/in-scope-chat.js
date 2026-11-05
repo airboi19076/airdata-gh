@@ -76,7 +76,6 @@ Rules:
           },
           contents,
           generationConfig: {
-            temperature: 0.4,
             maxOutputTokens: 350
           }
         })
