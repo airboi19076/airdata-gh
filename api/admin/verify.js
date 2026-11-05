@@ -54,11 +54,11 @@ export default async function handler(req, res) {
       email
     });
 
-  } catch (error) {
-    console.error('Admin verification failed:', error.message);
+    } catch (error) {
+    console.error('Admin verification failed:', error);
 
     return res.status(401).json({
-      error: 'Your session could not be verified. Please sign in again.'
+      error: `JWT verification failed: ${error.code || error.name}: ${error.message}`
     });
   }
 }
