@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     );
 
     const { payload } = await jwtVerify(token, JWKS, {
-      issuer: AUTH_BASE_URL
+      issuer: new URL(AUTH_BASE_URL).origin
     });
 
     const email = String(payload.email || '')
