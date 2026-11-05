@@ -73,7 +73,7 @@ const handleLogin = async (e) => {
 
     const result = await authClient.signIn.email({
       email: email.trim(),
-      password,
+      password
     });
 
     if (result.error) {
