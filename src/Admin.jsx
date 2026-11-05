@@ -88,12 +88,12 @@ if (sessionResult.error) {
   throw new Error(sessionResult.error.message);
 }
 
-stage = 'Requesting JWT from Neon Auth';
+stage = 'Reading JWT from Neon Auth session';
 
-const token = await authClient.getJWTToken();
+const token = sessionResult.data?.session?.access_token;
 
 if (!token) {
-  throw new Error('Neon Auth returned no JWT token.');
+  throw new Error('No access token was found in the Neon Auth session.');
 }
 
     stage = 'Verifying administrator access';
