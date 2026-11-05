@@ -1,4 +1,4 @@
-
+import InScopeAI from './InScopeAI';
 import React, { useEffect, useState } from 'react';
 import { authClient } from './auth-client';
 import Admin from './Admin';
@@ -811,6 +811,7 @@ export default function App() {
           </footer>
         </>
       )}
+      <InScopeAI />
     </main>
   );
 }
