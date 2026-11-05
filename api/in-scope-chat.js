@@ -1,138 +1,115 @@
-import React, { useEffect, useRef, useState } from 'react';
+export default async function handler(req, res) {
+  res.setHeader('Cache-Control', 'no-store');
 
-export default function InScopeAI() {
-  const [open, setOpen] = useState(false);
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
+  if (req.method !== 'POST') {
+    return res.status(405).json({
+      error: 'Method not allowed.'
+    });
+  }
 
-  const [messages, setMessages] = useState([
-    {
-      role: 'model',
-      text: 'Hello! 👋 I am In Scope AI. How can I help you with AirData GH today?'
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    return res.status(503).json({
+      error: 'AI API key is missing.'
+    });
+  }
+
+  try {
+    const messages = Array.isArray(req.body?.messages)
+      ? req.body.messages.slice(-8)
+      : [];
+
+    const contents = messages
+      .filter(item =>
+        ['user', 'model'].includes(item.role) &&
+        typeof item.text === 'string' &&
+        item.text.trim()
+      )
+      .map(item => ({
+        role: item.role,
+        parts: [{ text: item.text.slice(0, 1500) }]
+      }));
+
+    if (
+      !contents.length ||
+      contents[contents.length - 1].role !== 'user'
+    ) {
+      return res.status(400).json({
+        error: 'Please enter a message.'
+      });
     }
-  ]);
 
-  const bottomRef = useRef(null);
+    const systemPrompt = `
+You are In Scope AI, the customer support assistant for AirData GH.
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, loading]);
+Only answer questions about AirData GH, including:
+- Customer registration and login.
+- MTN data bundles and prices shown on the website.
+- Bundle orders.
+- Wallet deposits and payments.
+- Customer support.
 
-  async function sendMessage(event) {
-    event.preventDefault();
+Use simple, friendly English.
 
-    const question = message.trim();
+Rules:
+- Do not answer unrelated questions.
+- Never invent prices. Refer customers to the website.
+- Never claim a payment or order succeeded without verified records.
+- You cannot view private customer accounts or transactions.
+- Never request passwords, PINs, OTPs or full card details.
+- For human assistance, provide WhatsApp support: 0548 206 175.
+- Never pretend to perform actions on customer accounts.
+`;
 
-    if (!question || loading) return;
-
-    const updatedMessages = [
-      ...messages,
-      { role: 'user', text: question }
-    ];
-
-    setMessages(updatedMessages);
-    setMessage('');
-    setLoading(true);
-
-    try {
-      const response = await fetch('/api/in-scope-chat', {
+    const response = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' +
+        encodeURIComponent(apiKey),
+      {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          messages: updatedMessages.slice(-8)
+          systemInstruction: {
+            parts: [{ text: systemPrompt }]
+          },
+          contents,
+          generationConfig: {
+            temperature: 0.4,
+            maxOutputTokens: 350
+          }
         })
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Please try again.');
       }
+    );
 
-      setMessages(previous => [
-        ...previous,
-        { role: 'model', text: result.reply }
-      ]);
+    const data = await response.json();
 
-    } catch (error) {
-      setMessages(previous => [
-        ...previous,
-        {
-          role: 'model',
-          text: error.message || 'Sorry, something went wrong.'
-        }
-      ]);
-    } finally {
-      setLoading(false);
+    if (!response.ok) {
+      console.error('Gemini API error:', data);
+      return res.status(502).json({
+        error: 'In Scope AI is temporarily unavailable. Please try again.'
+      });
     }
+
+    const reply = data.candidates?.[0]?.content?.parts
+      ?.map(part => part.text || '')
+      .join('')
+      .trim();
+
+    if (!reply) {
+      return res.status(502).json({
+        error: 'No response received. Please try again.'
+      });
+    }
+
+    return res.status(200).json({ reply });
+
+  } catch (error) {
+    console.error('In Scope AI error:', error);
+
+    return res.status(500).json({
+      error: 'Something went wrong. Please try again.'
+    });
   }
-
-  return (
-    <>
-      <button
-        className="scope-launcher"
-        onClick={() => setOpen(!open)}
-      >
-        {open ? '✕ Close' : '💬 Need Help? Ask In Scope AI'}
-      </button>
-
-      {open && (
-        <section className="scope-chat">
-          <div className="scope-header">
-            <div>
-              <strong>In Scope AI</strong>
-              <small>AirData GH Customer Assistant</small>
-            </div>
-
-            <button onClick={() => setOpen(false)}>
-              ✕
-            </button>
-          </div>
-
-          <div className="scope-messages">
-            {messages.map((item, index) => (
-              <div
-                key={index}
-                className={
-                  item.role === 'user'
-                    ? 'scope-message scope-user'
-                    : 'scope-message scope-bot'
-                }
-              >
-                {item.text}
-              </div>
-            ))}
-
-            {loading && (
-              <div className="scope-message scope-bot">
-                In Scope AI is typing...
-              </div>
-            )}
-
-            <div ref={bottomRef} />
-          </div>
-
-          <form className="scope-form" onSubmit={sendMessage}>
-            <input
-              value={message}
-              onChange={event => setMessage(event.target.value)}
-              placeholder="Type your question..."
-              maxLength={1500}
-              disabled={loading}
-            />
-
-            <button disabled={loading || !message.trim()}>
-              Send
-            </button>
-          </form>
-
-          <div className="scope-note">
-            In Scope AI can help with AirData GH questions.
-          </div>
-        </section>
-      )}
-    </>
-  );
-    }
+}
