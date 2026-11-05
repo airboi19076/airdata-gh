@@ -17,45 +17,47 @@ export default function Admin() {
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [deleteSuccess, setDeleteSuccess] = useState('');
+  const [deletingUserId, setDeletingUserId] = useState('');
 
   const loadUsers = useCallback(async () => {
-  setUsersLoading(true);
-  setUsersError('');
+    setUsersLoading(true);
+    setUsersError('');
 
-  try {
-    const tokenResult = await authClient.token();
+    try {
+      const tokenResult = await authClient.token();
 
-    if (tokenResult.error) {
-      throw new Error(tokenResult.error.message);
+      if (tokenResult.error) {
+        throw new Error(tokenResult.error.message);
+      }
+
+      const token = tokenResult.data?.token;
+
+      if (!token) {
+        throw new Error('No access token received. Please sign in again.');
+      }
+
+      const response = await fetch('/api/admin/users', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Could not load registered users.');
+      }
+
+      setUsers(data.users || []);
+    } catch (error) {
+      setUsersError(error.message || 'Failed to load users.');
+    } finally {
+      setUsersLoading(false);
     }
-
-    const token = tokenResult.data?.token;
-
-    if (!token) {
-      throw new Error('No access token received. Please sign in again.');
-    }
-
-    const response = await fetch('/api/admin/users', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Could not load registered users.');
-    }
-
-    setUsers(data.users || []);
-
-  } catch (error) {
-    setUsersError(error.message || 'Failed to load users.');
-  } finally {
-    setUsersLoading(false);
-  }
-}, [])
+  }, []);
 
   useEffect(() => {
     if (loggedIn) {
@@ -63,70 +65,70 @@ export default function Admin() {
     }
   }, [loggedIn, loadUsers]);
 
-  
-const handleLogin = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setMessage('');
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage('');
 
-  let stage = 'Checking administrator email';
+    let stage = 'Checking administrator email';
 
-  try {
-    if (email.trim().toLowerCase() !== ADMIN_EMAIL) {
-      throw new Error('Administrator email required.');
+    try {
+      if (email.trim().toLowerCase() !== ADMIN_EMAIL) {
+        throw new Error('Administrator email required.');
+      }
+
+      stage = 'Signing in through Neon Auth';
+
+      const result = await authClient.signIn.email({
+        email: email.trim(),
+        password,
+      });
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+
+      stage = 'Requesting administrator access token';
+
+      const tokenResult = await authClient.token();
+
+      if (tokenResult.error) {
+        throw new Error(tokenResult.error.message);
+      }
+
+      const token = tokenResult.data?.token;
+
+      if (!token) {
+        throw new Error('Neon Auth did not return an access token.');
+      }
+
+      stage = 'Verifying administrator access';
+
+      const verification = await fetch('/api/admin/verify', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const verificationData = await verification.json();
+
+      if (!verification.ok || !verificationData.authorised) {
+        throw new Error(
+          `Verification API returned ${verification.status}: ${
+            verificationData.error || 'Access denied'
+          }`
+        );
+      }
+
+      setLoggedIn(true);
+    } catch (error) {
+      setMessage(`${stage}: ${error.message || 'Login failed.'}`);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    stage = 'Signing in through Neon Auth';
-
-    const result = await authClient.signIn.email({
-      email: email.trim(),
-      password
-    });
-
-    if (result.error) {
-      throw new Error(result.error.message);
-    }
-
-    stage = 'Requesting administrator access token';
-
-const tokenResult = await authClient.token();
-
-if (tokenResult.error) {
-  throw new Error(tokenResult.error.message);
-}
-
-const token = tokenResult.data?.token;
-
-if (!token) {
-  throw new Error('Neon Auth did not return an access token.');
-}
-
-    stage = 'Verifying administrator access';
-
-    const verification = await fetch('/api/admin/verify', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const verificationData = await verification.json();
-
-    if (!verification.ok || !verificationData.authorised) {
-      throw new Error(
-        `Verification API returned ${verification.status}: ${
-          verificationData.error || 'Access denied'
-        }`
-      );
-    }
-
-    setLoggedIn(true);
-  } catch (error) {
-    setMessage(`${stage}: ${error.message || 'Login failed.'}`);
-  } finally {
-    setLoading(false);
-  }
-};
   const handleLogout = async () => {
     try {
       await authClient.signOut();
@@ -138,6 +140,75 @@ if (!token) {
     setUsers([]);
     setPassword('');
     setActiveSection('Dashboard');
+    setDeleteError('');
+    setDeleteSuccess('');
+  };
+
+  const handleDeleteUser = async (user) => {
+    if (!user?.id) {
+      setDeleteError('Customer ID is missing.');
+      return;
+    }
+
+    if (
+      String(user.email || '').trim().toLowerCase() === ADMIN_EMAIL
+    ) {
+      setDeleteError('The administrator account cannot be deleted.');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to permanently delete ${user.name || user.email}'s account? This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    setDeletingUserId(user.id);
+    setDeleteError('');
+    setDeleteSuccess('');
+
+    try {
+      const tokenResult = await authClient.token();
+
+      if (tokenResult.error) {
+        throw new Error(tokenResult.error.message);
+      }
+
+      const token = tokenResult.data?.token;
+
+      if (!token) {
+        throw new Error('No access token received. Please sign in again.');
+      }
+
+      const response = await fetch('/api/admin/delete-user', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Could not delete customer account.');
+      }
+
+      setUsers((currentUsers) =>
+        currentUsers.filter((item) => item.id !== user.id)
+      );
+
+      setDeleteSuccess(
+        `${user.name || user.email}'s account was deleted successfully.`
+      );
+    } catch (error) {
+      setDeleteError(error.message || 'Account deletion failed.');
+    } finally {
+      setDeletingUserId('');
+    }
   };
 
   const menuItems = [
@@ -155,8 +226,12 @@ if (!token) {
         <div style={styles.dashboard}>
           <header style={styles.topbar}>
             <div>
-              <h1 style={styles.heading}>AIRDATA <span style={{color:'#27d9ff'}}>GH</span></h1>
-              <p style={styles.subheading}>Administrator Control Center</p>
+              <h1 style={styles.heading}>
+                AIRDATA <span style={{ color: '#27d9ff' }}>GH</span>
+              </h1>
+              <p style={styles.subheading}>
+                Administrator Control Center
+              </p>
             </div>
 
             <button style={styles.logout} onClick={handleLogout}>
@@ -223,7 +298,11 @@ if (!token) {
                 <p style={styles.error}>{usersError}</p>
               )}
 
-              <button style={styles.refreshButton} onClick={loadUsers}>
+              <button
+                style={styles.refreshButton}
+                onClick={loadUsers}
+                disabled={usersLoading}
+              >
                 {usersLoading ? 'Refreshing...' : '↻ Refresh Dashboard'}
               </button>
             </section>
@@ -233,9 +312,11 @@ if (!token) {
             <section>
               <div style={styles.sectionHeader}>
                 <div>
-                  <h2 style={styles.sectionTitle}>Registered Customers</h2>
+                  <h2 style={styles.sectionTitle}>
+                    Registered Customers
+                  </h2>
                   <p style={styles.subheading}>
-                    Customers who have created an AirData GH account.
+                    View customer details and manage registered accounts.
                   </p>
                 </div>
 
@@ -256,10 +337,20 @@ if (!token) {
                 <p style={styles.error}>{usersError}</p>
               )}
 
+              {deleteError && (
+                <p style={styles.error}>{deleteError}</p>
+              )}
+
+              {deleteSuccess && (
+                <p style={styles.success}>{deleteSuccess}</p>
+              )}
+
               {usersLoading ? (
                 <p style={styles.empty}>Loading customer accounts...</p>
               ) : users.length === 0 && !usersError ? (
-                <p style={styles.empty}>No registered customers found yet.</p>
+                <p style={styles.empty}>
+                  No registered customers found yet.
+                </p>
               ) : (
                 <div style={styles.tableWrapper}>
                   <table style={styles.table}>
@@ -267,38 +358,87 @@ if (!token) {
                       <tr>
                         <th style={styles.th}>Customer</th>
                         <th style={styles.th}>Email</th>
+                        <th style={styles.th}>Phone Number</th>
                         <th style={styles.th}>Verification</th>
                         <th style={styles.th}>Registration Date</th>
+                        <th style={styles.th}>Action</th>
                       </tr>
                     </thead>
 
                     <tbody>
-                      {users.map((user) => (
-                        <tr key={user.id}>
-                          <td style={styles.td}>{user.name || 'Customer'}</td>
-                          <td style={styles.td}>{user.email}</td>
-                          <td style={styles.td}>
-                            <span
-                              style={{
-                                ...styles.status,
-                                background: user.emailVerified
-                                  ? '#123f32'
-                                  : '#49351b',
-                                color: user.emailVerified
-                                  ? '#64e6ac'
-                                  : '#ffd27b',
-                              }}
-                            >
-                              {user.emailVerified ? 'Verified' : 'Not verified'}
-                            </span>
-                          </td>
-                          <td style={styles.td}>
-                            {user.createdAt
-                              ? new Date(user.createdAt).toLocaleDateString()
-                              : '—'}
-                          </td>
-                        </tr>
-                      ))}
+                      {users.map((user) => {
+                        const isAdmin =
+                          String(user.email || '').trim().toLowerCase() ===
+                          ADMIN_EMAIL;
+
+                        return (
+                          <tr key={user.id}>
+                            <td style={styles.td}>
+                              {user.name || 'Customer'}
+                              {isAdmin && (
+                                <span style={styles.adminTag}>
+                                  ADMIN
+                                </span>
+                              )}
+                            </td>
+
+                            <td style={styles.td}>
+                              {user.email || '—'}
+                            </td>
+
+                            <td style={styles.td}>
+                              {user.phone || 'Not provided'}
+                            </td>
+
+                            <td style={styles.td}>
+                              <span
+                                style={{
+                                  ...styles.status,
+                                  background: user.emailVerified
+                                    ? '#123f32'
+                                    : '#49351b',
+                                  color: user.emailVerified
+                                    ? '#64e6ac'
+                                    : '#ffd27b',
+                                }}
+                              >
+                                {user.emailVerified
+                                  ? 'Verified'
+                                  : 'Not verified'}
+                              </span>
+                            </td>
+
+                            <td style={styles.td}>
+                              {user.createdAt
+                                ? new Date(user.createdAt).toLocaleString()
+                                : '—'}
+                            </td>
+
+                            <td style={styles.td}>
+                              {isAdmin ? (
+                                <span style={styles.protected}>
+                                  Protected
+                                </span>
+                              ) : (
+                                <button
+                                  style={{
+                                    ...styles.deleteButton,
+                                    ...(deletingUserId === user.id
+                                      ? styles.disabledDelete
+                                      : {}),
+                                  }}
+                                  onClick={() => handleDeleteUser(user)}
+                                  disabled={Boolean(deletingUserId)}
+                                >
+                                  {deletingUserId === user.id
+                                    ? 'Deleting...'
+                                    : 'Delete Account'}
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -306,14 +446,15 @@ if (!token) {
             </section>
           )}
 
-          {activeSection !== 'Dashboard' && activeSection !== 'Users' && (
-            <section style={styles.placeholder}>
-              <h2 style={styles.sectionTitle}>{activeSection}</h2>
-              <p style={styles.subheading}>
-                This section will be connected to the live website in our next steps.
-              </p>
-            </section>
-          )}
+          {activeSection !== 'Dashboard' &&
+            activeSection !== 'Users' && (
+              <section style={styles.placeholder}>
+                <h2 style={styles.sectionTitle}>{activeSection}</h2>
+                <p style={styles.subheading}>
+                  This section will be connected to the live website in our next steps.
+                </p>
+              </section>
+            )}
 
           <footer style={styles.footer}>
             AIRDATA GH ADMINISTRATION
@@ -605,7 +746,7 @@ const styles = {
   table: {
     width: '100%',
     borderCollapse: 'collapse',
-    minWidth: '650px',
+    minWidth: '1000px',
     textAlign: 'left',
   },
   th: {
@@ -613,6 +754,7 @@ const styles = {
     color: '#27d9ff',
     borderBottom: '1px solid #24496b',
     fontSize: '13px',
+    whiteSpace: 'nowrap',
   },
   td: {
     padding: '15px',
@@ -624,6 +766,35 @@ const styles = {
     padding: '6px 9px',
     borderRadius: '20px',
     fontSize: '11px',
+    whiteSpace: 'nowrap',
+  },
+  adminTag: {
+    display: 'inline-block',
+    marginLeft: '8px',
+    padding: '4px 7px',
+    borderRadius: '5px',
+    background: '#174b69',
+    color: '#73ddff',
+    fontSize: '10px',
+    fontWeight: 800,
+  },
+  protected: {
+    color: '#64e6ac',
+    fontSize: '12px',
+    fontWeight: 700,
+  },
+  deleteButton: {
+    background: '#a92f42',
+    color: '#ffffff',
+    border: '1px solid #e74755',
+    borderRadius: '7px',
+    padding: '9px 12px',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
+  disabledDelete: {
+    opacity: 0.6,
+    cursor: 'not-allowed',
   },
   empty: {
     padding: '25px',
@@ -633,6 +804,12 @@ const styles = {
   error: {
     color: '#ff8585',
     background: '#3d2029',
+    padding: '12px',
+    borderRadius: '9px',
+  },
+  success: {
+    color: '#64e6ac',
+    background: '#123f32',
     padding: '12px',
     borderRadius: '9px',
   },
