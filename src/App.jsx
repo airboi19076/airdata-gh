@@ -249,7 +249,6 @@ export default function App() {
     return <Admin />;
   }
 
-  // CUSTOMER NAME FOR PERSONALIZED DASHBOARD GREETING
   const customerName =
     authUser?.name?.trim() ||
     authUser?.email?.split('@')[0] ||
@@ -732,21 +731,76 @@ export default function App() {
                 e.preventDefault();
 
                 const formData = new FormData(e.currentTarget);
-                const email = String(formData.get('email') || '');
+                const email = String(formData.get('email') || '').trim();
                 const password = String(formData.get('password') || '');
-                const name = String(formData.get('name') || '');
+                const name = String(formData.get('name') || '').trim();
+                const signupPhone = String(
+                  formData.get('phone') || ''
+                ).trim();
 
                 setAuthMessage('Please wait...');
 
                 try {
                   let result;
+                  let phoneSaved = true;
 
                   if (authMode === 'signup') {
+                    if (!/^0\d{9}$/.test(signupPhone)) {
+                      throw new Error(
+                        'Enter a valid 10-digit Ghana phone number.'
+                      );
+                    }
+
                     result = await authClient.signUp.email({
                       name,
                       email,
                       password
                     });
+
+                    if (result.error) {
+                      throw new Error(
+                        result.error.message || 'Account creation failed.'
+                      );
+                    }
+
+                    // Save the customer's phone number after signup.
+                    try {
+                      const token = await authClient.getJWTToken();
+
+                      if (!token) {
+                        phoneSaved = false;
+                      } else {
+                        const phoneResponse = await fetch(
+                          '/api/customer/profile',
+                          {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                              Authorization: `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                              phone: signupPhone
+                            })
+                          }
+                        );
+
+                        const phoneResult = await phoneResponse.json();
+
+                        if (!phoneResponse.ok) {
+                          phoneSaved = false;
+                          console.error(
+                            'Phone number could not be saved:',
+                            phoneResult.error
+                          );
+                        }
+                      }
+                    } catch (phoneError) {
+                      phoneSaved = false;
+                      console.error(
+                        'Phone number saving error:',
+                        phoneError
+                      );
+                    }
                   } else {
                     result = await authClient.signIn.email({
                       email,
@@ -768,11 +822,15 @@ export default function App() {
                     null
                   );
 
-                  setAuthMessage(
-                    authMode === 'signup'
-                      ? 'Your account has been created successfully!'
-                      : 'Login successful! Welcome back.'
-                  );
+                  if (authMode === 'signup') {
+                    setAuthMessage(
+                      phoneSaved
+                        ? 'Your account has been created successfully!'
+                        : 'Your account was created, but your phone number could not be saved. Please contact support.'
+                    );
+                  } else {
+                    setAuthMessage('Login successful! Welcome back.');
+                  }
                 } catch (error) {
                   setAuthMessage(
                     error.message || 'Something went wrong. Please try again.'
@@ -795,6 +853,8 @@ export default function App() {
                     type="tel"
                     name="phone"
                     placeholder="e.g. 0241234567"
+                    pattern="0[0-9]{9}"
+                    maxLength={10}
                     required
                   />
                 </>
@@ -876,7 +936,6 @@ export default function App() {
               <section id="dashboard" className="hero">
                 <p className="tag">FAST • AFFORDABLE • RELIABLE</p>
 
-                {/* PERSONALIZED CUSTOMER GREETING */}
                 <h2>Welcome to AirData GH, {customerName}!</h2>
 
                 <p>
@@ -1305,4 +1364,4 @@ export default function App() {
       <InScopeAI />
     </main>
   );
-                      }
+}
