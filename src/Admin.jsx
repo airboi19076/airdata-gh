@@ -55,21 +55,7 @@ export default function Admin() {
   } finally {
     setUsersLoading(false);
   }
-}, []);
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Could not load registered users.');
-      }
-
-      setUsers(data.users || []);
-    } catch (error) {
-      setUsersError(error.message || 'Failed to load users.');
-    } finally {
-      setUsersLoading(false);
-    }
-  }, []);
+}, [])
 
   useEffect(() => {
     if (loggedIn) {
