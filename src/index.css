@@ -1454,4 +1454,145 @@ footer small {
     animation-iteration-count: 1 !important;
   }
 }
+/* IN SCOPE AI CHAT */
 
+.scope-launcher {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 9998;
+  border: none;
+  border-radius: 40px;
+  padding: 15px 20px;
+  background: linear-gradient(110deg, #087cff, #0755c7);
+  color: white;
+  font-weight: 800;
+  font-size: 13px;
+  box-shadow: 0 8px 28px #0755c755;
+}
+
+.scope-chat {
+  position: fixed;
+  right: 18px;
+  bottom: 82px;
+  z-index: 9999;
+  width: min(370px, calc(100vw - 28px));
+  height: min(510px, calc(100vh - 120px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 19px;
+  background: white;
+  color: #13233d;
+  box-shadow: 0 15px 55px #071a3640;
+  border: 1px solid #dce7f5;
+}
+
+.scope-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 17px;
+  color: white;
+  background: linear-gradient(110deg, #061a38, #087cff);
+}
+
+.scope-header strong,
+.scope-header small {
+  display: block;
+}
+
+.scope-header small {
+  margin-top: 5px;
+  color: #d5eaff;
+  font-size: 11px;
+}
+
+.scope-header button {
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 20px;
+}
+
+.scope-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  background: #f4f8ff;
+}
+
+.scope-message {
+  width: fit-content;
+  max-width: 88%;
+  padding: 11px 13px;
+  margin-bottom: 12px;
+  border-radius: 13px;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.scope-bot {
+  background: white;
+  border: 1px solid #e0e9f5;
+  border-bottom-left-radius: 3px;
+}
+
+.scope-user {
+  margin-left: auto;
+  color: white;
+  background: #087cff;
+  border-bottom-right-radius: 3px;
+}
+
+.scope-form {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid #e4ebf5;
+}
+
+.scope-form input {
+  min-width: 0;
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #dce5f0;
+  border-radius: 10px;
+  outline: none;
+  color: #13233d;
+}
+
+.scope-form button {
+  padding: 0 15px;
+  border: none;
+  border-radius: 10px;
+  background: #087cff;
+  color: white;
+  font-weight: 800;
+}
+
+.scope-form button:disabled {
+  opacity: .5;
+}
+
+.scope-note {
+  padding: 7px;
+  text-align: center;
+  color: #71839e;
+  font-size: 10px;
+  background: white;
+}
+
+@media (max-width: 480px) {
+  .scope-chat {
+    right: 10px;
+    bottom: 76px;
+  }
+
+  .scope-launcher {
+    right: 12px;
+    bottom: 12px;
+  }
+}
