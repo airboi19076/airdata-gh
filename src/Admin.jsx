@@ -19,22 +19,43 @@ export default function Admin() {
   const [usersError, setUsersError] = useState('');
 
   const loadUsers = useCallback(async () => {
-    setUsersLoading(true);
-    setUsersError('');
+  setUsersLoading(true);
+  setUsersError('');
 
-    try {
-      const tokenResult = await authClient.token();
+  try {
+    const tokenResult = await authClient.token();
 
-if (tokenResult.error) {
-  throw new Error(tokenResult.error.message);
-}
+    if (tokenResult.error) {
+      throw new Error(tokenResult.error.message);
+    }
 
-const token = tokenResult.data?.token;
+    const token = tokenResult.data?.token;
 
-if (!token) {
-  throw new Error('Neon Auth did not return an access token. Please sign in again.');
-}
-      });
+    if (!token) {
+      throw new Error('No access token received. Please sign in again.');
+    }
+
+    const response = await fetch('/api/admin/users', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Could not load registered users.');
+    }
+
+    setUsers(data.users || []);
+
+  } catch (error) {
+    setUsersError(error.message || 'Failed to load users.');
+  } finally {
+    setUsersLoading(false);
+  }
+}, []);
 
       const data = await response.json();
 
