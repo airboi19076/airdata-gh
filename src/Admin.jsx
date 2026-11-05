@@ -82,11 +82,11 @@ const handleLogin = async (e) => {
 
     stage = 'Reading authentication token';
 
-    const token = result.data?.session?.access_token;
+    const token = await authClient.getJWTToken();
 
-    if (!token) {
-      throw new Error('No access token was returned.');
-    }
+if (!token) {
+  throw new Error('No access token was returned. Please log in again.');
+}
 
     stage = 'Verifying administrator access';
 
