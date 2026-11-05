@@ -260,11 +260,9 @@ export default function App() {
       {/* PREMIUM AIRDATA GH SPLASH SCREEN */}
       {showSplash && (
         <div className="splashScreen">
-
           <div className="splash-background-glow"></div>
 
           <div className="splash-logo-stage">
-
             <div className="splash-orbit splash-orbit-one"></div>
             <div className="splash-orbit splash-orbit-two"></div>
             <div className="splash-orbit splash-orbit-three"></div>
@@ -272,11 +270,9 @@ export default function App() {
             <div className="splash-logo">
               AD
             </div>
-
           </div>
 
           <h1>AIRDATA GH</h1>
-
           <p>YOUR CONNECTION. OUR PRIORITY.</p>
 
           <div className="splash-status">
@@ -290,7 +286,6 @@ export default function App() {
           >
             Skip Intro →
           </button>
-
         </div>
       )}
 
@@ -483,30 +478,117 @@ export default function App() {
                 <a href="/?page=buy-data">Buy Data →</a>
               </section>
 
-              <section className="section">
-                <h2>My Wallet</h2>
+              {/* PREMIUM WALLET DESIGN */}
+              <section className="wallet-section">
+                <div className="wallet-section-heading">
+                  <div>
+                    <span className="wallet-eyebrow">
+                      YOUR MONEY, READY WHEN YOU ARE
+                    </span>
+                    <h2>My Wallet</h2>
+                    <p>Manage your AirData GH funds in one place.</p>
+                  </div>
 
-                <div className="order">
-                  <h3>Available Balance</h3>
+                  <span className="wallet-secure-mark">
+                    🔒 Secure wallet
+                  </span>
+                </div>
 
-                  <h2>GH₵{walletBalance.toFixed(2)}</h2>
+                <div className="wallet-card">
+                  <div className="wallet-card-glow"></div>
 
-                  <small>
-                    Your available AirData GH wallet balance.
-                  </small>
+                  <div className="wallet-card-top">
+                    <div className="wallet-card-brand">
+                      <span className="wallet-brand-icon">AD</span>
+                      <span>AIRDATA <b>GH</b></span>
+                    </div>
 
-                  <p>
-                    <a href="/?page=deposit">Add Money to Wallet →</a>
-                  </p>
+                    <span className="wallet-card-label">
+                      WALLET BALANCE
+                    </span>
+                  </div>
+
+                  <div className="wallet-balance-area">
+                    <span className="wallet-balance-caption">
+                      Available balance
+                    </span>
+
+                    <div className="wallet-balance-value">
+                      <span>GH₵</span>{walletBalance.toFixed(2)}
+                    </div>
+
+                    <span className="wallet-balance-footnote">
+                      <i></i> Ready to use for data bundles
+                    </span>
+                  </div>
+
+                  <div className="wallet-card-bottom">
+                    <span>YOUR CONNECTION. OUR PRIORITY.</span>
+                    <span className="wallet-card-chip">✦</span>
+                  </div>
+                </div>
+
+                <div className="wallet-action-grid">
+                  <a
+                    className="wallet-action wallet-action-primary"
+                    href="/?page=deposit"
+                  >
+                    <span className="wallet-action-icon">＋</span>
+                    <span>
+                      <b>Add Money</b>
+                      <small>Top up your wallet</small>
+                    </span>
+                    <span className="wallet-action-arrow">↗</span>
+                  </a>
+
+                  <a
+                    className="wallet-action"
+                    href="/?page=buy-data"
+                  >
+                    <span className="wallet-action-icon">⌁</span>
+                    <span>
+                      <b>Buy Data</b>
+                      <small>Choose an MTN bundle</small>
+                    </span>
+                    <span className="wallet-action-arrow">↗</span>
+                  </a>
+                </div>
+
+                <div className="wallet-footer-row">
+                  <span>
+                    <i className="wallet-live-dot"></i> Wallet balance
+                  </span>
 
                   <button
-                    className="orderButton"
+                    className="wallet-refresh"
                     onClick={loadWallet}
                     disabled={walletLoading}
                   >
-                    {walletLoading ? 'Refreshing...' : 'Refresh Balance'}
+                    <span
+                      className={
+                        walletLoading
+                          ? 'wallet-refresh-icon spinning'
+                          : 'wallet-refresh-icon'
+                      }
+                    >
+                      ↻
+                    </span>
+
+                    {walletLoading
+                      ? 'Refreshing...'
+                      : 'Refresh balance'}
                   </button>
                 </div>
+
+                {walletMessage && (
+                  <p className="wallet-status-message" role="status">
+                    {walletMessage}
+                  </p>
+                )}
+
+                <p className="wallet-usage-note">
+                  Your balance is available for eligible AirData GH purchases.
+                </p>
               </section>
 
               <section className="section">
@@ -811,7 +893,8 @@ export default function App() {
           </footer>
         </>
       )}
+
       <InScopeAI />
     </main>
   );
-}
+  }
