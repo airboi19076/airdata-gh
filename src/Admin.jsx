@@ -23,17 +23,17 @@ export default function Admin() {
     setUsersError('');
 
     try {
-      const token = await authClient.getJWTToken();
+      const tokenResult = await authClient.token();
 
-      if (!token) {
-        throw new Error('Your session has expired. Please sign in again.');
-      }
+if (tokenResult.error) {
+  throw new Error(tokenResult.error.message);
+}
 
-      const response = await fetch('/api/admin/users', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+const token = tokenResult.data?.token;
+
+if (!token) {
+  throw new Error('Neon Auth did not return an access token. Please sign in again.');
+}
       });
 
       const data = await response.json();
@@ -80,20 +80,18 @@ const handleLogin = async (e) => {
       throw new Error(result.error.message);
     }
 
-    stage = 'Refreshing login session';
+    stage = 'Requesting administrator access token';
 
-const sessionResult = await authClient.getSession();
+const tokenResult = await authClient.token();
 
-if (sessionResult.error) {
-  throw new Error(sessionResult.error.message);
+if (tokenResult.error) {
+  throw new Error(tokenResult.error.message);
 }
 
-stage = 'Reading JWT from Neon Auth session';
-
-const token = sessionResult.data?.session?.access_token;
+const token = tokenResult.data?.token;
 
 if (!token) {
-  throw new Error('No access token was found in the Neon Auth session.');
+  throw new Error('Neon Auth did not return an access token.');
 }
 
     stage = 'Verifying administrator access';
