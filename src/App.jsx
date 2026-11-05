@@ -1,4 +1,3 @@
-
 import InScopeAI from './InScopeAI';
 import React, { useEffect, useState } from 'react';
 import { authClient } from './auth-client';
@@ -249,6 +248,12 @@ export default function App() {
   if (window.location.pathname === '/admin') {
     return <Admin />;
   }
+
+  // CUSTOMER NAME FOR PERSONALIZED DASHBOARD GREETING
+  const customerName =
+    authUser?.name?.trim() ||
+    authUser?.email?.split('@')[0] ||
+    'there';
 
   const pageTitles = {
     dashboard: 'Dashboard',
@@ -870,10 +875,14 @@ export default function App() {
             <>
               <section id="dashboard" className="hero">
                 <p className="tag">FAST • AFFORDABLE • RELIABLE</p>
-                <h2>Welcome to AirData GH!</h2>
+
+                {/* PERSONALIZED CUSTOMER GREETING */}
+                <h2>Welcome to AirData GH, {customerName}!</h2>
+
                 <p>
                   Get affordable MTN data bundles delivered with ease.
                 </p>
+
                 <a href="/?page=buy-data">Buy Data →</a>
               </section>
 
@@ -1296,4 +1305,4 @@ export default function App() {
       <InScopeAI />
     </main>
   );
-}
+                      }
