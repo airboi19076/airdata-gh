@@ -23,8 +23,7 @@ export async function requireUser(req, res) {
     );
 
     const { payload } = await jwtVerify(token, JWKS, {
-      issuer: AUTH_BASE_URL
-    });
+      issuer: new URL(AUTH_BASE_URL).origin    });
 
     if (!payload.sub || !payload.email) {
       res.status(401).json({
