@@ -1,3 +1,4 @@
+
 import InScopeAI from './InScopeAI';
 import React, { useEffect, useState } from 'react';
 import { authClient } from './auth-client';
@@ -83,6 +84,9 @@ export default function App() {
   }
 
   async function loadWallet() {
+    setWalletLoading(true);
+    setWalletMessage('');
+
     try {
       const token = await getWalletToken();
 
@@ -103,6 +107,8 @@ export default function App() {
       setWalletTransactions(result.transactions || []);
     } catch (error) {
       setWalletMessage(error.message || 'Could not load wallet.');
+    } finally {
+      setWalletLoading(false);
     }
   }
 
@@ -257,6 +263,402 @@ export default function App() {
   return (
     <main className={darkMode ? 'dark-mode' : 'light-mode'}>
 
+      <style>{`
+        .wallet-section {
+          max-width: 850px;
+          margin: 28px auto;
+          padding: 0 18px;
+          color: #14233f;
+        }
+
+        .wallet-section-heading {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-bottom: 18px;
+        }
+
+        .wallet-eyebrow {
+          display: block;
+          color: #3979dc;
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 1.5px;
+          margin-bottom: 7px;
+        }
+
+        .wallet-section-heading h2 {
+          margin: 0 0 5px;
+          font-size: 25px;
+          font-weight: 850;
+        }
+
+        .wallet-section-heading p {
+          margin: 0;
+          font-size: 13px;
+          opacity: .7;
+        }
+
+        .wallet-secure-mark {
+          padding: 9px 12px;
+          border-radius: 30px;
+          background: #e9f5ff;
+          color: #1765bd;
+          font-size: 11px;
+          font-weight: 750;
+        }
+
+        .wallet-card {
+          position: relative;
+          overflow: hidden;
+          min-height: 225px;
+          padding: 25px;
+          border-radius: 23px;
+          color: white;
+          background: linear-gradient(125deg, #071a3c 0%, #103b79 55%, #176bd0 100%);
+          box-shadow: 0 16px 35px rgba(8, 45, 100, .22);
+          isolation: isolate;
+        }
+
+        .wallet-card-glow {
+          position: absolute;
+          z-index: -1;
+          width: 240px;
+          height: 240px;
+          right: -55px;
+          top: -100px;
+          border-radius: 50%;
+          background: rgba(73, 171, 255, .25);
+          filter: blur(12px);
+        }
+
+        .wallet-card-top,
+        .wallet-card-bottom {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .wallet-card-brand {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 13px;
+          font-weight: 850;
+          letter-spacing: 1px;
+        }
+
+        .wallet-card-brand b {
+          color: #6ec6ff;
+        }
+
+        .wallet-brand-icon {
+          display: grid;
+          place-items: center;
+          width: 36px;
+          height: 36px;
+          border-radius: 11px;
+          background: rgba(255,255,255,.15);
+          border: 1px solid rgba(255,255,255,.25);
+          font-size: 13px;
+          font-weight: 900;
+        }
+
+        .wallet-card-label {
+          font-size: 9px;
+          letter-spacing: 1.5px;
+          opacity: .8;
+          font-weight: 800;
+        }
+
+        .wallet-balance-area {
+          margin: 27px 0 24px;
+        }
+
+        .wallet-balance-caption {
+          display: block;
+          font-size: 12px;
+          opacity: .8;
+          margin-bottom: 5px;
+        }
+
+        .wallet-balance-value {
+          font-size: clamp(32px, 8vw, 45px);
+          font-weight: 850;
+          letter-spacing: -1.5px;
+          overflow-wrap: anywhere;
+        }
+
+        .wallet-balance-value span {
+          font-size: 20px;
+          margin-right: 7px;
+          color: #a9d9ff;
+          letter-spacing: 0;
+        }
+
+        .wallet-balance-footnote {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          font-size: 11px;
+          opacity: .85;
+          margin-top: 8px;
+        }
+
+        .wallet-balance-footnote i,
+        .wallet-live-dot {
+          width: 7px;
+          height: 7px;
+          display: inline-block;
+          border-radius: 50%;
+          background: #52e4a0;
+          box-shadow: 0 0 9px rgba(82,228,160,.7);
+        }
+
+        .wallet-card-bottom {
+          border-top: 1px solid rgba(255,255,255,.17);
+          padding-top: 13px;
+          font-size: 9px;
+          letter-spacing: 1.4px;
+          opacity: .8;
+        }
+
+        .wallet-card-chip {
+          font-size: 23px;
+          color: #9bd5ff;
+        }
+
+        .wallet-action-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+          margin-top: 15px;
+        }
+
+        .wallet-action {
+          display: flex;
+          align-items: center;
+          gap: 11px;
+          min-width: 0;
+          padding: 15px;
+          border-radius: 15px;
+          background: #fff;
+          border: 1px solid #e4eaf3;
+          color: #172b4d;
+          text-decoration: none;
+          box-shadow: 0 5px 15px rgba(20,45,80,.05);
+          transition: transform .2s, box-shadow .2s;
+        }
+
+        .wallet-action:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 9px 20px rgba(20,45,80,.1);
+        }
+
+        .wallet-action-primary {
+          background: linear-gradient(120deg, #edf6ff, #fff);
+          border-color: #c9e2ff;
+        }
+
+        .wallet-action-icon {
+          display: grid;
+          place-items: center;
+          flex-shrink: 0;
+          width: 39px;
+          height: 39px;
+          border-radius: 12px;
+          background: #e2f0ff;
+          color: #176bd0;
+          font-size: 24px;
+          font-weight: 700;
+        }
+
+        .wallet-action b,
+        .wallet-action small {
+          display: block;
+        }
+
+        .wallet-action b {
+          font-size: 13px;
+          margin-bottom: 4px;
+        }
+
+        .wallet-action small {
+          font-size: 10px;
+          opacity: .65;
+        }
+
+        .wallet-action-arrow {
+          margin-left: auto;
+          color: #2879d2;
+          font-size: 17px;
+        }
+
+        .wallet-footer-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-top: 17px;
+          font-size: 11px;
+          color: #52627a;
+        }
+
+        .wallet-footer-row > span {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+        }
+
+        .wallet-refresh {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          border: 0;
+          border-radius: 20px;
+          padding: 9px 13px;
+          background: #eaf3ff;
+          color: #1765bd;
+          font-size: 11px;
+          font-weight: 750;
+          cursor: pointer;
+        }
+
+        .wallet-refresh:disabled {
+          opacity: .6;
+          cursor: not-allowed;
+        }
+
+        .wallet-refresh-icon {
+          display: inline-block;
+          font-size: 17px;
+          line-height: 1;
+        }
+
+        .wallet-refresh-icon.spinning {
+          animation: walletSpin .8s linear infinite;
+        }
+
+        @keyframes walletSpin {
+          to { transform: rotate(360deg); }
+        }
+
+        .wallet-status-message {
+          padding: 11px 13px;
+          border-radius: 10px;
+          background: #edf5ff;
+          color: #17549b;
+          font-size: 12px;
+          line-height: 1.5;
+        }
+
+        .wallet-usage-note {
+          margin: 12px 0 0;
+          color: #78869a;
+          font-size: 10px;
+          text-align: center;
+        }
+
+        .dark-mode .wallet-section {
+          color: #edf4ff;
+        }
+
+        .dark-mode .wallet-section-heading p {
+          color: #b5c6dd;
+        }
+
+        .dark-mode .wallet-secure-mark {
+          background: #152f4c;
+          color: #8ecaff;
+        }
+
+        .dark-mode .wallet-action {
+          background: #13243b;
+          border-color: #29415e;
+          color: #edf4ff;
+        }
+
+        .dark-mode .wallet-action-primary {
+          background: linear-gradient(120deg, #142e4d, #192d47);
+          border-color: #315d89;
+        }
+
+        .dark-mode .wallet-action-icon {
+          background: #203f61;
+          color: #9acfff;
+        }
+
+        .dark-mode .wallet-footer-row {
+          color: #b7c7dc;
+        }
+
+        .dark-mode .wallet-refresh {
+          background: #203e60;
+          color: #b6dcff;
+        }
+
+        .dark-mode .wallet-status-message {
+          background: #193755;
+          color: #b9ddff;
+        }
+
+        .dark-mode .wallet-usage-note {
+          color: #9aacc3;
+        }
+
+        @media (max-width: 520px) {
+          .wallet-section {
+            padding: 0 13px;
+            margin: 22px auto;
+          }
+
+          .wallet-card {
+            padding: 20px;
+            min-height: 210px;
+            border-radius: 19px;
+          }
+
+          .wallet-card-label {
+            font-size: 8px;
+          }
+
+          .wallet-action-grid {
+            gap: 9px;
+          }
+
+          .wallet-action {
+            padding: 12px 9px;
+            gap: 8px;
+          }
+
+          .wallet-action-icon {
+            width: 33px;
+            height: 33px;
+            font-size: 20px;
+          }
+
+          .wallet-action b {
+            font-size: 11px;
+          }
+
+          .wallet-action small {
+            font-size: 9px;
+          }
+
+          .wallet-action-arrow {
+            font-size: 13px;
+          }
+
+          .wallet-footer-row {
+            font-size: 10px;
+          }
+        }
+      `}</style>
+
       {/* PREMIUM AIRDATA GH SPLASH SCREEN */}
       {showSplash && (
         <div className="splashScreen">
@@ -267,9 +669,7 @@ export default function App() {
             <div className="splash-orbit splash-orbit-two"></div>
             <div className="splash-orbit splash-orbit-three"></div>
 
-            <div className="splash-logo">
-              AD
-            </div>
+            <div className="splash-logo">AD</div>
           </div>
 
           <h1>AIRDATA GH</h1>
@@ -368,7 +768,6 @@ export default function App() {
                       ? 'Your account has been created successfully!'
                       : 'Login successful! Welcome back.'
                   );
-
                 } catch (error) {
                   setAuthMessage(
                     error.message || 'Something went wrong. Please try again.'
@@ -478,7 +877,7 @@ export default function App() {
                 <a href="/?page=buy-data">Buy Data →</a>
               </section>
 
-              {/* PREMIUM WALLET DESIGN */}
+              {/* PREMIUM WALLET */}
               <section className="wallet-section">
                 <div className="wallet-section-heading">
                   <div>
@@ -897,4 +1296,4 @@ export default function App() {
       <InScopeAI />
     </main>
   );
-  }
+}
