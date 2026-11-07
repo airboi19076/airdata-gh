@@ -1,982 +1,910 @@
 
-import InScopeAI from './InScopeAI';
-import React, { useEffect, useState } from 'react';
-import { authClient } from './auth-client';
-import Admin from './Admin';
-import DashboardMenu from './DashboardMenu';
+/* =========================================
+   AIRDATA GH — COMPLETE WEBSITE STYLES
+   ========================================= */
 
-const bundles = [
-  ['1GB', '4.30'], ['2GB', '8.60'], ['3GB', '12.90'],
-  ['4GB', '17.20'], ['5GB', '21.50'], ['6GB', '25.80'],
-  ['7GB', '30.10'], ['8GB', '34.40'], ['9GB', '38.70'],
-  ['10GB', '43.00'], ['12GB', '51.60'], ['15GB', '64.50'],
-  ['20GB', '86.00'], ['25GB', '107.50'], ['30GB', '129.00'],
-  ['40GB', '172.00'], ['50GB', '215.00'], ['100GB', '430.00'],
-  ['300GB', '1290.00'], ['1TB', '4300.00']
-];
+:root {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  color: #172033;
+  background: #f4f7fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --primary: #087b50;
+  --primary-dark: #05613f;
+  --primary-light: #e5f6ee;
+  --background: #f4f7fb;
+  --surface: #ffffff;
+  --text: #172033;
+  --muted: #788396;
+  --border: #e7ebf1;
+  --danger: #dc3545;
+  --shadow: 0 8px 30px rgba(25, 45, 70, 0.07);
+}
 
-const airtelTigoBundles = [
-  ['1GB', '4.10'], ['2GB', '8.20'], ['3GB', '12.30'],
-  ['4GB', '16.40'], ['5GB', '20.50'], ['6GB', '24.60'],
-  ['8GB', '32.80'], ['10GB', '41.00'], ['15GB', '61.50'],
-  ['20GB', '82.00']
-];
+* {
+  box-sizing: border-box;
+}
 
-const telecelBundles = [
-  ['10GB', '41.00'], ['15GB', '57.00'], ['20GB', '73.00'],
-  ['25GB', '89.00'], ['30GB', '105.00'], ['40GB', '137.00'],
-  ['50GB', '169.00'], ['100GB', '329.00']
-];
+html {
+  scroll-behavior: smooth;
+}
 
-const networkBundles = {
-  MTN: bundles,
-  AirtelTigo: airtelTigoBundles,
-  Telecel: telecelBundles
-};
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--background);
+}
 
-const checkerServices = [
-  { name: 'WASSCE Results Checker', price: 19 },
-  { name: 'NOV/DEC Results Checker', price: 19 },
-  { name: 'BECE Results Checker', price: 19 }
-];
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
 
-const WHATSAPP_NUMBER = '233548206175';
+button {
+  cursor: pointer;
+}
 
-export default function App() {
-  const [showSplash, setShowSplash] = useState(true);
-  const [authMode, setAuthMode] = useState('login');
-  const [authMessage, setAuthMessage] = useState('');
-  const [authUser, setAuthUser] = useState(null);
+a {
+  color: inherit;
+  text-decoration: none;
+}
 
-  const [currentPage, setCurrentPage] = useState(
-    new URLSearchParams(window.location.search).get('page') || 'dashboard'
-  );
+#root {
+  min-height: 100vh;
+}
 
-  const [darkMode, setDarkMode] = useState(
-    () => localStorage.getItem('airdata-theme') === 'dark'
-  );
+/* =========================================
+   DARK AND LIGHT MODES
+   ========================================= */
 
-  const [selectedNetwork, setSelectedNetwork] = useState('MTN');
-  const [selected, setSelected] = useState(bundles[0]);
-  const [phone, setPhone] = useState('');
+.dark-mode {
+  --background: #0b1220;
+  --surface: #141f30;
+  --text: #f3f6fc;
+  --muted: #a0aec0;
+  --border: #29364a;
+  --primary-light: #153b30;
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  color: var(--text);
+  background: var(--background);
+}
 
-  const [orderMode, setOrderMode] = useState('single');
-  const [bulkPhones, setBulkPhones] = useState('');
-  const [bulkMessage, setBulkMessage] = useState('');
+.light-mode {
+  color: var(--text);
+  background: var(--background);
+}
 
-  const [walletBalance, setWalletBalance] = useState(0);
-  const [walletTransactions, setWalletTransactions] = useState([]);
-  const [depositAmount, setDepositAmount] = useState('');
-  const [walletLoading, setWalletLoading] = useState(false);
-  const [walletMessage, setWalletMessage] = useState('');
+/* =========================================
+   GENERAL LAYOUT
+   ========================================= */
 
-  // DIGITAL SERVICES
-  const [digitalService, setDigitalService] = useState('afa');
-  const [afaForm, setAfaForm] = useState({
-    fullName: '',
-    phone: '',
-    dateOfBirth: '',
-    region: '',
-    town: ''
-  });
-  const [checkerType, setCheckerType] = useState(checkerServices[0].name);
-  const [checkerQuantity, setCheckerQuantity] = useState('1');
-  const [checkerPhone, setCheckerPhone] = useState('');
-  const [serviceMessage, setServiceMessage] = useState('');
+.app,
+main {
+  width: 100%;
+}
 
-  useEffect(() => {
-    authClient.getSession()
-      .then(({ data, error }) => {
-        if (!error) setAuthUser(data?.user ?? null);
-      })
-      .catch(() => {});
-  }, []);
+section {
+  margin-bottom: 25px;
+}
 
-  useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 3500);
-    return () => clearTimeout(timer);
-  }, []);
+.pageHeading {
+  margin: 25px 0 20px;
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.7px;
+  color: var(--text);
+}
 
-  useEffect(() => {
-    localStorage.setItem('airdata-theme', darkMode ? 'dark' : 'light');
-  }, [darkMode]);
+.section {
+  margin: 25px 0;
+}
 
-  async function getWalletToken() {
-    const token = await authClient.getJWTToken();
-    if (!token) throw new Error('Your session has expired. Please log in again.');
-    return token;
+.sub {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 30px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #087b50, #064c39);
+  color: white;
+  box-shadow: 0 12px 30px rgba(8, 123, 80, 0.18);
+}
+
+.hero h1,
+.hero h2 {
+  margin-top: 0;
+  font-weight: 800;
+}
+
+.hero p {
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.16);
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* =========================================
+   HEADER
+   ========================================= */
+
+.header,
+header {
+  width: 100%;
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding: 17px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.headerTop h1,
+.headerTop h2 {
+  margin: 0;
+  color: var(--text);
+}
+
+.headerClock {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+.themeToggle {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 42px;
+  min-height: 42px;
+  padding: 9px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* =========================================
+   AUTHENTICATION
+   ========================================= */
+
+.authScreen {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 25px 16px;
+  background:
+    radial-gradient(circle at top right, rgba(8,123,80,.13), transparent 35%),
+    var(--background);
+}
+
+.authCard {
+  width: 100%;
+  max-width: 440px;
+  padding: 32px 27px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.authLogo {
+  text-align: center;
+  color: var(--primary);
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+.authSubtitle {
+  margin: 9px 0 25px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.authTabs {
+  display: flex;
+  gap: 8px;
+  padding: 5px;
+  margin-bottom: 23px;
+  border-radius: 13px;
+  background: var(--background);
+}
+
+.authTabs button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.authTabs button.active,
+.authTabs .authActive {
+  background: var(--primary);
+  color: white;
+}
+
+.authCard input,
+.authCard select,
+.authCard textarea,
+input,
+textarea,
+select {
+  max-width: 100%;
+}
+
+.authCard input {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 13px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  outline: none;
+  background: var(--background);
+  color: var(--text);
+}
+
+.authCard input:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--primary);
+  outline: 2px solid rgba(8, 123, 80, 0.1);
+}
+
+.forgotPassword {
+  display: block;
+  margin: 12px 0;
+  color: var(--primary);
+  font-size: 13px;
+  text-align: right;
+}
+
+.authSubmit {
+  width: 100%;
+  padding: 15px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 12px;
+  background: var(--primary);
+  color: white;
+  font-weight: 800;
+}
+
+.authSubmit:hover {
+  background: var(--primary-dark);
+}
+
+.authMessage {
+  margin-top: 15px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.authFooter {
+  margin-top: 23px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* =========================================
+   SPLASH SCREEN
+   ========================================= */
+
+.splashScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  background: #061d16;
+  color: white;
+}
+
+.splash-background-glow {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: rgba(13, 190, 113, 0.15);
+  filter: blur(70px);
+}
+
+.splash-logo-stage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 230px;
+  height: 230px;
+}
+
+.splash-orbit,
+.orbit {
+  position: absolute;
+  border: 1px solid rgba(48, 220, 145, 0.45);
+  border-radius: 50%;
+}
+
+.splash-orbit-one,
+.orbitOne {
+  width: 150px;
+  height: 150px;
+}
+
+.splash-orbit-two,
+.orbitTwo {
+  width: 190px;
+  height: 190px;
+}
+
+.splash-orbit-three,
+.orbitThree {
+  width: 225px;
+  height: 225px;
+}
+
+.splash-logo,
+.adLogo {
+  position: relative;
+  z-index: 2;
+  color: white;
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: -1.5px;
+}
+
+.splash-status {
+  margin-top: 25px;
+  color: #a4d9bf;
+  font-size: 13px;
+}
+
+.skipIntro {
+  position: absolute;
+  right: 22px;
+  bottom: 25px;
+  padding: 10px 18px;
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 30px;
+  background: transparent;
+  color: white;
+}
+
+/* =========================================
+   DASHBOARD MENU
+   ========================================= */
+
+.dashboard-menu,
+nav {
+  color: var(--text);
+}
+
+.dashboard-menu a,
+nav a {
+  transition: 0.2s ease;
+}
+
+.dashboard-menu a:hover,
+nav a:hover {
+  color: var(--primary);
+}
+
+/* =========================================
+   NETWORK SELECTOR
+   ========================================= */
+
+.network-selector {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 22px 0;
+}
+
+.network-option {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  min-height: 83px;
+  padding: 13px 8px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+  transition: all 0.2s ease;
+}
+
+.network-option span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.network-option:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.network-option.active {
+  border: 2px solid var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+  box-shadow: 0 5px 15px rgba(8, 123, 80, 0.08);
+}
+
+.network-option.active span {
+  color: var(--primary);
+}
+
+/* =========================================
+   DATA BUNDLE GRID
+   ========================================= */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+  width: 100%;
+  margin: 18px 0;
+}
+
+.bundle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+  min-height: 95px;
+  padding: 15px 8px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: var(--surface);
+  color: var(--text);
+  transition: 0.2s ease;
+}
+
+.bundle strong {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.bundle span {
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.bundle:hover {
+  border-color: var(--primary);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+}
+
+.bundle.active {
+  border: 2px solid var(--primary);
+  background: var(--primary-light);
+}
+
+.bundle.active strong,
+.bundle.active span {
+  color: var(--primary);
+}
+
+/* =========================================
+   ORDER FORMS
+   ========================================= */
+
+.order {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 19px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.order input,
+.order textarea,
+.order select {
+  width: 100%;
+  padding: 14px;
+  margin: 8px 0;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--background);
+  color: var(--text);
+}
+
+.orderButton,
+.trackingButton {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  background: var(--primary);
+  color: white;
+  font-weight: 800;
+  transition: 0.2s ease;
+}
+
+.orderButton:hover,
+.trackingButton:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+/* =========================================
+   WALLET
+   ========================================= */
+
+.wallet-section {
+  margin: 22px 0;
+}
+
+.wallet-card {
+  position: relative;
+  overflow: hidden;
+  padding: 25px;
+  border-radius: 21px;
+  background: linear-gradient(135deg, #087b50, #064a36);
+  color: white;
+  box-shadow: 0 12px 28px rgba(8, 123, 80, 0.17);
+}
+
+.wallet-card h2,
+.wallet-card h3 {
+  color: white;
+}
+
+.wallet-card p {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.wallet-card strong {
+  font-size: 30px;
+  font-weight: 900;
+}
+
+.wallet-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 17px;
+}
+
+.wallet-action-grid button {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.wallet-action-grid button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.wallet-refresh {
+  padding: 10px 15px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* =========================================
+   SERVICES
+   ========================================= */
+
+.services {
+  margin: 25px 0;
+}
+
+.serviceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.serviceGrid > * {
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 4px 15px rgba(25, 45, 70, 0.04);
+}
+
+/* =========================================
+   TRACKING
+   ========================================= */
+
+.tracking {
+  margin: 25px 0;
+}
+
+.trackingCard {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.trackingIcon {
+  font-size: 28px;
+}
+
+.trackingTag {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 20px;
+  background: var(--primary-light);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.trackingText,
+.trackingNote {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.trackingForm {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.trackingForm input {
+  flex: 1;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--background);
+  color: var(--text);
+}
+
+.trackingButton {
+  width: auto;
+  min-width: 100px;
+}
+
+/* =========================================
+   TRANSACTIONS AND LISTS
+   ========================================= */
+
+.transaction,
+.transaction-item,
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  margin: 10px 0;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.status,
+.success {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.error,
+.failed {
+  color: var(--danger);
+}
+
+/* =========================================
+   PROFILE, SUPPORT AND SETTINGS
+   ========================================= */
+
+.profile-card,
+.settings-card,
+.support-card,
+.deposit-card {
+  padding: 22px;
+  margin: 17px 0;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.profile-card input,
+.settings-card input,
+.support-card input,
+.deposit-card input,
+.profile-card textarea,
+.support-card textarea {
+  width: 100%;
+  padding: 13px;
+  margin: 8px 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--background);
+  color: var(--text);
+}
+
+.profile-card button,
+.settings-card button,
+.support-card button,
+.deposit-card button {
+  padding: 13px 18px;
+  border: none;
+  border-radius: 10px;
+  background: var(--primary);
+  color: white;
+  font-weight: 700;
+}
+
+/* =========================================
+   BUTTONS
+   ========================================= */
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgba(8, 123, 80, 0.3);
+  outline-offset: 3px;
+}
+
+/* =========================================
+   FOOTER
+   ========================================= */
+
+.footer {
+  padding: 28px 18px;
+  margin-top: 35px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+  text-align: center;
+}
+
+.footer a {
+  color: var(--primary);
+}
+
+/* =========================================
+   RESPONSIVE MOBILE DESIGN
+   ========================================= */
+
+@media (max-width: 600px) {
+  .headerTop {
+    padding: 14px;
   }
 
-  async function loadWallet() {
-    setWalletLoading(true);
-    setWalletMessage('');
-
-    try {
-      const token = await getWalletToken();
-      const response = await fetch('/api/wallet/balance', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Could not load wallet.');
-
-      setWalletBalance(Number(result.balance || 0));
-      setWalletTransactions(result.transactions || []);
-    } catch (error) {
-      setWalletMessage(error.message || 'Could not load wallet.');
-    } finally {
-      setWalletLoading(false);
-    }
+  .pageHeading {
+    font-size: 22px;
   }
 
-  useEffect(() => {
-    if (authUser) loadWallet();
-    else {
-      setWalletBalance(0);
-      setWalletTransactions([]);
-    }
-  }, [authUser]);
-
-  useEffect(() => {
-    if (!authUser) return;
-
-    const params = new URLSearchParams(window.location.search);
-    const reference = params.get('reference') || params.get('trxref');
-    if (!reference) return;
-
-    window.history.replaceState({}, '', '/?page=deposit');
-    setCurrentPage('deposit');
-
-    async function verifyPayment() {
-      setWalletLoading(true);
-      setWalletMessage('Verifying your payment with Paystack...');
-
-      try {
-        const token = await getWalletToken();
-        const response = await fetch('/api/wallet/verify', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({ reference })
-        });
-
-        const result = await response.json();
-        if (!response.ok || !result.success) {
-          throw new Error(result.error || 'Payment verification was unsuccessful.');
-        }
-
-        setWalletBalance(Number(result.balance || 0));
-        setWalletMessage(
-          result.already_credited
-            ? 'This payment has already been added to your wallet.'
-            : 'Payment successful! Your wallet has been credited.'
-        );
-
-        await loadWallet();
-        setDepositAmount('');
-      } catch (error) {
-        setWalletMessage(error.message || 'We could not verify your payment.');
-      } finally {
-        setWalletLoading(false);
-      }
-    }
-
-    verifyPayment();
-  }, [authUser]);
-
-  async function startDeposit() {
-    const amount = Number(depositAmount);
-
-    if (!Number.isFinite(amount) || amount < 0.10 || amount > 10000) {
-      setWalletMessage('Enter an amount between GH₵0.10 and GH₵10,000.');
-      return;
-    }
-
-    setWalletLoading(true);
-    setWalletMessage('Preparing your secure Paystack payment...');
-
-    try {
-      const token = await getWalletToken();
-      const response = await fetch('/api/wallet/initialize', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ amount })
-      });
-
-      const result = await response.json();
-      if (!response.ok || !result.authorization_url) {
-        throw new Error(result.error || 'Could not start your payment.');
-      }
-
-      window.location.assign(result.authorization_url);
-    } catch (error) {
-      setWalletMessage(error.message || 'Could not initialize your deposit.');
-      setWalletLoading(false);
-    }
+  .hero {
+    padding: 23px 19px;
+    border-radius: 17px;
   }
 
-  function changeNetwork(network) {
-    setSelectedNetwork(network);
-    setSelected(networkBundles[network][0]);
-    setPhone('');
-    setBulkPhones('');
-    setBulkMessage('');
-    setOrderMode('single');
+  .network-selector {
+    gap: 7px;
   }
 
-  function orderNow() {
-    if (!/^0\d{9}$/.test(phone)) {
-      alert('Enter a valid 10-digit Ghana phone number.');
-      return;
-    }
-
-    const message = `Hello AirData GH, I want to order ${selectedNetwork} ${selected[0]} for ${phone}. Price: GH₵${selected[1]}.`;
-
-    window.open(
-      `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`,
-      '_blank'
-    );
+  .network-option {
+    min-height: 76px;
+    padding: 10px 4px;
+    font-size: 13px;
   }
 
-  function getBulkNumbers() {
-    return bulkPhones.split(/[\s,;]+/).map(n => n.trim()).filter(Boolean);
+  .network-option span {
+    font-size: 10px;
   }
 
-  function orderBulk() {
-    const numbers = getBulkNumbers();
-
-    if (selectedNetwork !== 'MTN') {
-      alert('Bulk ordering is currently available for MTN only.');
-      return;
-    }
-
-    if (!numbers.length) {
-      setBulkMessage('Enter at least one recipient phone number.');
-      return;
-    }
-
-    if (numbers.length > 20) {
-      setBulkMessage('You can enter a maximum of 20 numbers per request.');
-      return;
-    }
-
-    const invalid = numbers.filter(n => !/^0\d{9}$/.test(n));
-    if (invalid.length) {
-      setBulkMessage(`Please check these invalid numbers: ${invalid.join(', ')}`);
-      return;
-    }
-
-    const total = Number(selected[1]) * numbers.length;
-    const message = [
-      'Hello AirData GH, I want to make an MTN bulk data order.',
-      `Bundle: ${selected[0]}`,
-      `Price per recipient: GH₵${selected[1]}`,
-      `Recipients: ${numbers.length}`,
-      `Estimated total: GH₵${total.toFixed(2)}`,
-      'Recipient numbers:',
-      ...numbers.map((n, i) => `${i + 1}. ${n}`)
-    ].join('\n');
-
-    window.open(
-      `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`,
-      '_blank'
-    );
-
-    setBulkMessage('');
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 
-  function updateAfa(field, value) {
-    setAfaForm(previous => ({ ...previous, [field]: value }));
-    setServiceMessage('');
+  .bundle {
+    min-height: 88px;
   }
 
-  function submitAfaRequest(event) {
-    event.preventDefault();
-
-    const { fullName, phone, dateOfBirth, region, town } = afaForm;
-
-    if (!fullName.trim() || !/^0\d{9}$/.test(phone) ||
-        !dateOfBirth || !region || !town.trim()) {
-      setServiceMessage('Please complete all fields and enter a valid Ghana phone number.');
-      return;
-    }
-
-    const message = [
-      'MTN AFA REGISTRATION REQUEST',
-      '',
-      `Customer: ${fullName}`,
-      `Phone number: ${phone}`,
-      `Date of birth: ${dateOfBirth}`,
-      `Region: ${region}`,
-      `Town / District: ${town}`,
-      'Service price: GH₵15.00',
-      '',
-      'Please confirm the registration requirements and processing.'
-    ].join('\n');
-
-    window.open(
-      `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`,
-      '_blank'
-    );
-
-    setServiceMessage('Your request has been prepared. Complete the conversation on WhatsApp. Registration is not confirmed until processed.');
+  .bundle strong {
+    font-size: 19px;
   }
 
-  function submitCheckerRequest(event) {
-    event.preventDefault();
-
-    const quantity = Number(checkerQuantity);
-    if (!/^0\d{9}$/.test(checkerPhone)) {
-      setServiceMessage('Enter a valid 10-digit Ghana phone number.');
-      return;
-    }
-
-    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 20) {
-      setServiceMessage('Choose a quantity between 1 and 20.');
-      return;
-    }
-
-    const checker = checkerServices.find(item => item.name === checkerType);
-    const total = checker.price * quantity;
-
-    const message = [
-      'EXAMINATION RESULTS CHECKER ORDER',
-      '',
-      `Checker: ${checkerType}`,
-      `Quantity: ${quantity}`,
-      `Unit price: GH₵${checker.price.toFixed(2)}`,
-      `Total: GH₵${total.toFixed(2)}`,
-      `Customer phone: ${checkerPhone}`,
-      '',
-      'Please confirm availability and payment instructions.'
-    ].join('\n');
-
-    window.open(
-      `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`,
-      '_blank'
-    );
-
-    setServiceMessage('Your checker request has been prepared. Voucher PINs and serial numbers are not issued until the order is fulfilled.');
+  .order,
+  .wallet-card,
+  .trackingCard,
+  .profile-card,
+  .settings-card,
+  .support-card,
+  .deposit-card {
+    padding: 17px;
   }
 
-  async function logout() {
-    await authClient.signOut();
-    setAuthUser(null);
-    setAuthMode('login');
-    setAuthMessage('You have logged out successfully.');
-    window.history.replaceState({}, '', '/');
-    setCurrentPage('dashboard');
+  .serviceGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
   }
 
-  if (window.location.pathname === '/admin') return <Admin />;
+  .trackingForm {
+    flex-direction: column;
+  }
 
-  const customerName =
-    authUser?.name?.trim() || authUser?.email?.split('@')[0] || 'there';
+  .trackingButton {
+    width: 100%;
+  }
 
-  const pageTitles = {
-    dashboard: 'Dashboard',
-    deposit: 'Deposit',
-    'buy-data': 'Buy Data',
-    'digital-services': 'Digital Services',
-    transactions: 'Transactions',
-    profile: 'My Profile',
-    support: 'Customer Support',
-    settings: 'Settings'
-  };
+  .authCard {
+    padding: 25px 19px;
+  }
 
-  const bulkNumbers = getBulkNumbers();
-  const validBulkNumbers = bulkNumbers.filter(n => /^0\d{9}$/.test(n));
-  const bulkTotal = Number(selected[1]) * validBulkNumbers.length;
-  const selectedChecker = checkerServices.find(item => item.name === checkerType);
-  const checkerTotal = selectedChecker.price * Number(checkerQuantity || 0);
+  .wallet-card strong {
+    font-size: 26px;
+  }
+}
 
-  return (
-    <main className={darkMode ? 'dark-mode' : 'light-mode'}>
-      <style>{`
-        .digital-services {
-          max-width: 900px;
-          margin: 25px auto;
-          padding: 0 16px;
-        }
-        .digital-intro {
-          padding: 24px;
-          border-radius: 18px;
-          color: white;
-          background: linear-gradient(120deg,#09264e,#176bd0);
-          margin-bottom: 20px;
-        }
-        .digital-intro h2 { margin: 0 0 8px; }
-        .digital-intro p { margin: 0; opacity: .9; line-height: 1.6; }
-        .digital-service-tabs {
-          display: grid;
-          grid-template-columns: repeat(2,minmax(0,1fr));
-          gap: 10px;
-          margin: 18px 0;
-        }
-        .digital-service-tabs button {
-          padding: 14px 10px;
-          border: 1px solid #dce5f0;
-          border-radius: 12px;
-          background: white;
-          color: #18304f;
-          font-weight: 800;
-          cursor: pointer;
-        }
-        .digital-service-tabs button.active {
-          background: #176bd0;
-          color: white;
-          border-color: #176bd0;
-        }
-        .digital-form-card {
-          background: white;
-          color: #172b4d;
-          padding: 22px;
-          border: 1px solid #e0e8f1;
-          border-radius: 17px;
-          box-shadow: 0 8px 25px rgba(20,45,80,.06);
-        }
-        .digital-form-card h3 { margin-top: 0; }
-        .digital-form-card label {
-          display: block;
-          font-size: 13px;
-          font-weight: 700;
-          margin: 14px 0 6px;
-        }
-        .digital-form-card input,
-        .digital-form-card select {
-          width: 100%;
-          box-sizing: border-box;
-          padding: 13px;
-          border: 1px solid #d5dfeb;
-          border-radius: 9px;
-          background: white;
-          color: #172b4d;
-          font: inherit;
-        }
-        .digital-price {
-          margin: 17px 0;
-          padding: 15px;
-          border-radius: 11px;
-          background: #edf5ff;
-          color: #174b86;
-          line-height: 1.7;
-        }
-        .digital-price strong { font-size: 23px; }
-        .digital-note {
-          display: block;
-          margin-top: 13px;
-          color: #718096;
-          font-size: 11px;
-          line-height: 1.6;
-        }
-        .digital-submit {
-          width: 100%;
-          padding: 14px;
-          border: 0;
-          border-radius: 10px;
-          color: white;
-          background: #176bd0;
-          font-weight: 800;
-          cursor: pointer;
-          margin-top: 15px;
-        }
-        .digital-status {
-          margin-top: 14px;
-          padding: 12px;
-          background: #edf5ff;
-          color: #174b86;
-          border-radius: 9px;
-          font-size: 12px;
-          line-height: 1.6;
-        }
-        .digital-shortcuts {
-          display: grid;
-          grid-template-columns: repeat(2,minmax(0,1fr));
-          gap: 12px;
-        }
-        .digital-shortcuts a {
-          display: block;
-          padding: 17px;
-          border-radius: 13px;
-          background: white;
-          border: 1px solid #e0e8f1;
-          color: #18304f;
-          text-decoration: none;
-          font-weight: 800;
-        }
-        .dark-mode .digital-form-card,
-        .dark-mode .digital-service-tabs button,
-        .dark-mode .digital-shortcuts a {
-          background: #13243b;
-          color: #edf4ff;
-          border-color: #29415e;
-        }
-        .dark-mode .digital-service-tabs button.active {
-          background: #174d82;
-          color: white;
-        }
-        .dark-mode .digital-form-card input,
-        .dark-mode .digital-form-card select {
-          background: #0d1c30;
-          color: white;
-          border-color: #39516e;
-        }
-        .dark-mode .digital-price,
-        .dark-mode .digital-status {
-          background: #193755;
-          color: #c7e2ff;
-        }
-        @media(max-width:520px) {
-          .digital-service-tabs { grid-template-columns: 1fr 1fr; }
-          .digital-form-card { padding: 16px; }
-        }
-      `}</style>
+@media (max-width: 360px) {
+  .network-selector {
+    gap: 5px;
+  }
 
-      {showSplash && (
-        <div className="splashScreen">
-          <div className="splash-background-glow"></div>
-          <div className="splash-logo-stage">
-            <div className="splash-orbit splash-orbit-one"></div>
-            <div className="splash-orbit splash-orbit-two"></div>
-            <div className="splash-orbit splash-orbit-three"></div>
-            <div className="splash-logo">AD</div>
-          </div>
-          <h1>AIRDATA GH</h1>
-          <p>YOUR CONNECTION. OUR PRIORITY.</p>
-          <div className="splash-status">
-            <span></span> CONNECTING YOU TO BETTER DATA
-          </div>
-          <button className="skipIntro" onClick={() => setShowSplash(false)}>
-            Skip Intro →
-          </button>
-        </div>
-      )}
+  .network-option {
+    font-size: 12px;
+  }
 
-      {!showSplash && !authUser && (
-        <section className="authScreen">
-          <div className="authCard">
-            <div className="authLogo">AD</div>
-            <h1>Welcome to AirData GH</h1>
-            <p className="authSubtitle">Your connection. Our priority.</p>
-
-            <div className="authTabs">
-              <button
-                className={authMode === 'login' ? 'authActive' : ''}
-                onClick={() => { setAuthMode('login'); setAuthMessage(''); }}
-              >Login</button>
-              <button
-                className={authMode === 'signup' ? 'authActive' : ''}
-                onClick={() => { setAuthMode('signup'); setAuthMessage(''); }}
-              >Sign Up</button>
-            </div>
-
-            <form onSubmit={async e => {
-              e.preventDefault();
-              const formData = new FormData(e.currentTarget);
-              const email = String(formData.get('email') || '').trim();
-              const password = String(formData.get('password') || '');
-              const name = String(formData.get('name') || '').trim();
-              const signupPhone = String(formData.get('phone') || '').trim();
-              setAuthMessage('Please wait...');
-
-              try {
-                let result;
-                let phoneSaved = true;
-
-                if (authMode === 'signup') {
-                  if (!/^0\d{9}$/.test(signupPhone)) {
-                    throw new Error('Enter a valid 10-digit Ghana phone number.');
-                  }
-
-                  result = await authClient.signUp.email({ name, email, password });
-                  if (result.error) throw new Error(result.error.message || 'Account creation failed.');
-
-                  try {
-                    const token = await authClient.getJWTToken();
-                    if (!token) phoneSaved = false;
-                    else {
-                      const phoneResponse = await fetch('/api/customer/profile', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ phone: signupPhone })
-                      });
-                      const phoneResult = await phoneResponse.json();
-                      if (!phoneResponse.ok) {
-                        phoneSaved = false;
-                        console.error(phoneResult.error);
-                      }
-                    }
-                  } catch {
-                    phoneSaved = false;
-                  }
-                } else {
-                  result = await authClient.signIn.email({ email, password });
-                }
-
-                if (result.error) throw new Error(result.error.message || 'Authentication failed.');
-                const sessionResult = await authClient.getSession();
-                setAuthUser(result.data?.user ?? sessionResult.data?.user ?? null);
-                setAuthMessage(authMode === 'signup'
-                  ? (phoneSaved ? 'Your account has been created successfully!' : 'Your account was created, but your phone number could not be saved. Please contact support.')
-                  : 'Login successful! Welcome back.');
-              } catch (error) {
-                setAuthMessage(error.message || 'Something went wrong. Please try again.');
-              }
-            }}>
-              {authMode === 'signup' && <>
-                <label>Full Name</label>
-                <input type="text" name="name" placeholder="Enter your full name" required />
-                <label>Phone Number</label>
-                <input type="tel" name="phone" placeholder="e.g. 0241234567" pattern="0[0-9]{9}" maxLength={10} required />
-              </>}
-              <label>Email Address</label>
-              <input type="email" name="email" placeholder="Enter your email" autoComplete="email" required />
-              <label>Password</label>
-              <input type="password" name="password" placeholder="Enter your password" autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} minLength={8} required />
-              {authMode === 'login' && <p className="forgotPassword">Forgot password?</p>}
-              <button className="authSubmit" type="submit">
-                {authMode === 'login' ? 'Login to Your Account' : 'Create My Account'}
-              </button>
-              {authMessage && <p className="authMessage">{authMessage}</p>}
-            </form>
-            <p className="authFooter">Secure access to your AirData GH account.</p>
-          </div>
-        </section>
-      )}
-
-      {!showSplash && authUser && <>
-        <DashboardMenu />
-
-        <header>
-          <div className="headerTop">
-            <div>
-              <h1>AirData <span>GH</span></h1>
-              <p>Your connection. Our priority.</p>
-            </div>
-            <button className="themeToggle" onClick={() => setDarkMode(!darkMode)}>
-              {darkMode ? '☀️ Day mode' : '🌙 Night mode'}
-            </button>
-          </div>
-        </header>
-
-        <div className="pageHeading">
-          <h2>{pageTitles[currentPage] || 'Dashboard'}</h2>
-        </div>
-
-        {currentPage === 'dashboard' && <>
-          <section id="dashboard" className="hero">
-            <p className="tag">FAST • AFFORDABLE • RELIABLE</p>
-            <h2>Welcome to AirData GH, {customerName}!</h2>
-            <p>Get affordable data bundles and digital services with ease.</p>
-            <a href="/?page=buy-data">Buy Data →</a>
-          </section>
-
-          <section className="section">
-            <h2>Explore Our Services</h2>
-            <div className="digital-shortcuts">
-              <a href="/?page=buy-data">📱 Buy Data Bundles</a>
-              <a href="/?page=digital-services">🎓 Digital Services</a>
-              <a href="/?page=digital-services">📝 MTN AFA Registration</a>
-              <a href="/?page=digital-services">📚 Results Checkers</a>
-            </div>
-          </section>
-
-          <section className="wallet-section">
-            <div className="wallet-section-heading">
-              <div>
-                <span className="wallet-eyebrow">YOUR MONEY, READY WHEN YOU ARE</span>
-                <h2>My Wallet</h2>
-                <p>Manage your AirData GH funds in one place.</p>
-              </div>
-              <span className="wallet-secure-mark">🔒 Secure wallet</span>
-            </div>
-
-            <div className="wallet-card">
-              <div className="wallet-card-glow"></div>
-              <div className="wallet-card-top">
-                <div className="wallet-card-brand">
-                  <span className="wallet-brand-icon">AD</span>
-                  <span>AIRDATA <b>GH</b></span>
-                </div>
-                <span className="wallet-card-label">WALLET BALANCE</span>
-              </div>
-              <div className="wallet-balance-area">
-                <span className="wallet-balance-caption">Available balance</span>
-                <div className="wallet-balance-value"><span>GH₵</span>{walletBalance.toFixed(2)}</div>
-                <span className="wallet-balance-footnote"><i></i> Ready to use for eligible purchases</span>
-              </div>
-              <div className="wallet-card-bottom">
-                <span>YOUR CONNECTION. OUR PRIORITY.</span>
-                <span className="wallet-card-chip">✦</span>
-              </div>
-            </div>
-
-            <div className="wallet-action-grid">
-              <a className="wallet-action wallet-action-primary" href="/?page=deposit">
-                <span className="wallet-action-icon">＋</span>
-                <span><b>Add Money</b><small>Top up your wallet</small></span>
-                <span className="wallet-action-arrow">↗</span>
-              </a>
-              <a className="wallet-action" href="/?page=buy-data">
-                <span className="wallet-action-icon">⌁</span>
-                <span><b>Buy Data</b><small>Choose your network</small></span>
-                <span className="wallet-action-arrow">↗</span>
-              </a>
-            </div>
-
-            <div className="wallet-footer-row">
-              <span><i className="wallet-live-dot"></i> Wallet balance</span>
-              <button className="wallet-refresh" onClick={loadWallet} disabled={walletLoading}>
-                <span className={walletLoading ? 'wallet-refresh-icon spinning' : 'wallet-refresh-icon'}>↻</span>
-                {walletLoading ? 'Refreshing...' : 'Refresh balance'}
-              </button>
-            </div>
-            {walletMessage && <p className="wallet-status-message" role="status">{walletMessage}</p>}
-            <p className="wallet-usage-note">Your balance is available for eligible AirData GH purchases.</p>
-          </section>
-
-          <section className="section">
-            <h2>Quick Actions</h2>
-            <div className="serviceGrid">
-              <a href="/?page=buy-data">📱 Buy Data</a>
-              <a href="/?page=digital-services">🎓 Digital Services</a>
-              <a href="/?page=deposit">💳 Deposit</a>
-              <a href="/?page=transactions">📄 Transactions</a>
-              <a href="/?page=support">💬 Support</a>
-            </div>
-          </section>
-
-          <section className="tracking">
-            <div className="trackingCard">
-              <div className="trackingIcon">📦</div>
-              <p className="trackingTag">AIRDATA GH • ORDER SUPPORT</p>
-              <h2>Track Your Order</h2>
-              <p className="trackingText">Need help with an order? Contact our support team.</p>
-              <a className="trackingButton" href="/?page=support">Get Order Support →</a>
-            </div>
-          </section>
-        </>}
-
-        {currentPage === 'buy-data' && <section id="bundles" className="section">
-          <h2>Buy Data Bundles</h2>
-          <p className="sub">Select your preferred network and data package.</p>
-
-          <div className="network-selector">
-            {['MTN', 'Telecel', 'AirtelTigo'].map(network => (
-              <button
-                key={network}
-                className={`network-option ${selectedNetwork === network ? 'active' : ''}`}
-                onClick={() => changeNetwork(network)}
-              >
-                {network}<span>Data bundles</span>
-              </button>
-            ))}
-          </div>
-
-          <h3>{selectedNetwork} Data Packages</h3>
-          <div className="grid">
-            {networkBundles[selectedNetwork].map(bundle => (
-              <button
-                key={bundle[0]}
-                className={`bundle ${selected[0] === bundle[0] ? 'active' : ''}`}
-                onClick={() => { setSelected(bundle); setBulkMessage(''); }}
-              >
-                <strong>{bundle[0]}</strong><span>GH₵{bundle[1]}</span>
-              </button>
-            ))}
-          </div>
-
-          {selectedNetwork === 'MTN' && <div className="order-mode-selector">
-            <button className={orderMode === 'single' ? 'active' : ''} onClick={() => { setOrderMode('single'); setBulkMessage(''); }}>Single Order</button>
-            <button className={orderMode === 'bulk' ? 'active' : ''} onClick={() => { setOrderMode('bulk'); setBulkMessage(''); }}>Bulk Order</button>
-          </div>}
-
-          {(selectedNetwork !== 'MTN' || orderMode === 'single') && <div className="order">
-            <h3>Complete Your Order</h3>
-            <p>Network: <strong>{selectedNetwork}</strong></p>
-            <p>Selected: <strong>{selected[0]} — GH₵{selected[1]}</strong></p>
-            <label htmlFor="phone">Recipient phone number</label>
-            <input id="phone" type="tel" placeholder="e.g. 0241234567" value={phone} maxLength={10} onChange={e => setPhone(e.target.value)} />
-            <button className="orderButton" onClick={orderNow}>Order via WhatsApp</button>
-            <small>You'll confirm your order with us on WhatsApp.</small>
-          </div>}
-
-          {selectedNetwork === 'MTN' && orderMode === 'bulk' && <div className="order">
-            <h3>MTN Bulk Data Order</h3>
-            <p>Select one bundle and enter the phone numbers of all recipients.</p>
-            <p>Bundle per recipient: <strong>{selected[0]} — GH₵{selected[1]}</strong></p>
-            <label htmlFor="bulkPhones">Recipient phone numbers</label>
-            <textarea id="bulkPhones" className="bulk-input" placeholder={'Enter one phone number per line:\n0241234567\n0551234567\n0201234567'} value={bulkPhones} onChange={e => { setBulkPhones(e.target.value); setBulkMessage(''); }} />
-            <small className="bulk-help">Enter up to 20 Ghana phone numbers. Use new lines or commas.</small>
-            <div className="bulk-summary">
-              <div>Recipients entered: <strong>{bulkNumbers.length}</strong></div>
-              <div>Valid phone numbers: <strong>{validBulkNumbers.length}</strong></div>
-              <div>Estimated total: <strong> GH₵{bulkTotal.toFixed(2)}</strong></div>
-            </div>
-            {bulkMessage && <p className="bulk-error" role="alert">{bulkMessage}</p>}
-            <button className="orderButton" onClick={orderBulk}>Submit Bulk Request via WhatsApp</button>
-            <small>Your request will be sent for confirmation. This form does not automatically deliver data or deduct wallet funds.</small>
-          </div>}
-        </section>}
-
-        {/* DIGITAL SERVICES */}
-        {currentPage === 'digital-services' && <section className="digital-services">
-          <div className="digital-intro">
-            <h2>Digital Services</h2>
-            <p>Access MTN AFA registration and examination results checkers from AirData GH.</p>
-          </div>
-
-          <div className="digital-service-tabs">
-            <button className={digitalService === 'afa' ? 'active' : ''} onClick={() => { setDigitalService('afa'); setServiceMessage(''); }}>📱 MTN AFA</button>
-            <button className={digitalService === 'checkers' ? 'active' : ''} onClick={() => { setDigitalService('checkers'); setServiceMessage(''); }}>🎓 Results Checkers</button>
-          </div>
-
-          {digitalService === 'afa' && <form className="digital-form-card" onSubmit={submitAfaRequest}>
-            <h3>MTN AFA Registration</h3>
-            <p>Complete the applicant information to request MTN AFA registration.</p>
-            <div className="digital-price">Registration fee<br /><strong>GH₵15.00</strong></div>
-
-            <label>Applicant's full name</label>
-            <input value={afaForm.fullName} onChange={e => updateAfa('fullName', e.target.value)} placeholder="Enter full name" required />
-
-            <label>Applicant's phone number</label>
-            <input type="tel" value={afaForm.phone} maxLength={10} onChange={e => updateAfa('phone', e.target.value)} placeholder="0241234567" required />
-
-            <label>Date of birth</label>
-            <input type="date" value={afaForm.dateOfBirth} onChange={e => updateAfa('dateOfBirth', e.target.value)} required />
-
-            <label>Region</label>
-            <select value={afaForm.region} onChange={e => updateAfa('region', e.target.value)} required>
-              <option value="">Select region</option>
-              {['Ahafo','Ashanti','Bono','Bono East','Central','Eastern','Greater Accra','North East','Northern','Oti','Savannah','Upper East','Upper West','Volta','Western','Western North'].map(region => <option key={region} value={region}>{region}</option>)}
-            </select>
-
-            <label>Town / District</label>
-            <input value={afaForm.town} onChange={e => updateAfa('town', e.target.value)} placeholder="Enter town or district" required />
-
-            <button className="digital-submit" type="submit">Continue via WhatsApp — GH₵15</button>
-            <small className="digital-note">This is currently a registration request only. Registration is not completed until the supplier processes and confirms it. Do not send Ghana Card details through this temporary form.</small>
-          </form>}
-
-          {digitalService === 'checkers' && <form className="digital-form-card" onSubmit={submitCheckerRequest}>
-            <h3>Examination Results Checkers</h3>
-            <p>Select the examination checker you need.</p>
-
-            <label>Checker type</label>
-            <select value={checkerType} onChange={e => { setCheckerType(e.target.value); setServiceMessage(''); }}>
-              {checkerServices.map(item => <option key={item.name} value={item.name}>{item.name}</option>)}
-            </select>
-
-            <label>Quantity</label>
-            <select value={checkerQuantity} onChange={e => setCheckerQuantity(e.target.value)}>
-              {Array.from({ length: 20 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
-
-            <label>Your phone number</label>
-            <input type="tel" value={checkerPhone} maxLength={10} onChange={e => { setCheckerPhone(e.target.value); setServiceMessage(''); }} placeholder="0241234567" required />
-
-            <div className="digital-price">
-              Price per checker: GH₵{selectedChecker.price.toFixed(2)}<br />
-              Quantity: {checkerQuantity}<br />
-              Total amount<br />
-              <strong>GH₵{checkerTotal.toFixed(2)}</strong>
-            </div>
-
-            <button className="digital-submit" type="submit">Request Checker via WhatsApp</button>
-            <small className="digital-note">Availability and payment will be confirmed before fulfilment. Voucher PINs and serial numbers are supplied only after a successful purchase.</small>
-          </form>}
-
-          {serviceMessage && <p className="digital-status" role="status">{serviceMessage}</p>}
-        </section>}
-
-        {currentPage === 'deposit' && <section className="section">
-          <h2>Wallet Deposit</h2>
-          <p className="sub">Add funds to your AirData GH wallet securely.</p>
-          <div className="order">
-            <h3>Available Balance</h3>
-            <h2>GH₵{walletBalance.toFixed(2)}</h2>
-          </div>
-          <div className="order">
-            <h3>Deposit to Your Wallet</h3>
-            <label htmlFor="depositAmount">Deposit Amount (GH₵)</label>
-            <input id="depositAmount" type="number" min="0.10" max="10000" step="0.01" placeholder="Enter amount" value={depositAmount} onChange={e => setDepositAmount(e.target.value)} disabled={walletLoading} />
-            <p><strong>Minimum: GH₵0.10 | Maximum: GH₵10,000</strong></p>
-            <button className="orderButton" onClick={startDeposit} disabled={walletLoading}>{walletLoading ? 'Please wait...' : 'Deposit Now'}</button>
-            {walletMessage && <p className="authMessage" role="status">{walletMessage}</p>}
-            <small>Payments are processed securely through Paystack. Your wallet is credited only after payment verification.</small>
-          </div>
-        </section>}
-
-        {currentPage === 'transactions' && <section className="section">
-          <h2>My Transactions</h2>
-          <p className="sub">View your wallet deposit history.</p>
-          <div className="order">
-            <h3>Current Wallet Balance</h3>
-            <h2>GH₵{walletBalance.toFixed(2)}</h2>
-            <button className="orderButton" onClick={loadWallet} disabled={walletLoading}>{walletLoading ? 'Refreshing...' : 'Refresh History'}</button>
-          </div>
-          <div className="order">
-            <h3>Transaction History</h3>
-            {walletTransactions.length === 0 ? <p>No transactions to display yet.</p> : <div className="transactionList">
-              {walletTransactions.map(transaction => <div className="transactionItem" key={transaction.reference}>
-                <h4>Wallet Deposit</h4>
-                <p>Amount: <strong>GH₵{Number(transaction.amount).toFixed(2)}</strong></p>
-                <p>Status: <strong>{transaction.status.toUpperCase()}</strong></p>
-                <small>Reference: {transaction.reference}</small><br />
-                <small>{new Date(transaction.created_at).toLocaleString()}</small>
-              </div>)}
-            </div>}
-          </div>
-        </section>}
-
-        {currentPage === 'profile' && <section className="section">
-          <h2>My Profile</h2>
-          <p className="sub">Manage your AirData GH account.</p>
-          <div className="order">
-            <h3>Account Information</h3>
-            <p>Email: <strong>{authUser?.email || 'Not available'}</strong></p>
-            <p>Name: <strong>{authUser?.name || 'Customer'}</strong></p>
-            <button className="orderButton" onClick={logout}>Logout</button>
-          </div>
-        </section>}
-
-        {currentPage === 'support' && <section className="section">
-          <h2>Customer Support</h2>
-          <p className="sub">Need help with your account or data order?</p>
-          <div className="order">
-            <h3>Contact AirData GH</h3>
-            <p>Our support team is available on WhatsApp.</p>
-            <a className="orderButton" href={`https://wa.me/${WHATSAPP_NUMBER}?text=Hello%20AirData%20GH%2C%20I%20need%20assistance.`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}>Chat with Support on WhatsApp</a>
-          </div>
-        </section>}
-
-        {currentPage === 'settings' && <section className="section">
-          <h2>Account Settings</h2>
-          <p className="sub">Customize your AirData GH experience.</p>
-          <div className="order">
-            <h3>Appearance</h3>
-            <p>Choose how your dashboard looks.</p>
-            <button className="orderButton" onClick={() => setDarkMode(!darkMode)}>{darkMode ? '☀️ Switch to Day Mode' : '🌙 Switch to Night Mode'}</button>
-          </div>
-        </section>}
-
-        <footer>
-          <h2>AirData GH</h2>
-          <p>Affordable data. Reliable service.</p>
-          <p>WhatsApp: 0548 206 175</p>
-          <small>© 2026 AirData GH. All rights reserved.</small>
-        </footer>
-      </>}
-
-      <InScopeAI />
-    </main>
-  );
+  .bundle strong {
+    font-size: 17px;
+  }
 }
