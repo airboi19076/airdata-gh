@@ -27,6 +27,36 @@ const bundles = [
   ['1TB', '4300.00']
 ];
 
+const airtelTigoBundles = [
+  ['1GB', '4.10'],
+  ['2GB', '8.20'],
+  ['3GB', '12.30'],
+  ['4GB', '16.40'],
+  ['5GB', '20.50'],
+  ['6GB', '24.60'],
+  ['8GB', '32.80'],
+  ['10GB', '41.00'],
+  ['15GB', '61.50'],
+  ['20GB', '82.00']
+];
+
+const telecelBundles = [
+  ['10GB', '41.00'],
+  ['15GB', '57.00'],
+  ['20GB', '73.00'],
+  ['25GB', '89.00'],
+  ['30GB', '105.00'],
+  ['40GB', '137.00'],
+  ['50GB', '169.00'],
+  ['100GB', '329.00']
+];
+
+const networkBundles = {
+  MTN: bundles,
+  AirtelTigo: airtelTigoBundles,
+  Telecel: telecelBundles
+};
+
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [authMode, setAuthMode] = useState('login');
@@ -41,8 +71,13 @@ export default function App() {
     () => localStorage.getItem('airdata-theme') === 'dark'
   );
 
+  const [selectedNetwork, setSelectedNetwork] = useState('MTN');
   const [selected, setSelected] = useState(bundles[0]);
   const [phone, setPhone] = useState('');
+
+  const [orderMode, setOrderMode] = useState('single');
+  const [bulkPhones, setBulkPhones] = useState('');
+  const [bulkMessage, setBulkMessage] = useState('');
 
   const [walletBalance, setWalletBalance] = useState(0);
   const [walletTransactions, setWalletTransactions] = useState([]);
@@ -219,6 +254,15 @@ export default function App() {
     }
   }
 
+  function changeNetwork(network) {
+    setSelectedNetwork(network);
+    setSelected(networkBundles[network][0]);
+    setPhone('');
+    setBulkPhones('');
+    setBulkMessage('');
+    setOrderMode('single');
+  }
+
   function orderNow() {
     if (!/^0\d{9}$/.test(phone)) {
       alert('Enter a valid 10-digit Ghana phone number.');
@@ -226,12 +270,70 @@ export default function App() {
     }
 
     const message =
-      `Hello AirData GH, I want to order MTN ${selected[0]} for ${phone}. Price: GH₵${selected[1]}.`;
+      `Hello AirData GH, I want to order ${selectedNetwork} ${selected[0]} for ${phone}. Price: GH₵${selected[1]}.`;
 
     window.open(
       `https://wa.me/233548206175?text=${encodeURIComponent(message)}`,
       '_blank'
     );
+  }
+
+  function getBulkNumbers() {
+    return bulkPhones
+      .split(/[\s,;]+/)
+      .map(number => number.trim())
+      .filter(Boolean);
+  }
+
+  function orderBulk() {
+    const numbers = getBulkNumbers();
+
+    if (selectedNetwork !== 'MTN') {
+      alert('Bulk ordering is currently available for MTN only.');
+      return;
+    }
+
+    if (numbers.length === 0) {
+      setBulkMessage('Enter at least one recipient phone number.');
+      return;
+    }
+
+    if (numbers.length > 20) {
+      setBulkMessage('You can enter a maximum of 20 numbers per request.');
+      return;
+    }
+
+    const invalidNumbers = numbers.filter(
+      number => !/^0\d{9}$/.test(number)
+    );
+
+    if (invalidNumbers.length > 0) {
+      setBulkMessage(
+        `Please check these invalid numbers: ${invalidNumbers.join(', ')}`
+      );
+      return;
+    }
+
+    const total = Number(selected[1]) * numbers.length;
+
+    const message = [
+      'Hello AirData GH, I want to make an MTN bulk data order.',
+      '',
+      `Bundle: ${selected[0]}`,
+      `Price per recipient: GH₵${selected[1]}`,
+      `Number of recipients: ${numbers.length}`,
+      `Estimated total: GH₵${total.toFixed(2)}`,
+      '',
+      'Recipient numbers:',
+      ...numbers.map((number, index) => `${index + 1}. ${number}`)
+    ].join('\n');
+
+    window.open(
+      `https://wa.me/233548206175?text=${encodeURIComponent(message)}`,
+      '_blank'
+    );
+
+    setBulkMessage('');
   }
 
   async function logout() {
@@ -263,6 +365,12 @@ export default function App() {
     support: 'Customer Support',
     settings: 'Settings'
   };
+
+  const bulkNumbers = getBulkNumbers();
+  const validBulkNumbers = bulkNumbers.filter(
+    number => /^0\d{9}$/.test(number)
+  );
+  const bulkTotal = Number(selected[1]) * validBulkNumbers.length;
 
   return (
     <main className={darkMode ? 'dark-mode' : 'light-mode'}>
@@ -614,6 +722,129 @@ export default function App() {
           color: #9aacc3;
         }
 
+        /* NETWORK SELECTOR */
+
+        .network-selector {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+          margin: 22px 0;
+        }
+
+        .network-option {
+          padding: 16px 8px;
+          border: 2px solid #e1e8f0;
+          border-radius: 14px;
+          background: #fff;
+          color: #182b48;
+          font-weight: 800;
+          font-size: 14px;
+          cursor: pointer;
+          transition: .2s;
+        }
+
+        .network-option.active {
+          border-color: #2476d2;
+          background: #eaf4ff;
+          color: #1765bd;
+          box-shadow: 0 5px 15px rgba(36,118,210,.12);
+        }
+
+        .network-option span {
+          display: block;
+          font-size: 10px;
+          font-weight: 600;
+          margin-top: 5px;
+          opacity: .7;
+        }
+
+        .order-mode-selector {
+          display: flex;
+          gap: 10px;
+          margin: 20px 0;
+        }
+
+        .order-mode-selector button {
+          flex: 1;
+          padding: 12px;
+          border: 1px solid #dce5f0;
+          border-radius: 10px;
+          background: #fff;
+          color: #253b59;
+          font-weight: 750;
+          cursor: pointer;
+        }
+
+        .order-mode-selector button.active {
+          background: #176bd0;
+          color: #fff;
+          border-color: #176bd0;
+        }
+
+        .bulk-input {
+          width: 100%;
+          min-height: 145px;
+          box-sizing: border-box;
+          padding: 14px;
+          border: 1px solid #d7e0eb;
+          border-radius: 12px;
+          font: inherit;
+          resize: vertical;
+          margin: 10px 0;
+        }
+
+        .bulk-summary {
+          padding: 15px;
+          border-radius: 12px;
+          background: #edf5ff;
+          color: #174b86;
+          margin: 14px 0;
+          line-height: 1.8;
+        }
+
+        .bulk-summary strong {
+          font-size: 19px;
+        }
+
+        .bulk-help {
+          display: block;
+          margin: 7px 0;
+          font-size: 11px;
+          opacity: .75;
+          line-height: 1.6;
+        }
+
+        .bulk-error {
+          color: #c0392b;
+          font-size: 12px;
+          margin: 10px 0;
+        }
+
+        .dark-mode .network-option,
+        .dark-mode .order-mode-selector button {
+          background: #13243b;
+          border-color: #29415e;
+          color: #edf4ff;
+        }
+
+        .dark-mode .network-option.active,
+        .dark-mode .order-mode-selector button.active {
+          background: #174d82;
+          border-color: #4799e8;
+          color: #fff;
+        }
+
+        .dark-mode .bulk-input {
+          background: #13243b;
+          color: #edf4ff;
+          border-color: #39516e;
+        }
+
+        .dark-mode .bulk-summary {
+          background: #193755;
+          color: #c7e2ff;
+        }
+
         @media (max-width: 520px) {
           .wallet-section {
             padding: 0 13px;
@@ -659,6 +890,15 @@ export default function App() {
 
           .wallet-footer-row {
             font-size: 10px;
+          }
+
+          .network-selector {
+            gap: 6px;
+          }
+
+          .network-option {
+            padding: 13px 4px;
+            font-size: 12px;
           }
         }
       `}</style>
@@ -763,7 +1003,6 @@ export default function App() {
                       );
                     }
 
-                    // Save the customer's phone number after signup.
                     try {
                       const token = await authClient.getJWTToken();
 
@@ -939,13 +1178,12 @@ export default function App() {
                 <h2>Welcome to AirData GH, {customerName}!</h2>
 
                 <p>
-                  Get affordable MTN data bundles delivered with ease.
+                  Get affordable data bundles delivered with ease.
                 </p>
 
                 <a href="/?page=buy-data">Buy Data →</a>
               </section>
 
-              {/* PREMIUM WALLET */}
               <section className="wallet-section">
                 <div className="wallet-section-heading">
                   <div>
@@ -1015,7 +1253,7 @@ export default function App() {
                     <span className="wallet-action-icon">⌁</span>
                     <span>
                       <b>Buy Data</b>
-                      <small>Choose an MTN bundle</small>
+                      <small>Choose your network</small>
                     </span>
                     <span className="wallet-action-arrow">↗</span>
                   </a>
@@ -1093,19 +1331,57 @@ export default function App() {
           {/* BUY DATA */}
           {currentPage === 'buy-data' && (
             <section id="bundles" className="section">
-              <h2>MTN Data Bundles</h2>
+              <h2>Buy Data Bundles</h2>
               <p className="sub">
-                Choose your preferred data package.
+                Select your preferred network and data package.
               </p>
 
+              {/* NETWORK CHOICES */}
+              <div className="network-selector">
+                <button
+                  className={`network-option ${
+                    selectedNetwork === 'MTN' ? 'active' : ''
+                  }`}
+                  onClick={() => changeNetwork('MTN')}
+                >
+                  MTN
+                  <span>Data bundles</span>
+                </button>
+
+                <button
+                  className={`network-option ${
+                    selectedNetwork === 'Telecel' ? 'active' : ''
+                  }`}
+                  onClick={() => changeNetwork('Telecel')}
+                >
+                  Telecel
+                  <span>Data bundles</span>
+                </button>
+
+                <button
+                  className={`network-option ${
+                    selectedNetwork === 'AirtelTigo' ? 'active' : ''
+                  }`}
+                  onClick={() => changeNetwork('AirtelTigo')}
+                >
+                  AirtelTigo
+                  <span>Data bundles</span>
+                </button>
+              </div>
+
+              <h3>{selectedNetwork} Data Packages</h3>
+
               <div className="grid">
-                {bundles.map((bundle) => (
+                {networkBundles[selectedNetwork].map((bundle) => (
                   <button
                     key={bundle[0]}
                     className={`bundle ${
                       selected[0] === bundle[0] ? 'active' : ''
                     }`}
-                    onClick={() => setSelected(bundle)}
+                    onClick={() => {
+                      setSelected(bundle);
+                      setBulkMessage('');
+                    }}
                   >
                     <strong>{bundle[0]}</strong>
                     <span>GH₵{bundle[1]}</span>
@@ -1113,30 +1389,148 @@ export default function App() {
                 ))}
               </div>
 
-              <div className="order">
-                <h3>Complete Your Order</h3>
+              {/* MTN SINGLE AND BULK ORDER OPTIONS */}
+              {selectedNetwork === 'MTN' && (
+                <div className="order-mode-selector">
+                  <button
+                    className={orderMode === 'single' ? 'active' : ''}
+                    onClick={() => {
+                      setOrderMode('single');
+                      setBulkMessage('');
+                    }}
+                  >
+                    Single Order
+                  </button>
 
-                <p>
-                  Selected: <strong>{selected[0]} — GH₵{selected[1]}</strong>
-                </p>
+                  <button
+                    className={orderMode === 'bulk' ? 'active' : ''}
+                    onClick={() => {
+                      setOrderMode('bulk');
+                      setBulkMessage('');
+                    }}
+                  >
+                    Bulk Order
+                  </button>
+                </div>
+              )}
 
-                <label htmlFor="phone">Recipient phone number</label>
-                <input
-                  id="phone"
-                  type="tel"
-                  placeholder="e.g. 0241234567"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
+              {/* SINGLE ORDER */}
+              {(selectedNetwork !== 'MTN' || orderMode === 'single') && (
+                <div className="order">
+                  <h3>Complete Your Order</h3>
 
-                <button className="orderButton" onClick={orderNow}>
-                  Order via WhatsApp
-                </button>
+                  <p>
+                    Network: <strong>{selectedNetwork}</strong>
+                  </p>
 
-                <small>
-                  You'll confirm your order with us on WhatsApp.
-                </small>
-              </div>
+                  <p>
+                    Selected: <strong>
+                      {selected[0]} — GH₵{selected[1]}
+                    </strong>
+                  </p>
+
+                  <label htmlFor="phone">
+                    Recipient phone number
+                  </label>
+
+                  <input
+                    id="phone"
+                    type="tel"
+                    placeholder="e.g. 0241234567"
+                    value={phone}
+                    maxLength={10}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+
+                  <button className="orderButton" onClick={orderNow}>
+                    Order via WhatsApp
+                  </button>
+
+                  <small>
+                    You'll confirm your order with us on WhatsApp.
+                  </small>
+                </div>
+              )}
+
+              {/* MTN BULK ORDER */}
+              {selectedNetwork === 'MTN' && orderMode === 'bulk' && (
+                <div className="order">
+                  <h3>MTN Bulk Data Order</h3>
+
+                  <p>
+                    Select one bundle and enter the phone numbers
+                    of all recipients.
+                  </p>
+
+                  <p>
+                    Bundle per recipient: <strong>
+                      {selected[0]} — GH₵{selected[1]}
+                    </strong>
+                  </p>
+
+                  <label htmlFor="bulkPhones">
+                    Recipient phone numbers
+                  </label>
+
+                  <textarea
+                    id="bulkPhones"
+                    className="bulk-input"
+                    placeholder={
+                      'Enter one phone number per line:\n0241234567\n0551234567\n0201234567'
+                    }
+                    value={bulkPhones}
+                    onChange={(e) => {
+                      setBulkPhones(e.target.value);
+                      setBulkMessage('');
+                    }}
+                  />
+
+                  <small className="bulk-help">
+                    Enter up to 20 Ghana phone numbers. You can put
+                    each number on a new line or separate them with commas.
+                  </small>
+
+                  <div className="bulk-summary">
+                    <div>
+                      Recipients entered: <strong>
+                        {bulkNumbers.length}
+                      </strong>
+                    </div>
+
+                    <div>
+                      Valid phone numbers: <strong>
+                        {validBulkNumbers.length}
+                      </strong>
+                    </div>
+
+                    <div>
+                      Estimated total:
+                      <strong>
+                        {' '}GH₵{bulkTotal.toFixed(2)}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {bulkMessage && (
+                    <p className="bulk-error" role="alert">
+                      {bulkMessage}
+                    </p>
+                  )}
+
+                  <button
+                    className="orderButton"
+                    onClick={orderBulk}
+                  >
+                    Submit Bulk Request via WhatsApp
+                  </button>
+
+                  <small>
+                    Your bulk request will be sent to AirData GH
+                    for confirmation. No wallet deduction or automatic
+                    delivery happens through this form yet.
+                  </small>
+                </div>
+              )}
             </section>
           )}
 
@@ -1364,4 +1758,4 @@ export default function App() {
       <InScopeAI />
     </main>
   );
-}
+   }
