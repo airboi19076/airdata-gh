@@ -47,7 +47,7 @@ export default function App() {
   const [authMode, setAuthMode] = useState('login');
   const [authMessage, setAuthMessage] = useState('');
   const [authUser, setAuthUser] = useState(null);
-
+const [authLoading, setAuthLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(
     new URLSearchParams(window.location.search).get('page') || 'dashboard'
   );
