@@ -125,6 +125,14 @@ const [authLoading, setAuthLoading] = useState(true);
   }, [darkMode]);
 
   async function getWalletToken() {
+  try {
+    const sessionResult = await authClient.getSession();
+    const sessionToken = sessionResult?.data?.session?.access_token;
+
+    if (sessionToken) {
+      return sessionToken;
+    }
+
     const token = await authClient.getJWTToken();
 
     if (!token) {
@@ -132,7 +140,12 @@ const [authLoading, setAuthLoading] = useState(true);
     }
 
     return token;
+  } catch (error) {
+    throw new Error(
+      error.message || 'Could not verify your login session. Please sign in again.'
+    );
   }
+}
 
   async function loadWallet() {
     setWalletLoading(true);
