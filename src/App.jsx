@@ -91,12 +91,29 @@ const [authLoading, setAuthLoading] = useState(true);
     availableBundles[0];
 
   useEffect(() => {
-    authClient.getSession()
-      .then(({ data, error }) => {
-        if (!error) setAuthUser(data?.user ?? null);
-      })
-      .catch(() => {});
-  }, []);
+  let active = true;
+
+  authClient.getSession()
+    .then(({ data, error }) => {
+      if (active && !error) setAuthUser(data?.user ?? null);
+    })
+    .catch(() => {})
+    .finally(() => {
+      if (active) setAuthLoading(false);
+    });
+
+  const syncPage = () => {
+    const page = new URLSearchParams(window.location.search).get('page') || 'dashboard';
+    setCurrentPage(page);
+  };
+
+  window.addEventListener('popstate', syncPage);
+
+  return () => {
+    active = false;
+    window.removeEventListener('popstate', syncPage);
+  };
+}, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 3500);
