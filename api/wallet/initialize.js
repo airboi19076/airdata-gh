@@ -60,6 +60,7 @@ export default async function handler(req, res) {
         amount: (amountPesewas / 100).toFixed(2),
         email: 'samasumadu33@gmail.com',
         externalref: reference,
+        callback: 'https://airdata-gh.vercel.app/api/wallet/callback',
         reusable: '0',
         currency: 'GHS',
         accountnumber: MOOLRE_ACCOUNT_NUMBER,
