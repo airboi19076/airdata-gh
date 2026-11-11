@@ -23,9 +23,15 @@ export default async function handler(req, res) {
     });
   }
 
-  if (!process.env.PAYSTACK_SECRET_KEY) {
+  const {
+    MOOLRE_API_USER,
+    MOOLRE_PUBLIC_KEY,
+    MOOLRE_ACCOUNT_NUMBER
+  } = process.env;
+
+  if (!MOOLRE_API_USER || !MOOLRE_PUBLIC_KEY || !MOOLRE_ACCOUNT_NUMBER) {
     return res.status(500).json({
-      error: 'Paystack is not configured yet.'
+      error: 'Moolre payment settings are incomplete.'
     });
   }
 
@@ -39,42 +45,48 @@ export default async function handler(req, res) {
         (user_id, amount_pesewas, status, provider, reference, currency)
       VALUES
         (${user.id}::uuid, ${amountPesewas}, 'pending',
-         'paystack', ${reference}, 'GHS')
+         'moolre', ${reference}, 'GHS')
     `;
 
-    const response = await fetch(
-      'https://api.paystack.co/transaction/initialize',
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: user.email,
-          amount: amountPesewas,
-          currency: 'GHS',
-          reference,
-          callback_url: 'https://airdata-gh.vercel.app/?page=deposit',
-          metadata: {
-            user_id: user.id,
-            purpose: 'AirData GH wallet deposit'
-          }
-        })
-      }
-    );
+    const response = await fetch('https://api.moolre.com/embed/link', {
+      method: 'POST',
+      headers: {
+        'X-API-USER': MOOLRE_API_USER,
+        'X-API-PUBKEY': MOOLRE_PUBLIC_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        type: 1,
+        amount: (amountPesewas / 100).toFixed(2),
+        email: 'samasumadu33@gmail.com',
+        externalref: reference,
+        reusable: '0',
+        currency: 'GHS',
+        accountnumber: MOOLRE_ACCOUNT_NUMBER,
+        redirect: `https://airdata-gh.vercel.app/?page=deposit&reference=${encodeURIComponent(reference)}`,
+        metadata: {
+          user_id: user.id,
+          purpose: 'AirData GH wallet deposit'
+        }
+      })
+    });
 
     const result = await response.json();
 
-    if (!response.ok || !result.status || !result.data?.authorization_url) {
+    if (
+      !response.ok ||
+      Number(result.status) !== 1 ||
+      !result.data?.authorization_url
+    ) {
       await sql`
         UPDATE public.wallet_transactions
         SET status = 'failed', updated_at = now()
         WHERE reference = ${reference}
+          AND status = 'pending'
       `;
 
       return res.status(502).json({
-        error: result.message || 'Could not start Paystack checkout.'
+        error: result.message || 'Could not start Moolre checkout.'
       });
     }
 
@@ -84,7 +96,7 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('Deposit initialization failed:', error.message);
+    console.error('Moolre deposit initialization failed:', error.message);
 
     return res.status(500).json({
       error: 'Could not initialize your deposit.'
