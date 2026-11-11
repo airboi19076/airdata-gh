@@ -929,7 +929,7 @@ const [authLoading, setAuthLoading] = useState(true);
         </section>
       )}
 
-      {!showSplash && authUser && (
+      {!showSplash && !authLoading && authUser && (
         <>
           <DashboardMenu />
 
