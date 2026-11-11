@@ -1,4 +1,3 @@
-
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
@@ -8,7 +7,8 @@ export default async function handler(req, res) {
     });
   }
 
-  const apiKey = process.env.KINGFLEXY_API_KEY;
+  const apiKey = (process.env.KINGFLEXY_API_KEY || "")
+    .replace(/\s+/g, "");
 
   if (!apiKey) {
     return res.status(500).json({
@@ -40,7 +40,10 @@ export default async function handler(req, res) {
     return res.status(200).json(result);
 
   } catch (error) {
-    console.error("KiNG FLEXY error:", error.message);
+    console.error(
+      "KiNG FLEXY request failed:",
+      error?.name || "UnknownError"
+    );
 
     return res.status(502).json({
       success: false,
