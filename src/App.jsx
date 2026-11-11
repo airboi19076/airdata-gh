@@ -238,7 +238,7 @@ export default function App() {
     }
 
     setWalletLoading(true);
-    setWalletMessage('Preparing your secure Paystack payment...');
+    setWalletMessage('Preparing your secure Moolre payment...');
 
     try {
       const token = await getWalletToken();
