@@ -229,36 +229,6 @@ export default function App() {
   }, [authUser]);
 
 
-        const result = await response.json();
-
-        if (!response.ok || !result.success) {
-          throw new Error(
-            result.error || 'Payment verification was unsuccessful.'
-          );
-        }
-
-        setWalletBalance(Number(result.balance || 0));
-
-        setWalletMessage(
-          result.already_credited
-            ? 'This payment has already been added to your wallet.'
-            : 'Payment successful! Your wallet has been credited.'
-        );
-
-        await loadWallet();
-        setDepositAmount('');
-      } catch (error) {
-        setWalletMessage(
-          error.message || 'We could not verify your payment.'
-        );
-      } finally {
-        setWalletLoading(false);
-      }
-    }
-
-    verifyPayment();
-  }, [authUser]);
-
   async function startDeposit() {
     const amount = Number(depositAmount);
 
