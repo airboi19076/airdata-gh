@@ -725,7 +725,7 @@ const [authLoading, setAuthLoading] = useState(true);
         </div>
       )}
 
-      
+      {!showSplash && !authLoading && !authUser && (
         <section className="authScreen">
           <div className="authCard">
             <div className="authLogo">AD</div>
