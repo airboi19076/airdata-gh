@@ -203,8 +203,12 @@ export default function DashboardMenu() {
             key={item.label}
             className="ad-menu-item"
             href={item.link}
-            onClick={() => setIsOpen(false)}
-          >
+onClick={event => {
+  event.preventDefault();
+  window.history.pushState({}, '', item.link);
+  window.dispatchEvent(new PopStateEvent('popstate'));
+  setIsOpen(false);
+}}
             <span className="ad-menu-icon">{item.icon}</span>
             <span>{item.label}</span>
           </a>
