@@ -79,6 +79,10 @@ const [authLoading, setAuthLoading] = useState(true);
   const [selectedNetwork, setSelectedNetwork] = useState('MTN');
   const [selected, setSelected] = useState(bundles[0]);
   const [phone, setPhone] = useState('');
+  const [orderLoading, setOrderLoading] = useState(false);
+const [orderMessage, setOrderMessage] = useState('');
+const [orderStatus, setOrderStatus] = useState('');
+const [orderReference, setOrderReference] = useState('');
 
   const [orderMode, setOrderMode] = useState('single');
   const [bulkPhones, setBulkPhones] = useState('');
