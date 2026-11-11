@@ -208,7 +208,7 @@ onClick={event => {
   window.history.pushState({}, '', item.link);
   window.dispatchEvent(new PopStateEvent('popstate'));
   setIsOpen(false);
-}}
+}}>
             <span className="ad-menu-icon">{item.icon}</span>
             <span>{item.label}</span>
           </a>
