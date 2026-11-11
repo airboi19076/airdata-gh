@@ -152,6 +152,7 @@ export default function App() {
     }
   }, [authUser]);
 
+  
   useEffect(() => {
     if (!authUser) return;
 
@@ -163,21 +164,70 @@ export default function App() {
     window.history.replaceState({}, '', '/?page=deposit');
     setCurrentPage('deposit');
 
+    let cancelled = false;
+
     async function verifyPayment() {
       setWalletLoading(true);
-      setWalletMessage('Verifying your payment with Paystack...');
+      setWalletMessage('Waiting for Moolre to confirm your payment...');
 
       try {
         const token = await getWalletToken();
 
-        const response = await fetch('/api/wallet/verify', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({ reference })
-        });
+        for (let attempt = 0; attempt < 10; attempt++) {
+          if (cancelled) return;
+
+          const response = await fetch('/api/wallet/verify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ reference })
+          });
+
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            setWalletBalance(Number(result.balance || 0));
+            setWalletMessage('Payment successful! Your wallet has been credited.');
+            await loadWallet();
+            setDepositAmount('');
+            return;
+          }
+
+          if (response.status === 402 || response.status === 404) {
+            throw new Error(result.error || 'Payment could not be confirmed.');
+          }
+
+          if (!result.pending) {
+            throw new Error(result.error || 'Could not verify your payment.');
+          }
+
+          setWalletMessage('Payment is still being confirmed. Please wait...');
+
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+
+        setWalletMessage(
+          'Your payment is still pending. Please refresh your wallet shortly.'
+        );
+
+        await loadWallet();
+
+      } catch (error) {
+        setWalletMessage(error.message || 'We could not verify your payment.');
+      } finally {
+        if (!cancelled) setWalletLoading(false);
+      }
+    }
+
+    verifyPayment();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authUser]);
+
 
         const result = await response.json();
 
