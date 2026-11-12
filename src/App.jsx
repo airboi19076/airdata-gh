@@ -226,9 +226,14 @@ const [orderReference, setOrderReference] = useState('');
     if (!authUser) return;
 
     const params = new URLSearchParams(window.location.search);
-    const reference = params.get('reference') || params.get('trxref');
+const reference = params.get('reference');
 
-    if (!reference) return;
+if (!reference || !reference.startsWith('ADGH-')) {
+  if (params.has('trxref') || params.has('reference')) {
+    window.history.replaceState({}, '', '/?page=deposit');
+  }
+  return;
+}
 
     window.history.replaceState({}, '', '/?page=deposit');
     setCurrentPage('deposit');
