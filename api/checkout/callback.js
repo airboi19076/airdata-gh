@@ -1,193 +1,301 @@
-import { randomUUID } from 'node:crypto';
+
+import { timingSafeEqual } from 'node:crypto';
 import { getDatabase } from '../_lib/wallet.js';
 
-const RETAIL_PRICES = {
-  MTN: {
-    1: 475, 2: 950, 3: 1425, 4: 1900, 5: 2375,
-    6: 2850, 8: 3800, 10: 4750, 15: 7125,
-    20: 9300, 25: 11625, 30: 13950, 40: 18600,
-    50: 23250
-  },
+function moneyToPesewas(value) {
+  const text = String(value ?? '');
 
-  'AirtelTigo iShare': {
-    1: 430, 2: 860, 3: 1290, 4: 1720, 5: 2150,
-    6: 2580, 7: 3010, 8: 3440, 10: 4300,
-    15: 6450, 20: 8600
-  },
+  if (!/^\d+(\.\d{1,2})?$/.test(text)) return null;
 
-  'AirtelTigo BigTime': {
-    20: 7400, 25: 7900, 30: 8400, 40: 9900,
-    50: 10900, 100: 17900, 200: 32300, 250: 41600
-  },
+  const [cedis, pesewas = ''] = text.split('.');
+  return Number(cedis) * 100 + Number(pesewas.padEnd(2, '0'));
+}
 
-  Telecel: {
-    10: 4200, 15: 6300, 20: 8400, 25: 10500,
-    30: 12600, 40: 16800, 50: 21000
-  }
-};
+function validSecret(received, expected) {
+  if (typeof received !== 'string' || !expected) return false;
+
+  const a = Buffer.from(received);
+  const b = Buffer.from(expected);
+
+  return a.length === b.length && timingSafeEqual(a, b);
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({
-      error: 'Method not allowed.'
-    });
+    return res.status(405).json({ error: 'Method not allowed.' });
   }
 
-  const network = String(req.body?.network || '').trim();
-  const volume = Number(req.body?.volume_gb);
-  const recipient = String(req.body?.recipient || '').trim();
+  const expectedSecret = process.env.MOOLRE_CALLBACK_SECRET;
+  const accountNumber = process.env.MOOLRE_ACCOUNT_NUMBER;
 
-  if (!RETAIL_PRICES[network]) {
-    return res.status(400).json({
-      error: 'Please select a valid network.'
-    });
+  if (!expectedSecret || !accountNumber) {
+    return res.status(500).json({ error: 'Callback configuration is incomplete.' });
   }
+
+  const payload = req.body;
+  const data = payload?.data;
+
+  if (!data || typeof data !== 'object') {
+    return res.status(400).json({ error: 'Invalid callback payload.' });
+  }
+
+  if (!validSecret(data.secret, expectedSecret)) {
+    return res.status(401).json({ error: 'Invalid callback secret.' });
+  }
+
+  const reference = String(data.externalref || '').trim();
 
   if (
-    !Number.isFinite(volume) ||
-    !Number.isInteger(volume) ||
-    !RETAIL_PRICES[network][volume]
+    !reference ||
+    String(data.accountnumber || '').trim() !== String(accountNumber).trim()
   ) {
-    return res.status(400).json({
-      error: 'The selected data bundle is not available.'
-    });
+    return res.status(400).json({ error: 'Invalid payment reference or account.' });
   }
-
-  if (!/^0\d{9}$/.test(recipient)) {
-    return res.status(400).json({
-      error: 'Enter a valid 10-digit Ghana phone number.'
-    });
-  }
-
-  const amountPesewas = RETAIL_PRICES[network][volume];
-
-  const {
-    MOOLRE_API_USER,
-    MOOLRE_PUBLIC_KEY,
-    MOOLRE_ACCOUNT_NUMBER
-  } = process.env;
-
-  if (
-    !MOOLRE_API_USER ||
-    !MOOLRE_PUBLIC_KEY ||
-    !MOOLRE_ACCOUNT_NUMBER
-  ) {
-    return res.status(500).json({
-      error: 'Moolre payment settings are incomplete.'
-    });
-  }
-
-  const reference = `ADGH-${randomUUID()}`;
 
   try {
     const sql = await getDatabase();
 
-    await sql`
-      INSERT INTO public.guest_data_orders (
-        reference,
-        network,
-        volume_gb,
-        recipient,
-        retail_price_pesewas,
-        payment_status,
-        payment_provider,
-        status
-      )
-      VALUES (
-        ${reference},
-        ${network},
-        ${volume},
-        ${recipient},
-        ${amountPesewas},
-        'pending',
-        'moolre',
-        'awaiting_payment'
-      )
+    const orders = await sql`
+      SELECT *
+      FROM public.guest_data_orders
+      WHERE reference = ${reference}
+        AND payment_provider = 'moolre'
+      LIMIT 1
     `;
 
-    const paymentResponse = await fetch(
-      'https://api.moolre.com/embed/link',
-      {
-        method: 'POST',
-        headers: {
-          'X-API-USER': MOOLRE_API_USER,
-          'X-API-PUBKEY': MOOLRE_PUBLIC_KEY,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          type: 1,
-          amount: (amountPesewas / 100).toFixed(2),
-          email: 'samasumadu33@gmail.com',
-          externalref: reference,
-          callback: 'https://airdata-gh.vercel.app/api/checkout/callback',
-          reusable: '0',
-          currency: 'GHS',
-          accountnumber: MOOLRE_ACCOUNT_NUMBER,
-          redirect: `https://airdata-gh.vercel.app/?page=buy-data&reference=${encodeURIComponent(reference)}`,
-          metadata: {
-            purpose: 'AirData GH data bundle purchase',
-            order_reference: reference,
-            network,
-            volume_gb: volume,
-            recipient
-          }
-        })
-      }
-    );
+    const order = orders[0];
 
-    const result = await paymentResponse.json();
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found.' });
+    }
 
     if (
-      !paymentResponse.ok ||
-      Number(result.status) !== 1 ||
-      !result.data?.authorization_url
+      Number(payload.status) === 0 &&
+      payload.code === 'P02' &&
+      Number(data.txstatus) === 2
     ) {
       await sql`
         UPDATE public.guest_data_orders
-        SET
-          payment_status = 'failed',
-          status = 'payment_failed',
-          payment_response = ${JSON.stringify(result)}::jsonb,
-          updated_at = now()
+        SET payment_status = 'failed',
+            status = 'payment_failed',
+            payment_response = ${JSON.stringify(payload)}::jsonb,
+            updated_at = now()
         WHERE reference = ${reference}
           AND payment_status = 'pending'
+          AND status = 'awaiting_payment'
       `;
 
-      console.error(
-        'Moolre checkout initialization rejected:',
-        result
-      );
-
-      return res.status(502).json({
-        error: result.message || 'Moolre could not create the payment link.'
+      return res.status(200).json({
+        received: true,
+        message: 'Failed payment recorded.'
       });
     }
 
-    await sql`
+    if (
+      Number(payload.status) !== 1 ||
+      payload.code !== 'P01' ||
+      Number(data.txstatus) !== 1
+    ) {
+      return res.status(200).json({
+        received: true,
+        message: 'No successful payment action taken.'
+      });
+    }
+
+    const callbackAmount = moneyToPesewas(data.amount);
+
+    if (
+      callbackAmount === null ||
+      callbackAmount !== Number(order.retail_price_pesewas)
+    ) {
+      return res.status(400).json({
+        error: 'Payment amount does not match this order.'
+      });
+    }
+
+    if (!data.transactionid) {
+      return res.status(400).json({
+        error: 'Payment transaction ID is missing.'
+      });
+    }
+
+    if (order.payment_status === 'paid') {
+      return res.status(200).json({
+        received: true,
+        already_processed: true
+      });
+    }
+
+    const claimed = await sql`
       UPDATE public.guest_data_orders
-      SET
-        payment_provider_reference = ${reference},
-        payment_response = ${JSON.stringify(result)}::jsonb,
-        updated_at = now()
+      SET payment_status = 'paid',
+          payment_provider_reference = ${String(data.transactionid)},
+          payment_response = ${JSON.stringify(payload)}::jsonb,
+          status = 'submitting',
+          supplier_status = 'submitting',
+          updated_at = now()
       WHERE reference = ${reference}
+        AND payment_status = 'pending'
+        AND status = 'awaiting_payment'
+        AND retail_price_pesewas = ${callbackAmount}
+      RETURNING reference, network, volume_gb, recipient
     `;
 
+    if (!claimed.length) {
+      return res.status(200).json({
+        received: true,
+        message: 'Order was already processed or is no longer pending.'
+      });
+    }
+
+    const paidOrder = claimed[0];
+    const apiKey = (process.env.KINGFLEXY_API_KEY || '').replace(/\s+/g, '');
+
+    if (!apiKey) {
+      await sql`
+        UPDATE public.guest_data_orders
+        SET status = 'processing',
+            supplier_status = 'awaiting_confirmation',
+            updated_at = now()
+        WHERE reference = ${reference}
+      `;
+
+      return res.status(200).json({
+        received: true,
+        payment_confirmed: true,
+        message: 'Payment confirmed. Awaiting supplier configuration.'
+      });
+    }
+
+    const networkMap = {
+      MTN: 'MTN',
+      'AirtelTigo iShare': 'AT-iShare',
+      'AirtelTigo BigTime': 'AT-BigTime',
+      Telecel: 'Telecel'
+    };
+
+    const supplierNetwork = networkMap[paidOrder.network];
+
+    if (!supplierNetwork) {
+      await sql`
+        UPDATE public.guest_data_orders
+        SET status = 'processing',
+            supplier_status = 'awaiting_confirmation',
+            updated_at = now()
+        WHERE reference = ${reference}
+      `;
+
+      return res.status(200).json({
+        received: true,
+        payment_confirmed: true,
+        message: 'Payment confirmed. Order requires supplier review.'
+      });
+    }
+
+    try {
+      const supplierResponse = await fetch(
+        'https://api.kingflexygh.com/api/v2/data/purchase',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: apiKey,
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          },
+          body: JSON.stringify({
+            network: supplierNetwork,
+            volume_gb: Number(paidOrder.volume_gb),
+            recipient: paidOrder.recipient,
+            reference
+          })
+        }
+      );
+
+      let supplierResult;
+
+      try {
+        supplierResult = await supplierResponse.json();
+      } catch {
+        supplierResult = null;
+      }
+
+      if (
+        supplierResponse.ok &&
+        supplierResult?.success === true &&
+        supplierResult?.data
+      ) {
+        const supplierData = supplierResult.data;
+        const allowedStatuses = [
+          'pending',
+          'queued',
+          'blacklisted',
+          'processing',
+          'completed',
+          'failed',
+          'refunded'
+        ];
+
+        const returnedStatus = String(
+          supplierData.status || 'pending'
+        ).toLowerCase();
+
+        const supplierStatus = allowedStatuses.includes(returnedStatus)
+          ? returnedStatus
+          : 'pending';
+
+        await sql`
+          UPDATE public.guest_data_orders
+          SET status = ${supplierStatus},
+              supplier_status = ${supplierStatus},
+              supplier_order_id = ${
+                supplierData.order_id
+                  ? String(supplierData.order_id)
+                  : null
+              },
+              supplier_response = ${JSON.stringify(supplierData)}::jsonb,
+              updated_at = now()
+          WHERE reference = ${reference}
+            AND payment_status = 'paid'
+        `;
+      } else {
+        await sql`
+          UPDATE public.guest_data_orders
+          SET status = 'processing',
+              supplier_status = 'awaiting_confirmation',
+              supplier_response = ${JSON.stringify(
+                supplierResult || {
+                  error: 'Supplier returned an unreadable response.'
+                }
+              )}::jsonb,
+              updated_at = now()
+          WHERE reference = ${reference}
+            AND payment_status = 'paid'
+        `;
+      }
+    } catch (supplierError) {
+      console.error('KiNG FLEXY purchase error:', supplierError.message);
+
+      await sql`
+        UPDATE public.guest_data_orders
+        SET status = 'processing',
+            supplier_status = 'awaiting_confirmation',
+            updated_at = now()
+        WHERE reference = ${reference}
+          AND payment_status = 'paid'
+      `;
+    }
+
     return res.status(200).json({
-      success: true,
-      payment_url: result.data.authorization_url,
-      reference,
-      amount: (amountPesewas / 100).toFixed(2),
-      currency: 'GHS'
+      received: true,
+      payment_confirmed: true,
+      message: 'Payment confirmation processed.'
     });
 
   } catch (error) {
-    console.error(
-      'Guest checkout initialization error:',
-      error.message
-    );
+    console.error('Guest payment callback failed:', error.message);
 
     return res.status(500).json({
-      error: 'Could not initialize your payment. Please try again.'
+      error: 'Could not process payment notification.'
     });
   }
 }
