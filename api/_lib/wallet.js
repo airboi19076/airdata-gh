@@ -22,8 +22,7 @@ export async function requireUser(req, res) {
       new URL(`${AUTH_BASE_URL}/.well-known/jwks.json`)
     );
 
-    const { payload } = await jwtVerify(token, JWKS, {
-      issuer: new URL(AUTH_BASE_URL).origin    });
+    const { payload } = await jwtVerify(token, JWKS);
 
     if (!payload.sub || !payload.email) {
       res.status(401).json({
