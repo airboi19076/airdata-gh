@@ -187,25 +187,45 @@ const [orderReference, setOrderReference] = useState('');
     }
   }, [authUser, orderReference]);
 
+  
   async function getWalletToken() {
-  try {
-    const { data, error } = await authClient.token();
+    const sessionResult = await authClient.getSession();
 
-    if (error) {
-      throw new Error(error.message || 'Could not retrieve your login token.');
+    if (sessionResult?.error) {
+      throw new Error(
+        sessionResult.error.message ||
+        'Your login session could not be checked. Please sign in again.'
+      );
     }
 
-    const token = data?.token;
+    if (!sessionResult?.data?.user) {
+      throw new Error(
+        'Your login session has expired. Please sign in again.'
+      );
+    }
 
-    if (!token || typeof token !== 'string') {
-      throw new Error('Could not retrieve your login token. Please sign in again.');
+    const tokenResult = await authClient.token();
+
+    if (tokenResult?.error) {
+      throw new Error(
+        tokenResult.error.message ||
+        'Neon could not refresh your login token. Please sign in again.'
+      );
+    }
+
+    const token = tokenResult?.data?.token;
+
+    if (
+      typeof token !== 'string' ||
+      token.split('.').length !== 3
+    ) {
+      throw new Error(
+        'Neon did not return a valid login token. Please sign in again.'
+      );
     }
 
     return token;
-  } catch (error) {
-    throw new Error(error.message || 'Could not retrieve your login token.');
   }
-}
 
 
   async function loadWallet() {
