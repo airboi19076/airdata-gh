@@ -481,7 +481,20 @@ if (!reference || !reference.startsWith('ADGH-')) {
       setOrderLoading(false);
     }
   }
+  // Automatically check supplier status every 15 seconds.
+  useEffect(() => {
+    if (!authUser || !orderReference || orderLoading) return;
 
+    if (['completed', 'refunded'].includes(
+      String(orderStatus).toLowerCase()
+    )) return;
+
+    const pollTimer = setInterval(() => {
+      checkOrderStatus();
+    }, 15000);
+
+    return () => clearInterval(pollTimer);
+  }, [authUser, orderReference, orderStatus, orderLoading]);
 
   function getBulkNumbers() {
     return bulkPhones
