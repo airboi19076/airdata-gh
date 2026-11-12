@@ -37,6 +37,7 @@ const airtelTigoBundles = [
   ['20GB', '86.00']
 ];
 
+
 const telecelBundles = [
   ['10GB', '42.00'],
   ['15GB', '63.00'],
@@ -47,11 +48,25 @@ const telecelBundles = [
   ['50GB', '210.00']
 ];
 
+// AirtelTigo BigTime — GH₵6 profit per package
+const airtelTigoBigTimeBundles = [
+  ['20GB', '74.00'],
+  ['25GB', '79.00'],
+  ['30GB', '84.00'],
+  ['40GB', '99.00'],
+  ['50GB', '109.00'],
+  ['100GB', '179.00'],
+  ['200GB', '323.00'],
+  ['250GB', '416.00']
+];
+
 const networkBundles = {
   MTN: bundles,
   Telecel: telecelBundles,
-  AirtelTigo: airtelTigoBundles
+  'AirtelTigo iShare': airtelTigoBundles,
+  'AirtelTigo BigTime': airtelTigoBigTimeBundles
 };
+
 
 
 const checkerServices = [
