@@ -351,21 +351,110 @@ const [orderReference, setOrderReference] = useState('');
     setOrderMode('single');
   }
 
-  function orderNow() {
-    if (!/^0\d{9}$/.test(phone)) {
-      alert('Enter a valid 10-digit Ghana phone number.');
+  
+  async function orderNow() {
+    if (orderLoading) return;
+
+    if (!authUser) {
+      setOrderMessage('Please sign in before placing a data order.');
+      setOrderStatus('error');
       return;
     }
 
-    const message =
-      `Hello AirData GH, I want to order ${selectedNetwork} ` +
-      `${activeBundle[0]} for ${phone}. Price: GH₵${activeBundle[1]}.`;
+    if (!/^0\d{9}$/.test(phone)) {
+      setOrderMessage('Enter a valid 10-digit Ghana phone number.');
+      setOrderStatus('error');
+      return;
+    }
 
-    window.open(
-      `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`,
-      '_blank'
-    );
+    setOrderLoading(true);
+    setOrderMessage('Preparing your order...');
+    setOrderStatus('pending');
+
+    let requestStarted = false;
+
+    try {
+      const token = await getWalletToken();
+      const reference = `ADGH-${crypto.randomUUID()}`;
+
+      setOrderReference(reference);
+      setOrderMessage('Submitting your data order securely...');
+
+      requestStarted = true;
+
+      const response = await fetch('/api/kingflexy/purchase', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          network: selectedNetwork,
+          volume_gb: Number.parseInt(activeBundle[0], 10),
+          recipient: phone,
+          reference
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Your order could not be submitted.');
+      }
+
+      setOrderStatus(result.status || 'pending');
+      setOrderMessage(
+        result.message || 'Your order has been submitted. Check its status below.'
+      );
+
+      await loadWallet();
+    } catch (error) {
+      setOrderStatus(requestStarted ? 'pending' : 'error');
+      setOrderMessage(
+        requestStarted
+          ? 'We could not confirm the response. Your order may already have been received. Use Check Order Status below and do not submit a second order.'
+          : (error.message || 'Could not prepare your order. Please sign in again.')
+      );
+    } finally {
+      setOrderLoading(false);
+    }
   }
+
+  async function checkOrderStatus() {
+    if (!orderReference || orderLoading) return;
+
+    setOrderLoading(true);
+    setOrderMessage('Checking your order with KiNG FLEXY...');
+
+    try {
+      const token = await getWalletToken();
+
+      const response = await fetch(
+        `/api/kingflexy/status?reference=${encodeURIComponent(orderReference)}`,
+        {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Could not check this order.');
+      }
+
+      setOrderStatus(result.status || 'pending');
+      setOrderMessage(result.message || 'Order status updated.');
+      await loadWallet();
+    } catch (error) {
+      setOrderMessage(
+        error.message || 'Could not check your order. Please try again.'
+      );
+    } finally {
+      setOrderLoading(false);
+    }
+  }
+
 
   function getBulkNumbers() {
     return bulkPhones
@@ -1202,7 +1291,6 @@ const [orderReference, setOrderReference] = useState('');
 
           {currentPage === 'buy-data' && (
             <section id="bundles" className="section">
-              <h2>Buy Data Bundles</h2>
 
               <p className="sub">
                 Select your preferred network and data package.
@@ -1306,18 +1394,51 @@ const [orderReference, setOrderReference] = useState('');
                     )}
                   />
 
-                  <button
-                    className="orderButton"
-                    onClick={orderNow}
-                  >
-                    Order via WhatsApp
-                  </button>
+                  
+  <button
+    className="orderButton"
+    onClick={orderNow}
+    disabled={orderLoading}
+    type="button"
+  >
+    {orderLoading ? 'Processing Order...' : 'Buy Data Now'}
+  </button>
 
-                  <small>
-                    You'll confirm your order with us on WhatsApp.
-                  </small>
-                </div>
-              )}
+  {orderMessage && (
+    <div className="digital-status" role="status">
+      <strong>
+        {orderStatus === 'completed'
+          ? 'Order Completed'
+          : orderStatus === 'refunded'
+            ? 'Order Refunded'
+            : orderStatus === 'error'
+              ? 'Order Not Submitted'
+              : 'Order Update'}
+      </strong>
+
+      <p>{orderMessage}</p>
+
+      {orderReference && (
+        <>
+          <small>Order reference: {orderReference}</small>
+
+          <button
+            className="orderButton"
+            type="button"
+            onClick={checkOrderStatus}
+            disabled={orderLoading}
+          >
+            {orderLoading ? 'Checking...' : 'Check Order Status'}
+          </button>
+        </>
+      )}
+    </div>
+  )}
+
+  <small>
+    Your wallet is charged when the order is submitted. If KiNG FLEXY confirms that it failed, the money is refunded to your AirData GH wallet.
+  </small>
+
 
               {selectedNetwork === 'MTN' &&
                 orderMode === 'bulk' && (
