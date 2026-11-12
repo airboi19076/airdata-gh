@@ -1459,7 +1459,7 @@ footer small {
 .scope-launcher {
   position: fixed;
   right: 18px;
-  bottom: 18px;
+  bottom: 100px;
   z-index: 9998;
   border: none;
   border-radius: 40px;
