@@ -164,21 +164,28 @@ const [orderReference, setOrderReference] = useState('');
   }, [darkMode]);
 
 
+
 async function getWalletToken() {
   try {
-    const token = await authClient.getJWTToken();
+    const { data, error } = await authClient.token();
 
-    if (!token) {
+    if (error) {
+      throw new Error(error.message || 'Could not retrieve login token.');
+    }
+
+    if (!data?.token) {
       throw new Error('Your session has expired. Please log in again.');
     }
 
-    return token;
+    return data.token;
   } catch (error) {
     throw new Error(
       error.message || 'Could not verify your login session.'
     );
   }
 }
+
+    
 
 
 
