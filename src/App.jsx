@@ -1438,7 +1438,7 @@ const [orderReference, setOrderReference] = useState('');
   <small>
     Your wallet is charged when the order is submitted. If KiNG FLEXY confirms that it failed, the money is refunded to your AirData GH wallet.
   </small>
-
+                </div>
 
               {selectedNetwork === 'MTN' &&
                 orderMode === 'bulk' && (
