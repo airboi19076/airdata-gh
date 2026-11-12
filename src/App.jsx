@@ -792,7 +792,6 @@ export default function App() {
           <div className="splash-logo">AD</div>
           <h1>AIRDATA GH</h1>
           <p>YOUR CONNECTION. OUR PRIORITY.</p>
-          <button onClick={() => setShowSplash(false)}>Skip Intro →</button>
         </div>
       )}
 
