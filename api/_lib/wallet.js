@@ -22,18 +22,19 @@ export async function requireUser(req, res) {
       new URL(`${AUTH_BASE_URL}/.well-known/jwks.json`)
     );
 
-    const { payload } = await jwtVerify(token, JWKS);
+    const { payload } = await jwtVerify(token, JWKS, {
+      issuer: new URL(AUTH_BASE_URL).origin
+    });
 
-    if (!payload.sub || !payload.email) {
+    if (!payload.sub) {
       res.status(401).json({
-        error: 'Account details are missing.'
+        error: 'Account identity is missing.'
       });
       return null;
     }
 
     return {
-      id: String(payload.sub),
-      email: String(payload.email).trim().toLowerCase()
+      id: String(payload.sub)
     };
 
   } catch (error) {
