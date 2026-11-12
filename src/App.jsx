@@ -163,23 +163,20 @@ const [orderReference, setOrderReference] = useState('');
     localStorage.setItem('airdata-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
-    
+    async function getWalletToken() {
+  const { data, error } = await authClient.getSession();
 
-
-async function getWalletToken() {
-  try {
-    const token = await authClient.getJWTToken();
-
-    if (!token || typeof token !== 'string') {
-      throw new Error('Could not retrieve your login token. Please sign in again.');
-    }
-
-    return token;
-  } catch (error) {
-    throw new Error(
-      error.message || 'Could not retrieve your login token.'
-    );
+  if (error) {
+    throw new Error(error.message || 'Could not retrieve your login session.');
   }
+
+  const token = data?.session?.access_token;
+
+  if (!token) {
+    throw new Error('Your login session has expired. Please sign in again.');
+  }
+
+  return token;
 }
 
 
