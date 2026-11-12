@@ -159,9 +159,33 @@ const [orderReference, setOrderReference] = useState('');
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
+    useEffect(() => {
     localStorage.setItem('airdata-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
+
+  // Restore the customer's latest order after a page refresh.
+  useEffect(() => {
+    if (!authUser?.id) {
+      setOrderReference('');
+      return;
+    }
+
+    const savedReference = localStorage.getItem(
+      `airdata-last-order-${authUser.id}`
+    );
+
+    if (savedReference) setOrderReference(savedReference);
+  }, [authUser]);
+
+  // Save the latest order reference on this device.
+  useEffect(() => {
+    if (authUser?.id && orderReference) {
+      localStorage.setItem(
+        `airdata-last-order-${authUser.id}`,
+        orderReference
+      );
+    }
+  }, [authUser, orderReference]);
 
   async function getWalletToken() {
   try {
