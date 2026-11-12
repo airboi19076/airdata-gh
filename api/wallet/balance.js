@@ -1,3 +1,4 @@
+
 import { requireUser, getDatabase } from '../_lib/wallet.js';
 
 export default async function handler(req, res) {
@@ -24,7 +25,14 @@ export default async function handler(req, res) {
         WHERE user_id = ${user.id}::uuid
       `,
       sql`
-        SELECT reference, amount_pesewas, currency, status, created_at
+        SELECT
+          reference,
+          amount_pesewas,
+          currency,
+          status,
+          provider,
+          description,
+          created_at
         FROM public.wallet_transactions
         WHERE user_id = ${user.id}::uuid
         ORDER BY created_at DESC
@@ -39,6 +47,8 @@ export default async function handler(req, res) {
         amount: Number(item.amount_pesewas) / 100,
         currency: item.currency,
         status: item.status,
+        provider: item.provider,
+        description: item.description,
         created_at: item.created_at
       }))
     });
