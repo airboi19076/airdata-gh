@@ -612,6 +612,27 @@ const [orderReference, setOrderReference] = useState('');
     );
   }
 
+  function handleInternalNavigation(event) {
+  const link = event.target.closest('a[href]');
+
+  if (!link) return;
+
+  const url = new URL(link.href, window.location.origin);
+
+  if (url.origin !== window.location.origin || url.pathname !== '/') {
+    return;
+  }
+
+  const page = url.searchParams.get('page');
+
+  if (!page) return;
+
+  event.preventDefault();
+
+  window.history.pushState({}, '', `/?page=${encodeURIComponent(page)}`);
+  setCurrentPage(page);
+}
+
   async function logout() {
     await authClient.signOut();
 
