@@ -681,7 +681,10 @@ const [orderReference, setOrderReference] = useState('');
     selectedChecker.price * Number(checkerQuantity || 0);
 
   return (
-    <main className={darkMode ? 'dark-mode' : 'light-mode'}>
+   <main
+  className={darkMode ? 'dark-mode' : 'light-mode'}
+  onClick={handleInternalNavigation}
+>
 
       <style>{`
         .digital-services {
