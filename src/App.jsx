@@ -163,28 +163,42 @@ const [orderReference, setOrderReference] = useState('');
     localStorage.setItem('airdata-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
-  async function getWalletToken() {
+async function getWalletToken() {
   try {
     const sessionResult = await authClient.getSession();
-    const sessionToken = sessionResult?.data?.session?.access_token;
+
+    const sessionToken =
+      sessionResult?.data?.session?.access_token;
 
     if (sessionToken) {
       return sessionToken;
     }
 
-    const token = await authClient.getJWTToken();
+    const response = await fetch(
+      'https://ep-crimson-cloud-bfxxocl4.neonauth.c-5.us-west-2.aws.neon.tech/neondb/auth/token',
+      {
+        method: 'GET',
+        credentials: 'include'
+      }
+    );
 
-    if (!token) {
-      throw new Error('Your session has expired. Please log in again.');
+    const result = await response.json();
+
+    if (!response.ok || !result.token) {
+      throw new Error(
+        result.message || 'Could not retrieve your login token. Please sign in again.'
+      );
     }
 
-    return token;
+    return result.token;
+
   } catch (error) {
     throw new Error(
-      error.message || 'Could not verify your login session. Please sign in again.'
+      error.message || 'Could not verify your login session.'
     );
   }
 }
+
 
   async function loadWallet() {
     setWalletLoading(true);
