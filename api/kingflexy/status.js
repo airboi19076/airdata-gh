@@ -77,16 +77,20 @@ export default async function handler(req, res) {
       });
     }
 
-    if (supplierStatus === 'refunded') {
-      // Credit the customer's wallet only once, after the supplier
-      // confirms that the order has actually been refunded.
+    const isFailed = supplierStatus === 'failed';
+    const isRefunded = supplierStatus === 'refunded';
+    const needsRefund = isFailed || isRefunded;
+
+    if (needsRefund) {
+      // Refund the customer's wallet only once.
+      // The ledger status change prevents duplicate credits.
       await sql`
         WITH order_update AS (
           UPDATE public.data_orders
           SET status = 'refunded',
-              supplier_status = 'refunded',
+              supplier_status = ${supplierStatus},
               supplier_order_id = COALESCE(
-                ${data.order_id || null},
+                ${data.order_id ? String(data.order_id) : null},
                 supplier_order_id
               ),
               supplier_response = ${JSON.stringify(data)}::jsonb,
@@ -125,7 +129,7 @@ export default async function handler(req, res) {
         SET status = ${supplierStatus},
             supplier_status = ${supplierStatus},
             supplier_order_id = COALESCE(
-              ${data.order_id || null},
+              ${data.order_id ? String(data.order_id) : null},
               supplier_order_id
             ),
             supplier_response = ${JSON.stringify(data)}::jsonb,
@@ -143,13 +147,13 @@ export default async function handler(req, res) {
     `;
 
     let message = 'Your order is being processed.';
+    let displayStatus = supplierStatus;
 
     if (supplierStatus === 'completed') {
       message = 'Your data bundle has been delivered successfully.';
-    } else if (supplierStatus === 'refunded') {
-      message = 'Your order was refunded to your AirData GH wallet.';
-    } else if (supplierStatus === 'failed') {
-      message = 'The supplier marked this order as failed. Please contact support to review your refund.';
+    } else if (needsRefund) {
+      displayStatus = 'refunded';
+      message = 'Your order failed or was refunded by the supplier. The money has been returned to your AirData GH wallet.';
     } else if (supplierStatus === 'blacklisted') {
       message = 'Your order is on hold with the supplier.';
     } else if (supplierStatus === 'queued') {
@@ -159,7 +163,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       reference,
-      status: supplierStatus,
+      status: displayStatus,
+      supplier_status: supplierStatus,
       balance: Number(walletRows[0]?.balance_pesewas || 0) / 100,
       message
     });
