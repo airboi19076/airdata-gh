@@ -189,44 +189,28 @@ const [orderReference, setOrderReference] = useState('');
 
   
   async function getWalletToken() {
-    const sessionResult = await authClient.getSession();
+  const tokenResult = await authClient.token();
 
-    if (sessionResult?.error) {
-      throw new Error(
-        sessionResult.error.message ||
-        'Your login session could not be checked. Please sign in again.'
-      );
-    }
-
-    if (!sessionResult?.data?.user) {
-      throw new Error(
-        'Your login session has expired. Please sign in again.'
-      );
-    }
-
-    const tokenResult = await authClient.token();
-
-    if (tokenResult?.error) {
-      throw new Error(
-        tokenResult.error.message ||
-        'Neon could not refresh your login token. Please sign in again.'
-      );
-    }
-
-    const token = tokenResult?.data?.token;
-
-    if (
-      typeof token !== 'string' ||
-      token.split('.').length !== 3
-    ) {
-      throw new Error(
-        'Neon did not return a valid login token. Please sign in again.'
-      );
-    }
-
-    return token;
+  if (tokenResult?.error) {
+    throw new Error(
+      tokenResult.error.message ||
+      'Neon could not refresh your login token. Please sign in again.'
+    );
   }
 
+  const token = tokenResult?.data?.token;
+
+  if (
+    typeof token !== 'string' ||
+    token.split('.').length !== 3
+  ) {
+    throw new Error(
+      'Your login session has expired. Please sign in again.'
+    );
+  }
+
+  return token;
+}
 
   async function loadWallet() {
     setWalletLoading(true);
