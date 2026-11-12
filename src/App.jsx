@@ -13,20 +13,17 @@ const networkBundles = {
     ['20GB', '93.00'], ['25GB', '116.25'], ['30GB', '139.50'],
     ['40GB', '186.00'], ['50GB', '232.50']
   ],
-
   'AirtelTigo iShare': [
     ['1GB', '4.30'], ['2GB', '8.60'], ['3GB', '12.90'],
     ['4GB', '17.20'], ['5GB', '21.50'], ['6GB', '25.80'],
     ['7GB', '30.10'], ['8GB', '34.40'], ['10GB', '43.00'],
     ['15GB', '64.50'], ['20GB', '86.00']
   ],
-
   'AirtelTigo BigTime': [
     ['20GB', '74.00'], ['25GB', '79.00'], ['30GB', '84.00'],
     ['40GB', '99.00'], ['50GB', '109.00'], ['100GB', '179.00'],
     ['200GB', '323.00'], ['250GB', '416.00']
   ],
-
   Telecel: [
     ['10GB', '42.00'], ['15GB', '63.00'], ['20GB', '84.00'],
     ['25GB', '105.00'], ['30GB', '126.00'],
@@ -38,6 +35,14 @@ const checkerServices = [
   { name: 'WASSCE Results Checker', price: 19 },
   { name: 'NOV/DEC Results Checker', price: 19 },
   { name: 'BECE Results Checker', price: 19 }
+];
+
+const navigation = [
+  { page: 'dashboard', icon: '⌂', label: 'Home' },
+  { page: 'buy-data', icon: '▤', label: 'Buy Data' },
+  { page: 'digital-services', icon: '✦', label: 'Services' },
+  { page: 'support', icon: '◉', label: 'Support' },
+  { page: 'settings', icon: '⚙', label: 'Settings' }
 ];
 
 export default function App() {
@@ -109,7 +114,6 @@ export default function App() {
 
     syncPage();
     window.addEventListener('popstate', syncPage);
-
     return () => window.removeEventListener('popstate', syncPage);
   }, []);
 
@@ -117,16 +121,11 @@ export default function App() {
     if (
       !reference ||
       !['pending', 'processing', 'awaiting_payment'].includes(orderStatus)
-    ) {
-      return;
-    }
+    ) return;
 
     checkOrderStatus(true);
 
-    const timer = setInterval(() => {
-      checkOrderStatus(true);
-    }, 15000);
-
+    const timer = setInterval(() => checkOrderStatus(true), 15000);
     return () => clearInterval(timer);
   }, [reference, orderStatus]);
 
@@ -187,7 +186,6 @@ export default function App() {
       setReference(result.reference);
       setOrderStatus('awaiting_payment');
       setMessage('Your order has been created. Redirecting to payment...');
-
       window.location.href = result.payment_url;
     } catch (error) {
       setOrderStatus('error');
@@ -217,8 +215,8 @@ export default function App() {
       }
 
       const status = String(result.status || 'pending').toLowerCase();
-
       setOrderStatus(status);
+
       setMessage(
         result.message ||
         (status === 'completed'
@@ -317,7 +315,6 @@ export default function App() {
 
   return (
     <main className={darkMode ? 'dark-mode' : 'light-mode'}>
-
       <style>{`
         * { box-sizing: border-box; }
 
@@ -334,6 +331,7 @@ export default function App() {
 
         main {
           min-height: 100vh;
+          padding-bottom: 105px;
           background: #f4f7fc;
           color: #10213b;
           transition: background .3s, color .3s;
@@ -345,20 +343,18 @@ export default function App() {
         }
 
         .topbar {
-          position: sticky;
-          top: 0;
-          z-index: 100;
+          position: relative;
+          z-index: 10;
+          min-height: 72px;
           padding: 17px 6%;
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 18px;
-          flex-wrap: wrap;
           color: white;
-          background: rgba(5, 20, 43, .96);
+          background: rgba(5, 20, 43, .97);
           border-bottom: 1px solid #ffffff15;
           box-shadow: 0 8px 30px #06152b20;
-          backdrop-filter: blur(18px);
         }
 
         .brand {
@@ -369,64 +365,15 @@ export default function App() {
 
         .brand span { color: #38c7ff; }
 
-        .nav {
-          display: flex;
-          gap: 9px;
-          flex-wrap: wrap;
-          justify-content: center;
-        }
-
-        .nav button, .theme-button {
-          padding: 10px 15px;
+        .theme-button {
+          width: 42px;
+          height: 42px;
           border: 1px solid #ffffff24;
-          border-radius: 12px;
-          color: #dcecff;
-          background: #ffffff0b;
-          font-size: 12px;
-          font-weight: 750;
+          border-radius: 13px;
+          color: white;
+          background: #ffffff10;
+          font-size: 18px;
           cursor: pointer;
-          transition: .25s;
-        }
-
-        .nav button:hover, .theme-button:hover {
-          background: #087cff;
-          border-color: #087cff;
-          color: white;
-          transform: translateY(-2px);
-        }
-
-        .hero {
-          position: relative;
-          isolation: isolate;
-          overflow: hidden;
-          min-height: 360px;
-          padding: 75px 8%;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          text-align: center;
-          color: white;
-          background:
-            radial-gradient(circle at 15% 20%, #168bff55, transparent 30%),
-            radial-gradient(circle at 85% 80%, #00d4ff35, transparent 35%),
-            linear-gradient(125deg, #041329, #0b3970 55%, #087fc5);
-        }
-
-        .hero h1 {
-          max-width: 780px;
-          margin: 0 0 16px;
-          font-size: clamp(34px, 6vw, 58px);
-          line-height: 1.1;
-          letter-spacing: -2px;
-          font-weight: 950;
-        }
-
-        .hero p {
-          max-width: 550px;
-          color: #d5eaff;
-          font-size: 15px;
-          line-height: 1.9;
         }
 
         .content {
@@ -656,43 +603,6 @@ export default function App() {
           to { transform: scale(1.04); box-shadow: 0 0 45px #1689e5; }
         }
 
-        .dark-mode .panel {
-          color: #edf5ff;
-          background: #10243c;
-          border-color: #294766;
-        }
-
-        .dark-mode input, .dark-mode select, .dark-mode textarea {
-          color: white;
-          background: #091a2d;
-          border-color: #34516f;
-        }
-
-        .dark-mode .network-button,
-        .dark-mode .bundle-button,
-        .dark-mode .digital-tabs button {
-          color: #e5efff;
-          background: #0c2037;
-          border-color: #294766;
-        }
-
-        .dark-mode .network-button.active,
-        .dark-mode .bundle-button.active,
-        .dark-mode .digital-tabs button.active {
-          color: white;
-          background: #075db9;
-          border-color: #38aaff;
-        }
-
-        .dark-mode .price,
-        .dark-mode .status {
-          color: #c7e2ff;
-          background: #193755;
-          border-color: #34516f;
-        }
-
-        .dark-mode .muted { color: #a9bbd0; }
-
         /* PREMIUM DASHBOARD */
 
         .dashboard {
@@ -849,28 +759,28 @@ export default function App() {
           box-shadow: 0 15px 32px #168bff18;
         }
 
-        .dash-network-icon {
-          width: 43px;
-          height: 43px;
+        .dash-network-icon, .dash-shortcut-icon {
+          width: 45px;
+          height: 45px;
           display: grid;
           place-items: center;
-          margin-bottom: 17px;
+          margin-bottom: 15px;
           border-radius: 14px;
           background: #eaf4ff;
-          font-size: 21px;
+          font-size: 22px;
         }
 
-        .dash-network strong {
+        .dash-network strong, .dash-shortcut strong {
           display: block;
           font-size: 14px;
           font-weight: 900;
         }
 
-        .dash-network span {
+        .dash-network span, .dash-shortcut span {
           display: block;
           margin-top: 6px;
           color: #8292a8;
-          font-size: 11px;
+          font-size: 12px;
         }
 
         .dash-shortcuts {
@@ -899,28 +809,13 @@ export default function App() {
         }
 
         .dash-shortcut-icon {
-          width: 48px;
-          height: 48px;
-          display: grid;
           flex-shrink: 0;
-          place-items: center;
-          border-radius: 15px;
-          background: #eaf4ff;
-          font-size: 22px;
+          margin: 0;
         }
 
-        .dash-shortcut strong {
-          display: block;
-          font-size: 14px;
-        }
+        /* DARK MODE */
 
-        .dash-shortcut span {
-          display: block;
-          margin-top: 5px;
-          color: #8292a8;
-          font-size: 12px;
-        }
-
+        .dark-mode .panel,
         .dark-mode .dash-network,
         .dark-mode .dash-shortcut {
           color: #edf5ff;
@@ -928,9 +823,119 @@ export default function App() {
           border-color: #294766;
         }
 
+        .dark-mode input,
+        .dark-mode select,
+        .dark-mode textarea {
+          color: white;
+          background: #091a2d;
+          border-color: #34516f;
+        }
+
+        .dark-mode .network-button,
+        .dark-mode .bundle-button,
+        .dark-mode .digital-tabs button {
+          color: #e5efff;
+          background: #0c2037;
+          border-color: #294766;
+        }
+
+        .dark-mode .network-button.active,
+        .dark-mode .bundle-button.active,
+        .dark-mode .digital-tabs button.active {
+          color: white;
+          background: #075db9;
+          border-color: #38aaff;
+        }
+
+        .dark-mode .price,
+        .dark-mode .status {
+          color: #c7e2ff;
+          background: #193755;
+          border-color: #34516f;
+        }
+
+        .dark-mode .muted { color: #a9bbd0; }
+
         .dark-mode .dash-network-icon,
         .dark-mode .dash-shortcut-icon {
           background: #193755;
+        }
+
+        /* COMPACT FIXED BOTTOM NAVIGATION */
+
+        .bottom-nav {
+          position: fixed;
+          left: 50%;
+          bottom: 12px;
+          z-index: 500;
+          transform: translateX(-50%);
+          width: min(540px, calc(100% - 24px));
+          min-height: 72px;
+          display: grid;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+          align-items: center;
+          padding: 8px 7px;
+          border: 1px solid #dce7f5;
+          border-radius: 22px;
+          background: rgba(255, 255, 255, .96);
+          box-shadow: 0 12px 40px rgba(4, 25, 55, .19);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+        }
+
+        .bottom-nav button {
+          min-width: 0;
+          min-height: 55px;
+          padding: 5px 2px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          border: 0;
+          border-radius: 14px;
+          color: #71839b;
+          background: transparent;
+          font-family: inherit;
+          cursor: pointer;
+          transition: .2s;
+        }
+
+        .bottom-nav button.active {
+          color: #087cff;
+          background: #eaf4ff;
+        }
+
+        .bottom-nav button:active {
+          transform: scale(.94);
+        }
+
+        .bottom-nav .nav-icon {
+          font-size: 21px;
+          line-height: 1;
+          font-weight: 900;
+        }
+
+        .bottom-nav .nav-label {
+          font-size: 10px;
+          line-height: 1.2;
+          font-weight: 800;
+          white-space: nowrap;
+        }
+
+        .dark-mode .bottom-nav {
+          background: rgba(10, 29, 51, .97);
+          border-color: #294766;
+          box-shadow: 0 12px 40px #0007;
+        }
+
+        .dark-mode .bottom-nav button {
+          color: #9eb1c8;
+        }
+
+        .dark-mode .bottom-nav button.active {
+          color: #58baff;
+          background: #17395c;
         }
 
         @media (max-width: 750px) {
@@ -969,29 +974,8 @@ export default function App() {
         }
 
         @media (max-width: 700px) {
-          .topbar {
-            padding: 15px 16px;
-            justify-content: center;
-            gap: 14px;
-          }
-
+          .topbar { padding: 15px 18px; }
           .brand { font-size: 21px; }
-
-          .nav {
-            width: 100%;
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-
-          .nav button { min-height: 43px; }
-
-          .hero {
-            min-height: 330px;
-            padding: 55px 22px;
-          }
-
-          .hero h1 { letter-spacing: -1.3px; }
-          .hero p { font-size: 13px; }
 
           .content {
             margin: 25px auto;
@@ -1016,6 +1000,19 @@ export default function App() {
           }
 
           .digital-tabs { flex-direction: column; }
+
+          .bottom-nav {
+            bottom: max(10px, env(safe-area-inset-bottom));
+            width: calc(100% - 20px);
+            min-height: 68px;
+            border-radius: 19px;
+          }
+
+          .bottom-nav button { min-height: 51px; }
+          .bottom-nav .nav-icon { font-size: 20px; }
+          .bottom-nav .nav-label { font-size: 9px; }
+
+          main { padding-bottom: 100px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1039,15 +1036,9 @@ export default function App() {
           <header className="topbar">
             <div className="brand">AIRDATA <span>GH</span></div>
 
-            <nav className="nav">
-              <button onClick={() => navigate('dashboard')}>Home</button>
-              <button onClick={() => navigate('buy-data')}>Buy Data</button>
-              <button onClick={() => navigate('digital-services')}>Digital Services</button>
-              <button onClick={() => navigate('support')}>Support</button>
-            </nav>
-
             <button
               className="theme-button"
+              aria-label="Toggle theme"
               onClick={() => setDarkMode(value => !value)}
             >
               {darkMode ? '☀️' : '🌙'}
@@ -1085,12 +1076,10 @@ export default function App() {
                     <strong>Multiple Networks</strong>
                     <span>MTN, AirtelTigo and Telecel bundles.</span>
                   </div>
-
                   <div className="dash-highlight">
                     <strong>Secure Checkout</strong>
                     <span>Payments handled through Moolre.</span>
                   </div>
-
                   <div className="dash-highlight">
                     <strong>Order Tracking</strong>
                     <span>Check your order progress after payment.</span>
@@ -1454,6 +1443,21 @@ export default function App() {
             <p>WhatsApp: 0548 206 175</p>
             <small>© 2026 AirData GH. All rights reserved.</small>
           </footer>
+
+          <nav className="bottom-nav" aria-label="Main navigation">
+            {navigation.map(item => (
+              <button
+                key={item.page}
+                className={page === item.page ? 'active' : ''}
+                onClick={() => navigate(item.page)}
+                aria-label={item.label}
+                aria-current={page === item.page ? 'page' : undefined}
+              >
+                <span className="nav-icon">{item.icon}</span>
+                <span className="nav-label">{item.label}</span>
+              </button>
+            ))}
+          </nav>
         </>
       )}
 
