@@ -187,18 +187,17 @@ const [orderReference, setOrderReference] = useState('');
     }
   }, [authUser, orderReference]);
 
-  
   async function getWalletToken() {
-  const tokenResult = await authClient.token();
+  let token;
 
-  if (tokenResult?.error) {
+  try {
+    token = await authClient.getJWTToken();
+  } catch (error) {
     throw new Error(
-      tokenResult.error.message ||
-      'Neon could not refresh your login token. Please sign in again.'
+      error?.message ||
+      'Neon could not retrieve your login token. Please sign in again.'
     );
   }
-
-  const token = tokenResult?.data?.token;
 
   if (
     typeof token !== 'string' ||
@@ -211,7 +210,7 @@ const [orderReference, setOrderReference] = useState('');
 
   return token;
 }
-
+  
   async function loadWallet() {
     setWalletLoading(true);
     setWalletMessage('');
