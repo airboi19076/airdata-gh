@@ -783,6 +783,285 @@ export default function App() {
       animation-duration: .01ms !important;
       transition-duration: .01ms !important;
     }
+    
+  /* ===== AIRDATA GH PREMIUM DASHBOARD ===== */
+  .dashboard {
+    width: min(1180px, 100%);
+    margin: 0 auto;
+    padding: 34px 24px 60px;
+  }
+
+  .dash-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+
+  .dash-eyebrow {
+    color: #168bff;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .dash-heading h1 {
+    margin: 8px 0;
+    font-size: clamp(27px, 4vw, 39px);
+    letter-spacing: -1.5px;
+    font-weight: 950;
+  }
+
+  .dash-heading p {
+    margin: 0;
+    color: #8292a8;
+    font-size: 14px;
+  }
+
+  .dash-hero {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 24px;
+    padding: 34px;
+    border-radius: 26px;
+    color: white;
+    background:
+      radial-gradient(circle at 85% 15%, #28c5ff55, transparent 32%),
+      linear-gradient(120deg, #06152e, #0755a5 75%, #087fc5);
+    box-shadow: 0 20px 55px #0755a526;
+    overflow: hidden;
+  }
+
+  .dash-hero h2 {
+    max-width: 520px;
+    margin: 12px 0;
+    font-size: clamp(27px, 4vw, 43px);
+    line-height: 1.12;
+    letter-spacing: -1.5px;
+  }
+
+  .dash-hero p {
+    max-width: 440px;
+    color: #d5eaff;
+    line-height: 1.8;
+    font-size: 14px;
+  }
+
+  .dash-hero-tag {
+    color: #8edcff;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 2px;
+  }
+
+  .dash-hero .primary {
+    width: auto;
+    min-width: 175px;
+    padding: 15px 22px;
+    background: white;
+    color: #0755a5;
+    box-shadow: none;
+  }
+
+  .dash-side {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 13px;
+  }
+
+  .dash-highlight {
+    padding: 17px;
+    border: 1px solid #ffffff28;
+    border-radius: 17px;
+    background: #ffffff12;
+    backdrop-filter: blur(12px);
+  }
+
+  .dash-highlight strong {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+  }
+
+  .dash-highlight span {
+    color: #d1e8ff;
+    font-size: 12px;
+  }
+
+  .dash-section {
+    margin-top: 35px;
+  }
+
+  .dash-section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 12px;
+    margin-bottom: 17px;
+  }
+
+  .dash-section-head h2 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 950;
+    letter-spacing: -.7px;
+  }
+
+  .dash-section-head p {
+    margin: 0;
+    color: #8292a8;
+    font-size: 13px;
+  }
+
+  .dash-networks {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 15px;
+  }
+
+  .dash-network {
+    min-height: 145px;
+    padding: 20px;
+    text-align: left;
+    border: 1px solid #e1eaf5;
+    border-radius: 20px;
+    background: white;
+    color: #14243d;
+    cursor: pointer;
+    transition: .25s;
+    box-shadow: 0 8px 25px #18304f08;
+  }
+
+  .dash-network:hover {
+    transform: translateY(-5px);
+    border-color: #168bff;
+    box-shadow: 0 15px 32px #168bff18;
+  }
+
+  .dash-network-icon {
+    width: 43px;
+    height: 43px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 17px;
+    border-radius: 14px;
+    background: #eaf4ff;
+    font-size: 21px;
+  }
+
+  .dash-network strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 900;
+  }
+
+  .dash-network span {
+    display: block;
+    margin-top: 6px;
+    color: #8292a8;
+    font-size: 11px;
+  }
+
+  .dash-shortcuts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+  }
+
+  .dash-shortcut {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    border: 1px solid #e1eaf5;
+    border-radius: 19px;
+    color: #14243d;
+    background: white;
+    text-align: left;
+    cursor: pointer;
+    transition: .2s;
+  }
+
+  .dash-shortcut:hover {
+    transform: translateY(-3px);
+    border-color: #168bff;
+  }
+
+  .dash-shortcut-icon {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    border-radius: 15px;
+    background: #eaf4ff;
+    font-size: 22px;
+  }
+
+  .dash-shortcut strong {
+    display: block;
+    font-size: 14px;
+  }
+
+  .dash-shortcut span {
+    display: block;
+    margin-top: 5px;
+    color: #8292a8;
+    font-size: 12px;
+  }
+
+  .dark-mode .dash-network,
+  .dark-mode .dash-shortcut {
+    color: #edf5ff;
+    background: #10243c;
+    border-color: #294766;
+  }
+
+  .dark-mode .dash-network-icon,
+  .dark-mode .dash-shortcut-icon {
+    background: #193755;
+  }
+
+  @media (max-width: 750px) {
+    .dashboard { padding: 25px 15px 45px; }
+
+    .dash-heading {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .dash-hero {
+      grid-template-columns: 1fr;
+      padding: 25px 21px;
+      gap: 20px;
+      border-radius: 22px;
+    }
+
+    .dash-side {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .dash-highlight { padding: 13px; }
+
+    .dash-networks {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 11px;
+    }
+
+    .dash-network {
+      min-height: 130px;
+      padding: 15px;
+    }
+
+    .dash-shortcuts {
+      grid-template-columns: 1fr;
+    }
+  }
+
   }
 `}</style>
 
