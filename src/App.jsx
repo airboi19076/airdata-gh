@@ -1868,7 +1868,15 @@ if (!reference || !reference.startsWith('ADGH-')) {
                         className="transactionItem"
                         key={transaction.reference}
                       >
-                        <h4>Wallet Deposit</h4>
+                        <h4>
+  {transaction.provider === 'kingflexy'
+    ? 'Data Purchase'
+    : 'Wallet Deposit'}
+</h4>
+
+{transaction.description && (
+  <p>{transaction.description}</p>
+)}
 
                         <p>
                           Amount:{' '}
