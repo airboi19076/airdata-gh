@@ -1590,10 +1590,10 @@ footer small {
     right: 10px;
     bottom: 76px;
   }
-
-  .scope-launcher {
-    right: 12px;
-    bottom: 12px;
+.scope-launcher {
+  right: 12px;
+  bottom: 88px;
+}
   }
 }
 /* PREMIUM AIRDATA GH WALLET */
