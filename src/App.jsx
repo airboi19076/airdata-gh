@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import InScopeAI from './InScopeAI';
 import Admin from './Admin';
@@ -67,9 +68,7 @@ export default function App() {
     town: ''
   });
 
-  const [checkerType, setCheckerType] = useState(
-    checkerServices[0].name
-  );
+  const [checkerType, setCheckerType] = useState(checkerServices[0].name);
   const [checkerQuantity, setCheckerQuantity] = useState('1');
   const [checkerPhone, setCheckerPhone] = useState('');
   const [serviceMessage, setServiceMessage] = useState('');
@@ -82,8 +81,7 @@ export default function App() {
     checkerServices.find(item => item.name === checkerType) ||
     checkerServices[0];
 
-  const checkerTotal =
-    selectedChecker.price * Number(checkerQuantity);
+  const checkerTotal = selectedChecker.price * Number(checkerQuantity);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 2500);
@@ -94,7 +92,6 @@ export default function App() {
     localStorage.setItem('airdata-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
-  // Moolre return handling: recover the order reference from the URL.
   useEffect(() => {
     const syncPage = () => {
       const params = new URLSearchParams(window.location.search);
@@ -111,12 +108,11 @@ export default function App() {
     };
 
     syncPage();
-
     window.addEventListener('popstate', syncPage);
+
     return () => window.removeEventListener('popstate', syncPage);
   }, []);
 
-  // Check immediately and keep checking while payment/delivery is pending.
   useEffect(() => {
     if (
       !reference ||
@@ -140,6 +136,7 @@ export default function App() {
       '',
       nextPage === 'dashboard' ? '/' : `/?page=${nextPage}`
     );
+
     setPage(nextPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -169,9 +166,7 @@ export default function App() {
     try {
       const response = await fetch('/api/checkout/initialize', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           network,
           volume_gb: Number.parseInt(activeBundle[0], 10),
@@ -182,9 +177,7 @@ export default function App() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          result.error || 'Unable to initialize payment.'
-        );
+        throw new Error(result.error || 'Unable to initialize payment.');
       }
 
       if (!result.payment_url || !result.reference) {
@@ -244,10 +237,7 @@ export default function App() {
   }
 
   function updateAfa(field, value) {
-    setAfaForm(previous => ({
-      ...previous,
-      [field]: value
-    }));
+    setAfaForm(previous => ({ ...previous, [field]: value }));
     setServiceMessage('');
   }
 
@@ -327,744 +317,714 @@ export default function App() {
 
   return (
     <main className={darkMode ? 'dark-mode' : 'light-mode'}>
-    
-<style>{`
-  * { box-sizing: border-box; }
-
-  :root {
-    font-family: Inter, Arial, sans-serif;
-    color-scheme: light;
-  }
-
-  body {
-    margin: 0;
-    font-family: Inter, Arial, sans-serif;
-    background: #f3f7fc;
-  }
-
-  main {
-    min-height: 100vh;
-    background: #f4f7fc;
-    color: #10213b;
-    transition: background .3s, color .3s;
-  }
-
-  .dark-mode {
-    background: #071426;
-    color: #edf5ff;
-  }
-
-  .topbar {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    padding: 17px 6%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 18px;
-    flex-wrap: wrap;
-    color: white;
-    background: rgba(5, 20, 43, .96);
-    border-bottom: 1px solid #ffffff15;
-    box-shadow: 0 8px 30px #06152b20;
-    backdrop-filter: blur(18px);
-  }
-
-  .brand {
-    font-size: 23px;
-    font-weight: 950;
-    letter-spacing: -1px;
-  }
-
-  .brand span { color: #38c7ff; }
-
-  .nav {
-    display: flex;
-    gap: 9px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .nav button, .theme-button {
-    padding: 10px 15px;
-    border: 1px solid #ffffff24;
-    border-radius: 12px;
-    color: #dcecff;
-    background: #ffffff0b;
-    font-size: 12px;
-    font-weight: 750;
-    cursor: pointer;
-    transition: .25s;
-  }
-
-  .nav button:hover, .theme-button:hover {
-    background: #087cff;
-    border-color: #087cff;
-    color: white;
-    transform: translateY(-2px);
-  }
-
-  .hero {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    min-height: 360px;
-    padding: 75px 8%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: white;
-    background:
-      radial-gradient(circle at 15% 20%, #168bff55, transparent 30%),
-      radial-gradient(circle at 85% 80%, #00d4ff35, transparent 35%),
-      linear-gradient(125deg, #041329, #0b3970 55%, #087fc5);
-  }
-
-  .hero::before, .hero::after {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    border: 1px solid #ffffff20;
-    border-radius: 50%;
-    pointer-events: none;
-  }
-
-  .hero::before {
-    width: 340px;
-    height: 340px;
-    right: -100px;
-    top: -180px;
-    box-shadow: 0 0 0 35px #ffffff08, 0 0 0 75px #ffffff06;
-  }
-
-  .hero::after {
-    width: 190px;
-    height: 190px;
-    left: -90px;
-    bottom: -100px;
-  }
-
-  .hero h1 {
-    max-width: 780px;
-    margin: 0 0 16px;
-    font-size: clamp(34px, 6vw, 58px);
-    line-height: 1.1;
-    letter-spacing: -2px;
-    font-weight: 950;
-  }
-
-  .hero p {
-    max-width: 550px;
-    color: #d5eaff;
-    font-size: 15px;
-    line-height: 1.9;
-  }
-
-  .content {
-    width: min(1100px, 100%);
-    margin: 42px auto;
-    padding: 0 22px;
-  }
-
-  .panel {
-    position: relative;
-    padding: 30px;
-    margin-bottom: 24px;
-    border: 1px solid #e2eaf5;
-    border-radius: 23px;
-    color: #14243d;
-    background: white;
-    box-shadow: 0 15px 45px rgba(18, 49, 88, .065);
-  }
-
-  .panel h2 {
-    margin: 0 0 12px;
-    font-size: 25px;
-    font-weight: 900;
-    letter-spacing: -.8px;
-  }
-
-  .panel h3 { margin-top: 0; }
-
-  label {
-    display: block;
-    margin: 19px 0 9px;
-    font-size: 13px;
-    font-weight: 800;
-  }
-
-  input, select, textarea {
-    width: 100%;
-    padding: 15px;
-    border: 1px solid #d8e2ef;
-    border-radius: 13px;
-    outline: none;
-    background: #f9fbff;
-    color: #172b4d;
-    font: inherit;
-    transition: .2s;
-  }
-
-  input:focus, select:focus, textarea:focus {
-    border-color: #168bff;
-    box-shadow: 0 0 0 4px #168bff17;
-    background: white;
-  }
-
-  .network-grid, .bundle-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
-    gap: 13px;
-    margin: 19px 0;
-  }
-
-  .network-button, .bundle-button {
-    min-height: 60px;
-    padding: 15px 12px;
-    border: 1px solid #dce6f2;
-    border-radius: 15px;
-    color: #18304f;
-    background: #f8faff;
-    font-weight: 850;
-    cursor: pointer;
-    transition: .23s;
-  }
-
-  .network-button:hover, .bundle-button:hover {
-    border-color: #168bff;
-    transform: translateY(-3px);
-    box-shadow: 0 9px 23px #087cff17;
-  }
-
-  .network-button.active, .bundle-button.active {
-    border: 2px solid #087cff;
-    color: #0757bd;
-    background: linear-gradient(140deg, #e9f4ff, #f5fbff);
-    box-shadow: 0 7px 22px #087cff1c;
-  }
-
-  .bundle-button span {
-    display: block;
-    margin-top: 8px;
-    color: #087cff;
-    font-size: 13px;
-    font-weight: 850;
-  }
-
-  .primary {
-    width: 100%;
-    padding: 16px 20px;
-    margin-top: 17px;
-    border: 0;
-    border-radius: 14px;
-    color: white;
-    background: linear-gradient(110deg, #087cff, #0754c7);
-    font-size: 15px;
-    font-weight: 900;
-    cursor: pointer;
-    box-shadow: 0 9px 24px #087cff35;
-    transition: .25s;
-  }
-
-  .primary:hover:not(:disabled) {
-    transform: translateY(-3px);
-    box-shadow: 0 14px 30px #087cff45;
-  }
-
-  .primary:disabled {
-    opacity: .6;
-    cursor: not-allowed;
-  }
-
-  .status {
-    padding: 17px;
-    margin-top: 18px;
-    border: 1px solid #cfe4ff;
-    border-radius: 14px;
-    color: #174b86;
-    background: #edf6ff;
-    line-height: 1.7;
-    overflow-wrap: anywhere;
-  }
-
-  .muted {
-    color: #71839b;
-    line-height: 1.8;
-  }
-
-  .digital-tabs {
-    display: flex;
-    gap: 12px;
-    margin: 20px 0;
-  }
-
-  .digital-tabs button {
-    flex: 1;
-    padding: 14px;
-    border: 1px solid #dce6f2;
-    border-radius: 13px;
-    color: #18304f;
-    background: #f8faff;
-    font-weight: 850;
-    cursor: pointer;
-  }
-
-  .digital-tabs button.active {
-    color: white;
-    background: #087cff;
-    border-color: #087cff;
-  }
-
-  .price {
-    padding: 18px;
-    margin: 18px 0;
-    border: 1px solid #cfe4ff;
-    border-radius: 15px;
-    color: #174b86;
-    background: linear-gradient(135deg, #edf6ff, #f7fbff);
-    line-height: 2;
-  }
-
-  footer {
-    padding: 45px 20px;
-    margin-top: 65px;
-    text-align: center;
-    color: white;
-    background:
-      radial-gradient(circle at 50% 0%, #10569a, transparent 55%),
-      #041329;
-  }
-
-  footer h2 {
-    font-size: 27px;
-    font-weight: 950;
-  }
-
-  footer p { color: #c1d8f1; }
-
-  .splash {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: white;
-    background:
-      radial-gradient(circle at 50% 40%, #14569a, transparent 48%),
-      linear-gradient(145deg, #020817, #061a36);
-  }
-
-  .splash-logo {
-    width: 108px;
-    height: 108px;
-    display: grid;
-    place-items: center;
-    border: 2px solid #38baff;
-    border-radius: 30px;
-    font-size: 45px;
-    font-weight: 950;
-    margin-bottom: 23px;
-    box-shadow: 0 0 35px #1689e5, inset 0 0 25px #1689e555;
-    animation: logoPulse 2s infinite alternate;
-  }
-
-  .splash h1 {
-    letter-spacing: 5px;
-    font-weight: 950;
-  }
-
-  .splash p {
-    color: #9edcff;
-    letter-spacing: 2px;
-    font-size: 11px;
-  }
-
-  @keyframes logoPulse {
-    from { transform: scale(.97); box-shadow: 0 0 20px #1689e5; }
-    to { transform: scale(1.04); box-shadow: 0 0 45px #1689e5; }
-  }
-
-  .dark-mode .panel {
-    color: #edf5ff;
-    background: #10243c;
-    border-color: #294766;
-  }
-
-  .dark-mode input, .dark-mode select, .dark-mode textarea {
-    color: white;
-    background: #091a2d;
-    border-color: #34516f;
-  }
-
-  .dark-mode .network-button,
-  .dark-mode .bundle-button,
-  .dark-mode .digital-tabs button {
-    color: #e5efff;
-    background: #0c2037;
-    border-color: #294766;
-  }
-
-  .dark-mode .network-button.active,
-  .dark-mode .bundle-button.active,
-  .dark-mode .digital-tabs button.active {
-    color: white;
-    background: #075db9;
-    border-color: #38aaff;
-  }
-
-  .dark-mode .price,
-  .dark-mode .status {
-    color: #c7e2ff;
-    background: #193755;
-    border-color: #34516f;
-  }
-
-  .dark-mode .muted { color: #a9bbd0; }
-
-  @media (max-width: 700px) {
-    .topbar {
-      padding: 15px 16px;
-      justify-content: center;
-      gap: 14px;
-    }
-
-    .brand { font-size: 21px; }
-
-    .nav {
-      width: 100%;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .nav button { min-height: 43px; }
-
-    .hero {
-      min-height: 330px;
-      padding: 55px 22px;
-    }
-
-    .hero h1 { letter-spacing: -1.3px; }
-
-    .hero p { font-size: 13px; }
-
-    .content {
-      margin: 25px auto;
-      padding: 0 14px;
-    }
-
-    .panel {
-      padding: 21px 17px;
-      border-radius: 19px;
-    }
-
-    .panel h2 { font-size: 22px; }
-
-    .network-grid, .bundle-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .network-button, .bundle-button {
-      min-height: 65px;
-      padding: 12px 7px;
-    }
-
-    .digital-tabs { flex-direction: column; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: .01ms !important;
-      transition-duration: .01ms !important;
-    }
-    
-  /* ===== AIRDATA GH PREMIUM DASHBOARD ===== */
-  .dashboard {
-    width: min(1180px, 100%);
-    margin: 0 auto;
-    padding: 34px 24px 60px;
-  }
-
-  .dash-heading {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 18px;
-    margin-bottom: 28px;
-  }
-
-  .dash-eyebrow {
-    color: #168bff;
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-
-  .dash-heading h1 {
-    margin: 8px 0;
-    font-size: clamp(27px, 4vw, 39px);
-    letter-spacing: -1.5px;
-    font-weight: 950;
-  }
-
-  .dash-heading p {
-    margin: 0;
-    color: #8292a8;
-    font-size: 14px;
-  }
-
-  .dash-hero {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr;
-    gap: 24px;
-    padding: 34px;
-    border-radius: 26px;
-    color: white;
-    background:
-      radial-gradient(circle at 85% 15%, #28c5ff55, transparent 32%),
-      linear-gradient(120deg, #06152e, #0755a5 75%, #087fc5);
-    box-shadow: 0 20px 55px #0755a526;
-    overflow: hidden;
-  }
-
-  .dash-hero h2 {
-    max-width: 520px;
-    margin: 12px 0;
-    font-size: clamp(27px, 4vw, 43px);
-    line-height: 1.12;
-    letter-spacing: -1.5px;
-  }
-
-  .dash-hero p {
-    max-width: 440px;
-    color: #d5eaff;
-    line-height: 1.8;
-    font-size: 14px;
-  }
-
-  .dash-hero-tag {
-    color: #8edcff;
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: 2px;
-  }
-
-  .dash-hero .primary {
-    width: auto;
-    min-width: 175px;
-    padding: 15px 22px;
-    background: white;
-    color: #0755a5;
-    box-shadow: none;
-  }
-
-  .dash-side {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 13px;
-  }
-
-  .dash-highlight {
-    padding: 17px;
-    border: 1px solid #ffffff28;
-    border-radius: 17px;
-    background: #ffffff12;
-    backdrop-filter: blur(12px);
-  }
-
-  .dash-highlight strong {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 14px;
-  }
-
-  .dash-highlight span {
-    color: #d1e8ff;
-    font-size: 12px;
-  }
-
-  .dash-section {
-    margin-top: 35px;
-  }
-
-  .dash-section-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: end;
-    gap: 12px;
-    margin-bottom: 17px;
-  }
-
-  .dash-section-head h2 {
-    margin: 0 0 6px;
-    font-size: 22px;
-    font-weight: 950;
-    letter-spacing: -.7px;
-  }
-
-  .dash-section-head p {
-    margin: 0;
-    color: #8292a8;
-    font-size: 13px;
-  }
-
-  .dash-networks {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 15px;
-  }
-
-  .dash-network {
-    min-height: 145px;
-    padding: 20px;
-    text-align: left;
-    border: 1px solid #e1eaf5;
-    border-radius: 20px;
-    background: white;
-    color: #14243d;
-    cursor: pointer;
-    transition: .25s;
-    box-shadow: 0 8px 25px #18304f08;
-  }
-
-  .dash-network:hover {
-    transform: translateY(-5px);
-    border-color: #168bff;
-    box-shadow: 0 15px 32px #168bff18;
-  }
-
-  .dash-network-icon {
-    width: 43px;
-    height: 43px;
-    display: grid;
-    place-items: center;
-    margin-bottom: 17px;
-    border-radius: 14px;
-    background: #eaf4ff;
-    font-size: 21px;
-  }
-
-  .dash-network strong {
-    display: block;
-    font-size: 14px;
-    font-weight: 900;
-  }
-
-  .dash-network span {
-    display: block;
-    margin-top: 6px;
-    color: #8292a8;
-    font-size: 11px;
-  }
-
-  .dash-shortcuts {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 15px;
-  }
-
-  .dash-shortcut {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 20px;
-    border: 1px solid #e1eaf5;
-    border-radius: 19px;
-    color: #14243d;
-    background: white;
-    text-align: left;
-    cursor: pointer;
-    transition: .2s;
-  }
-
-  .dash-shortcut:hover {
-    transform: translateY(-3px);
-    border-color: #168bff;
-  }
-
-  .dash-shortcut-icon {
-    width: 48px;
-    height: 48px;
-    display: grid;
-    flex-shrink: 0;
-    place-items: center;
-    border-radius: 15px;
-    background: #eaf4ff;
-    font-size: 22px;
-  }
-
-  .dash-shortcut strong {
-    display: block;
-    font-size: 14px;
-  }
-
-  .dash-shortcut span {
-    display: block;
-    margin-top: 5px;
-    color: #8292a8;
-    font-size: 12px;
-  }
-
-  .dark-mode .dash-network,
-  .dark-mode .dash-shortcut {
-    color: #edf5ff;
-    background: #10243c;
-    border-color: #294766;
-  }
-
-  .dark-mode .dash-network-icon,
-  .dark-mode .dash-shortcut-icon {
-    background: #193755;
-  }
-
-  @media (max-width: 750px) {
-    .dashboard { padding: 25px 15px 45px; }
-
-    .dash-heading {
-      align-items: flex-start;
-      flex-direction: column;
-    }
-
-    .dash-hero {
-      grid-template-columns: 1fr;
-      padding: 25px 21px;
-      gap: 20px;
-      border-radius: 22px;
-    }
-
-    .dash-side {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .dash-highlight { padding: 13px; }
-
-    .dash-networks {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 11px;
-    }
-
-    .dash-network {
-      min-height: 130px;
-      padding: 15px;
-    }
-
-    .dash-shortcuts {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  }
-`}</style>
 
+      <style>{`
+        * { box-sizing: border-box; }
+
+        :root {
+          font-family: Inter, Arial, sans-serif;
+          color-scheme: light;
+        }
+
+        body {
+          margin: 0;
+          font-family: Inter, Arial, sans-serif;
+          background: #f3f7fc;
+        }
+
+        main {
+          min-height: 100vh;
+          background: #f4f7fc;
+          color: #10213b;
+          transition: background .3s, color .3s;
+        }
+
+        .dark-mode {
+          background: #071426;
+          color: #edf5ff;
+        }
+
+        .topbar {
+          position: sticky;
+          top: 0;
+          z-index: 100;
+          padding: 17px 6%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 18px;
+          flex-wrap: wrap;
+          color: white;
+          background: rgba(5, 20, 43, .96);
+          border-bottom: 1px solid #ffffff15;
+          box-shadow: 0 8px 30px #06152b20;
+          backdrop-filter: blur(18px);
+        }
+
+        .brand {
+          font-size: 23px;
+          font-weight: 950;
+          letter-spacing: -1px;
+        }
+
+        .brand span { color: #38c7ff; }
+
+        .nav {
+          display: flex;
+          gap: 9px;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+
+        .nav button, .theme-button {
+          padding: 10px 15px;
+          border: 1px solid #ffffff24;
+          border-radius: 12px;
+          color: #dcecff;
+          background: #ffffff0b;
+          font-size: 12px;
+          font-weight: 750;
+          cursor: pointer;
+          transition: .25s;
+        }
+
+        .nav button:hover, .theme-button:hover {
+          background: #087cff;
+          border-color: #087cff;
+          color: white;
+          transform: translateY(-2px);
+        }
+
+        .hero {
+          position: relative;
+          isolation: isolate;
+          overflow: hidden;
+          min-height: 360px;
+          padding: 75px 8%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          color: white;
+          background:
+            radial-gradient(circle at 15% 20%, #168bff55, transparent 30%),
+            radial-gradient(circle at 85% 80%, #00d4ff35, transparent 35%),
+            linear-gradient(125deg, #041329, #0b3970 55%, #087fc5);
+        }
+
+        .hero h1 {
+          max-width: 780px;
+          margin: 0 0 16px;
+          font-size: clamp(34px, 6vw, 58px);
+          line-height: 1.1;
+          letter-spacing: -2px;
+          font-weight: 950;
+        }
+
+        .hero p {
+          max-width: 550px;
+          color: #d5eaff;
+          font-size: 15px;
+          line-height: 1.9;
+        }
+
+        .content {
+          width: min(1100px, 100%);
+          margin: 42px auto;
+          padding: 0 22px;
+        }
+
+        .panel {
+          position: relative;
+          padding: 30px;
+          margin-bottom: 24px;
+          border: 1px solid #e2eaf5;
+          border-radius: 23px;
+          color: #14243d;
+          background: white;
+          box-shadow: 0 15px 45px rgba(18, 49, 88, .065);
+        }
+
+        .panel h2 {
+          margin: 0 0 12px;
+          font-size: 25px;
+          font-weight: 900;
+          letter-spacing: -.8px;
+        }
+
+        .panel h3 { margin-top: 0; }
+
+        label {
+          display: block;
+          margin: 19px 0 9px;
+          font-size: 13px;
+          font-weight: 800;
+        }
+
+        input, select, textarea {
+          width: 100%;
+          padding: 15px;
+          border: 1px solid #d8e2ef;
+          border-radius: 13px;
+          outline: none;
+          background: #f9fbff;
+          color: #172b4d;
+          font: inherit;
+          transition: .2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+          border-color: #168bff;
+          box-shadow: 0 0 0 4px #168bff17;
+          background: white;
+        }
+
+        .network-grid, .bundle-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+          gap: 13px;
+          margin: 19px 0;
+        }
+
+        .network-button, .bundle-button {
+          min-height: 60px;
+          padding: 15px 12px;
+          border: 1px solid #dce6f2;
+          border-radius: 15px;
+          color: #18304f;
+          background: #f8faff;
+          font-weight: 850;
+          cursor: pointer;
+          transition: .23s;
+        }
+
+        .network-button:hover, .bundle-button:hover {
+          border-color: #168bff;
+          transform: translateY(-3px);
+          box-shadow: 0 9px 23px #087cff17;
+        }
+
+        .network-button.active, .bundle-button.active {
+          border: 2px solid #087cff;
+          color: #0757bd;
+          background: linear-gradient(140deg, #e9f4ff, #f5fbff);
+          box-shadow: 0 7px 22px #087cff1c;
+        }
+
+        .bundle-button span {
+          display: block;
+          margin-top: 8px;
+          color: #087cff;
+          font-size: 13px;
+          font-weight: 850;
+        }
+
+        .primary {
+          width: 100%;
+          padding: 16px 20px;
+          margin-top: 17px;
+          border: 0;
+          border-radius: 14px;
+          color: white;
+          background: linear-gradient(110deg, #087cff, #0754c7);
+          font-size: 15px;
+          font-weight: 900;
+          cursor: pointer;
+          box-shadow: 0 9px 24px #087cff35;
+          transition: .25s;
+        }
+
+        .primary:hover:not(:disabled) {
+          transform: translateY(-3px);
+          box-shadow: 0 14px 30px #087cff45;
+        }
+
+        .primary:disabled {
+          opacity: .6;
+          cursor: not-allowed;
+        }
+
+        .status {
+          padding: 17px;
+          margin-top: 18px;
+          border: 1px solid #cfe4ff;
+          border-radius: 14px;
+          color: #174b86;
+          background: #edf6ff;
+          line-height: 1.7;
+          overflow-wrap: anywhere;
+        }
+
+        .muted {
+          color: #71839b;
+          line-height: 1.8;
+        }
+
+        .digital-tabs {
+          display: flex;
+          gap: 12px;
+          margin: 20px 0;
+        }
+
+        .digital-tabs button {
+          flex: 1;
+          padding: 14px;
+          border: 1px solid #dce6f2;
+          border-radius: 13px;
+          color: #18304f;
+          background: #f8faff;
+          font-weight: 850;
+          cursor: pointer;
+        }
+
+        .digital-tabs button.active {
+          color: white;
+          background: #087cff;
+          border-color: #087cff;
+        }
+
+        .price {
+          padding: 18px;
+          margin: 18px 0;
+          border: 1px solid #cfe4ff;
+          border-radius: 15px;
+          color: #174b86;
+          background: linear-gradient(135deg, #edf6ff, #f7fbff);
+          line-height: 2;
+        }
+
+        footer {
+          padding: 45px 20px;
+          margin-top: 65px;
+          text-align: center;
+          color: white;
+          background:
+            radial-gradient(circle at 50% 0%, #10569a, transparent 55%),
+            #041329;
+        }
+
+        footer h2 {
+          font-size: 27px;
+          font-weight: 950;
+        }
+
+        footer p { color: #c1d8f1; }
+
+        .splash {
+          position: fixed;
+          inset: 0;
+          z-index: 1000;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          color: white;
+          background:
+            radial-gradient(circle at 50% 40%, #14569a, transparent 48%),
+            linear-gradient(145deg, #020817, #061a36);
+        }
+
+        .splash-logo {
+          width: 108px;
+          height: 108px;
+          display: grid;
+          place-items: center;
+          border: 2px solid #38baff;
+          border-radius: 30px;
+          font-size: 45px;
+          font-weight: 950;
+          margin-bottom: 23px;
+          box-shadow: 0 0 35px #1689e5, inset 0 0 25px #1689e555;
+          animation: logoPulse 2s infinite alternate;
+        }
+
+        .splash h1 {
+          letter-spacing: 5px;
+          font-weight: 950;
+        }
+
+        .splash p {
+          color: #9edcff;
+          letter-spacing: 2px;
+          font-size: 11px;
+        }
+
+        @keyframes logoPulse {
+          from { transform: scale(.97); box-shadow: 0 0 20px #1689e5; }
+          to { transform: scale(1.04); box-shadow: 0 0 45px #1689e5; }
+        }
+
+        .dark-mode .panel {
+          color: #edf5ff;
+          background: #10243c;
+          border-color: #294766;
+        }
+
+        .dark-mode input, .dark-mode select, .dark-mode textarea {
+          color: white;
+          background: #091a2d;
+          border-color: #34516f;
+        }
+
+        .dark-mode .network-button,
+        .dark-mode .bundle-button,
+        .dark-mode .digital-tabs button {
+          color: #e5efff;
+          background: #0c2037;
+          border-color: #294766;
+        }
+
+        .dark-mode .network-button.active,
+        .dark-mode .bundle-button.active,
+        .dark-mode .digital-tabs button.active {
+          color: white;
+          background: #075db9;
+          border-color: #38aaff;
+        }
+
+        .dark-mode .price,
+        .dark-mode .status {
+          color: #c7e2ff;
+          background: #193755;
+          border-color: #34516f;
+        }
+
+        .dark-mode .muted { color: #a9bbd0; }
+
+        /* PREMIUM DASHBOARD */
+
+        .dashboard {
+          width: min(1180px, 100%);
+          margin: 0 auto;
+          padding: 34px 24px 60px;
+        }
+
+        .dash-heading {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 18px;
+          margin-bottom: 28px;
+        }
+
+        .dash-eyebrow {
+          color: #168bff;
+          font-size: 11px;
+          font-weight: 900;
+          letter-spacing: 2px;
+          text-transform: uppercase;
+        }
+
+        .dash-heading h1 {
+          margin: 8px 0;
+          font-size: clamp(27px, 4vw, 39px);
+          letter-spacing: -1.5px;
+          font-weight: 950;
+        }
+
+        .dash-heading p {
+          margin: 0;
+          color: #8292a8;
+          font-size: 14px;
+        }
+
+        .dash-hero {
+          display: grid;
+          grid-template-columns: 1.5fr 1fr;
+          gap: 24px;
+          padding: 34px;
+          border-radius: 26px;
+          color: white;
+          background:
+            radial-gradient(circle at 85% 15%, #28c5ff55, transparent 32%),
+            linear-gradient(120deg, #06152e, #0755a5 75%, #087fc5);
+          box-shadow: 0 20px 55px #0755a526;
+          overflow: hidden;
+        }
+
+        .dash-hero h2 {
+          max-width: 520px;
+          margin: 12px 0;
+          font-size: clamp(27px, 4vw, 43px);
+          line-height: 1.12;
+          letter-spacing: -1.5px;
+        }
+
+        .dash-hero p {
+          max-width: 440px;
+          color: #d5eaff;
+          line-height: 1.8;
+          font-size: 14px;
+        }
+
+        .dash-hero-tag {
+          color: #8edcff;
+          font-size: 11px;
+          font-weight: 900;
+          letter-spacing: 2px;
+        }
+
+        .dash-hero .primary {
+          width: auto;
+          min-width: 175px;
+          padding: 15px 22px;
+          background: white;
+          color: #0755a5;
+          box-shadow: none;
+        }
+
+        .dash-side {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 13px;
+        }
+
+        .dash-highlight {
+          padding: 17px;
+          border: 1px solid #ffffff28;
+          border-radius: 17px;
+          background: #ffffff12;
+          backdrop-filter: blur(12px);
+        }
+
+        .dash-highlight strong {
+          display: block;
+          margin-bottom: 5px;
+          font-size: 14px;
+        }
+
+        .dash-highlight span {
+          color: #d1e8ff;
+          font-size: 12px;
+        }
+
+        .dash-section { margin-top: 35px; }
+
+        .dash-section-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: end;
+          gap: 12px;
+          margin-bottom: 17px;
+        }
+
+        .dash-section-head h2 {
+          margin: 0 0 6px;
+          font-size: 22px;
+          font-weight: 950;
+          letter-spacing: -.7px;
+        }
+
+        .dash-section-head p {
+          margin: 0;
+          color: #8292a8;
+          font-size: 13px;
+        }
+
+        .dash-networks {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 15px;
+        }
+
+        .dash-network {
+          min-height: 145px;
+          padding: 20px;
+          text-align: left;
+          border: 1px solid #e1eaf5;
+          border-radius: 20px;
+          background: white;
+          color: #14243d;
+          cursor: pointer;
+          transition: .25s;
+          box-shadow: 0 8px 25px #18304f08;
+        }
+
+        .dash-network:hover {
+          transform: translateY(-5px);
+          border-color: #168bff;
+          box-shadow: 0 15px 32px #168bff18;
+        }
+
+        .dash-network-icon {
+          width: 43px;
+          height: 43px;
+          display: grid;
+          place-items: center;
+          margin-bottom: 17px;
+          border-radius: 14px;
+          background: #eaf4ff;
+          font-size: 21px;
+        }
+
+        .dash-network strong {
+          display: block;
+          font-size: 14px;
+          font-weight: 900;
+        }
+
+        .dash-network span {
+          display: block;
+          margin-top: 6px;
+          color: #8292a8;
+          font-size: 11px;
+        }
+
+        .dash-shortcuts {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 15px;
+        }
+
+        .dash-shortcut {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          padding: 20px;
+          border: 1px solid #e1eaf5;
+          border-radius: 19px;
+          color: #14243d;
+          background: white;
+          text-align: left;
+          cursor: pointer;
+          transition: .2s;
+        }
+
+        .dash-shortcut:hover {
+          transform: translateY(-3px);
+          border-color: #168bff;
+        }
+
+        .dash-shortcut-icon {
+          width: 48px;
+          height: 48px;
+          display: grid;
+          flex-shrink: 0;
+          place-items: center;
+          border-radius: 15px;
+          background: #eaf4ff;
+          font-size: 22px;
+        }
+
+        .dash-shortcut strong {
+          display: block;
+          font-size: 14px;
+        }
+
+        .dash-shortcut span {
+          display: block;
+          margin-top: 5px;
+          color: #8292a8;
+          font-size: 12px;
+        }
+
+        .dark-mode .dash-network,
+        .dark-mode .dash-shortcut {
+          color: #edf5ff;
+          background: #10243c;
+          border-color: #294766;
+        }
+
+        .dark-mode .dash-network-icon,
+        .dark-mode .dash-shortcut-icon {
+          background: #193755;
+        }
+
+        @media (max-width: 750px) {
+          .dashboard { padding: 25px 15px 45px; }
+
+          .dash-heading {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+
+          .dash-hero {
+            grid-template-columns: 1fr;
+            padding: 25px 21px;
+            gap: 20px;
+            border-radius: 22px;
+          }
+
+          .dash-side {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .dash-highlight { padding: 13px; }
+
+          .dash-networks {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 11px;
+          }
+
+          .dash-network {
+            min-height: 130px;
+            padding: 15px;
+          }
+
+          .dash-shortcuts { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 700px) {
+          .topbar {
+            padding: 15px 16px;
+            justify-content: center;
+            gap: 14px;
+          }
+
+          .brand { font-size: 21px; }
+
+          .nav {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .nav button { min-height: 43px; }
+
+          .hero {
+            min-height: 330px;
+            padding: 55px 22px;
+          }
+
+          .hero h1 { letter-spacing: -1.3px; }
+          .hero p { font-size: 13px; }
+
+          .content {
+            margin: 25px auto;
+            padding: 0 14px;
+          }
+
+          .panel {
+            padding: 21px 17px;
+            border-radius: 19px;
+          }
+
+          .panel h2 { font-size: 22px; }
+
+          .network-grid, .bundle-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+          }
+
+          .network-button, .bundle-button {
+            min-height: 65px;
+            padding: 12px 7px;
+          }
+
+          .digital-tabs { flex-direction: column; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after {
+            animation-duration: .01ms !important;
+            transition-duration: .01ms !important;
+          }
+        }
+      `}</style>
 
       {showSplash && (
         <div className="splash">
@@ -1095,40 +1055,113 @@ export default function App() {
           </header>
 
           {page === 'dashboard' && (
-            <>
-              <section className="hero">
-                <h1>Welcome to AirData GH</h1>
-                <p>Affordable data. Reliable service. Fast and secure checkout.</p>
-                <button className="primary" style={{ maxWidth: 220 }}
-                  onClick={() => navigate('buy-data')}>
-                  Buy Data Now
-                </button>
+            <div className="dashboard">
+              <div className="dash-heading">
+                <div>
+                  <div className="dash-eyebrow">WELCOME TO AIRDATA GH</div>
+                  <h1>Your connection starts here.</h1>
+                  <p>Simple, affordable and convenient digital services.</p>
+                </div>
+              </div>
+
+              <section className="dash-hero">
+                <div>
+                  <div className="dash-hero-tag">AIRDATA GH • STAY CONNECTED</div>
+                  <h2>Stay connected. Do more with data.</h2>
+                  <p>
+                    Get your favourite data bundles with a simple checkout
+                    experience. Choose your network and get started in minutes.
+                  </p>
+                  <button
+                    className="primary"
+                    onClick={() => navigate('buy-data')}
+                  >
+                    Buy Data Now →
+                  </button>
+                </div>
+
+                <div className="dash-side">
+                  <div className="dash-highlight">
+                    <strong>Multiple Networks</strong>
+                    <span>MTN, AirtelTigo and Telecel bundles.</span>
+                  </div>
+
+                  <div className="dash-highlight">
+                    <strong>Secure Checkout</strong>
+                    <span>Payments handled through Moolre.</span>
+                  </div>
+
+                  <div className="dash-highlight">
+                    <strong>Order Tracking</strong>
+                    <span>Check your order progress after payment.</span>
+                  </div>
+                </div>
               </section>
 
-              <div className="content">
-                <section className="panel">
-                  <h2>Choose your service</h2>
-                  <p className="muted">
-                    Buy data bundles for MTN, Telecel and AirtelTigo.
-                    No account or wallet required.
-                  </p>
-                  <div className="network-grid">
-                    {Object.keys(networkBundles).map(item => (
-                      <button
-                        key={item}
-                        className="network-button"
-                        onClick={() => {
-                          changeNetwork(item);
-                          navigate('buy-data');
-                        }}
-                      >
-                        {item}
-                      </button>
-                    ))}
+              <section className="dash-section">
+                <div className="dash-section-head">
+                  <div>
+                    <h2>Choose your network</h2>
+                    <p>Select a network to explore available bundles.</p>
                   </div>
-                </section>
-              </div>
-            </>
+                </div>
+
+                <div className="dash-networks">
+                  {[
+                    { name: 'MTN', icon: '📶', description: 'MTN data bundles' },
+                    { name: 'AirtelTigo iShare', icon: '🌐', description: 'iShare bundles' },
+                    { name: 'AirtelTigo BigTime', icon: '⚡', description: 'BigTime bundles' },
+                    { name: 'Telecel', icon: '📱', description: 'Telecel data bundles' }
+                  ].map(item => (
+                    <button
+                      key={item.name}
+                      className="dash-network"
+                      onClick={() => {
+                        changeNetwork(item.name);
+                        navigate('buy-data');
+                      }}
+                    >
+                      <div className="dash-network-icon">{item.icon}</div>
+                      <strong>{item.name}</strong>
+                      <span>{item.description}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              <section className="dash-section">
+                <div className="dash-section-head">
+                  <div>
+                    <h2>More from AirData GH</h2>
+                    <p>Explore other services and get assistance.</p>
+                  </div>
+                </div>
+
+                <div className="dash-shortcuts">
+                  <button
+                    className="dash-shortcut"
+                    onClick={() => navigate('digital-services')}
+                  >
+                    <div className="dash-shortcut-icon">✨</div>
+                    <div>
+                      <strong>Digital Services</strong>
+                      <span>MTN AFA and examination results checkers</span>
+                    </div>
+                  </button>
+
+                  <button
+                    className="dash-shortcut"
+                    onClick={() => navigate('support')}
+                  >
+                    <div className="dash-shortcut-icon">💬</div>
+                    <div>
+                      <strong>Customer Support</strong>
+                      <span>Get help with your orders and payments</span>
+                    </div>
+                  </button>
+                </div>
+              </section>
+            </div>
           )}
 
           {page === 'buy-data' && (
@@ -1206,6 +1239,7 @@ export default function App() {
                             ? 'Unable to Continue'
                             : 'Order Update'}
                     </strong>
+
                     <p>{message}</p>
 
                     {reference && (
@@ -1250,6 +1284,7 @@ export default function App() {
                   >
                     MTN AFA
                   </button>
+
                   <button
                     className={digitalService === 'checkers' ? 'active' : ''}
                     onClick={() => {
@@ -1264,7 +1299,9 @@ export default function App() {
                 {digitalService === 'afa' && (
                   <form onSubmit={submitAfaRequest}>
                     <h3>MTN AFA Registration</h3>
-                    <div className="price">Registration request fee: <strong>GH₵15.00</strong></div>
+                    <div className="price">
+                      Registration request fee: <strong>GH₵15.00</strong>
+                    </div>
 
                     <label>Full Name</label>
                     <input
@@ -1367,7 +1404,9 @@ export default function App() {
                   </form>
                 )}
 
-                {serviceMessage && <div className="status">{serviceMessage}</div>}
+                {serviceMessage && (
+                  <div className="status">{serviceMessage}</div>
+                )}
               </section>
             </div>
           )}
@@ -1377,9 +1416,14 @@ export default function App() {
               <section className="panel">
                 <h2>Customer Support</h2>
                 <p>Need help with an order or payment? Contact AirData GH.</p>
+
                 <a
                   className="primary"
-                  style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}
+                  style={{
+                    display: 'block',
+                    textAlign: 'center',
+                    textDecoration: 'none'
+                  }}
                   href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello AirData GH, I need assistance.')}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -1394,7 +1438,10 @@ export default function App() {
             <div className="content">
               <section className="panel">
                 <h2>Settings</h2>
-                <button className="primary" onClick={() => setDarkMode(value => !value)}>
+                <button
+                  className="primary"
+                  onClick={() => setDarkMode(value => !value)}
+                >
                   {darkMode ? 'Switch to Day Mode' : 'Switch to Night Mode'}
                 </button>
               </section>
