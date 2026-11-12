@@ -1,9 +1,7 @@
 
 import InScopeAI from './InScopeAI';
 import React, { useEffect, useState } from 'react';
-import { authClient } from './auth-client';
 import Admin from './Admin';
-import DashboardMenu from './DashboardMenu';
 
 
 const bundles = [
@@ -79,10 +77,6 @@ const WHATSAPP_NUMBER = '233548206175';
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
-  const [authMode, setAuthMode] = useState('login');
-  const [authMessage, setAuthMessage] = useState('');
-  const [authUser, setAuthUser] = useState(null);
-const [authLoading, setAuthLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(
     new URLSearchParams(window.location.search).get('page') || 'dashboard'
   );
@@ -102,12 +96,6 @@ const [orderReference, setOrderReference] = useState('');
   const [orderMode, setOrderMode] = useState('single');
   const [bulkPhones, setBulkPhones] = useState('');
   const [bulkMessage, setBulkMessage] = useState('');
-
-  const [walletBalance, setWalletBalance] = useState(0);
-  const [walletTransactions, setWalletTransactions] = useState([]);
-  const [depositAmount, setDepositAmount] = useState('');
-  const [walletLoading, setWalletLoading] = useState(false);
-  const [walletMessage, setWalletMessage] = useState('');
 
   const [digitalService, setDigitalService] = useState('afa');
   const [afaForm, setAfaForm] = useState({
