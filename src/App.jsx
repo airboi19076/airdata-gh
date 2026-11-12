@@ -1829,7 +1829,7 @@ if (!reference || !reference.startsWith('ADGH-')) {
                 )}
 
                 <small>
-                  Payments are processed securely through Paystack. Your wallet is credited only after payment verification.
+                  Payments are processed securely through Moolre. Your wallet is credited only after payment verification.
                 </small>
               </div>
             </section>
