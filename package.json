@@ -4,7 +4,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@neondatabase/auth": "latest",
+    "@neon/auth": "latest",
     "@neondatabase/serverless": "latest",
     "@vitejs/plugin-react": "latest",
     "vite": "latest",
