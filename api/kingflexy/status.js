@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 
   if (!apiKey) {
     return res.status(500).json({
-      error: 'KiNG FLEXY API key is not configured.'
+      error: 'Kingflexy API key is not configured.'
     });
   }
 
@@ -77,15 +77,36 @@ export default async function handler(req, res) {
       });
     }
 
-    const isFailed = supplierStatus === 'failed';
-    const isRefunded = supplierStatus === 'refunded';
-    const needsRefund = isFailed || isRefunded;
+    const needsRefund =
+      supplierStatus === 'failed' ||
+      supplierStatus === 'refunded';
 
     if (needsRefund) {
-      // Refund the customer's wallet only once.
-      // The ledger status change prevents duplicate credits.
-      await sql`
-        WITH order_update AS (
+      const refundResult = await sql`
+        WITH ledger_refund AS (
+          UPDATE public.wallet_transactions
+          SET status = 'refunded',
+              updated_at = now()
+          WHERE reference = ${reference}
+            AND user_id = ${user.id}::uuid
+            AND provider = 'kingflexy'
+            AND status = 'success'
+          RETURNING user_id, amount_pesewas
+        ),
+        wallet_credit AS (
+          INSERT INTO public.wallets (
+            user_id,
+            balance_pesewas
+          )
+          SELECT user_id, amount_pesewas
+          FROM ledger_refund
+          ON CONFLICT (user_id) DO UPDATE
+          SET balance_pesewas =
+            public.wallets.balance_pesewas + EXCLUDED.balance_pesewas,
+            updated_at = now()
+          RETURNING balance_pesewas
+        ),
+        order_update AS (
           UPDATE public.data_orders
           SET status = 'refunded',
               supplier_status = ${supplierStatus},
@@ -97,32 +118,30 @@ export default async function handler(req, res) {
               updated_at = now()
           WHERE reference = ${reference}
             AND user_id = ${user.id}::uuid
-            AND status <> 'refunded'
+            AND (
+              EXISTS (SELECT 1 FROM ledger_refund)
+              OR EXISTS (
+                SELECT 1
+                FROM public.wallet_transactions
+                WHERE reference = ${reference}
+                  AND user_id = ${user.id}::uuid
+                  AND provider = 'kingflexy'
+                  AND status = 'refunded'
+              )
+            )
           RETURNING reference
-        ),
-        ledger_refund AS (
-          UPDATE public.wallet_transactions AS wt
-          SET status = 'refunded',
-              updated_at = now()
-          FROM order_update AS ou
-          WHERE wt.reference = ou.reference
-            AND wt.user_id = ${user.id}::uuid
-            AND wt.provider = 'kingflexy'
-            AND wt.status = 'success'
-          RETURNING wt.user_id, wt.amount_pesewas
-        ),
-        wallet_credit AS (
-          INSERT INTO public.wallets (user_id, balance_pesewas)
-          SELECT user_id, amount_pesewas
-          FROM ledger_refund
-          ON CONFLICT (user_id) DO UPDATE
-          SET balance_pesewas =
-            public.wallets.balance_pesewas + EXCLUDED.balance_pesewas,
-            updated_at = now()
-          RETURNING balance_pesewas
         )
-        SELECT balance_pesewas FROM wallet_credit
+        SELECT
+          (SELECT COUNT(*) FROM order_update) AS order_updated,
+          (SELECT balance_pesewas FROM wallet_credit LIMIT 1)
+            AS credited_balance
       `;
+
+      if (Number(refundResult[0]?.order_updated || 0) === 0) {
+        return res.status(409).json({
+          error: 'Refund could not be completed because the matching wallet transaction was not found. Please contact support.'
+        });
+      }
     } else {
       await sql`
         UPDATE public.data_orders
@@ -144,6 +163,7 @@ export default async function handler(req, res) {
       SELECT balance_pesewas
       FROM public.wallets
       WHERE user_id = ${user.id}::uuid
+      LIMIT 1
     `;
 
     let message = 'Your order is being processed.';
@@ -153,7 +173,7 @@ export default async function handler(req, res) {
       message = 'Your data bundle has been delivered successfully.';
     } else if (needsRefund) {
       displayStatus = 'refunded';
-      message = 'Your order failed or was refunded by the supplier. The money has been returned to your AirData GH wallet.';
+      message = 'Your order failed or was refunded. Your wallet has been credited, or the previous refund was confirmed.';
     } else if (supplierStatus === 'blacklisted') {
       message = 'Your order is on hold with the supplier.';
     } else if (supplierStatus === 'queued') {
