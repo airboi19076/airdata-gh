@@ -1,5 +1,4 @@
 
-
 const AUTH_BASE_URL =
   process.env.NEON_AUTH_BASE_URL ||
   'https://ep-crimson-cloud-bfxxocl4.neonauth.c-5.us-west-2.aws.neon.tech/neondb/auth';
@@ -8,7 +7,10 @@ const AUTH_JWKS_URL =
   process.env.NEON_AUTH_JWKS_URL ||
   `${AUTH_BASE_URL.replace(/\/$/, '')}/.well-known/jwks.json`;
 
-const AUTH_ISSUER = new URL(AUTH_BASE_URL).origin;
+const AUTH_ISSUERS = [
+  new URL(AUTH_BASE_URL).origin,
+  AUTH_BASE_URL.replace(/\/$/, '')
+];
 
 let remoteJwksPromise;
 
@@ -44,13 +46,16 @@ export async function requireUser(req, res) {
     const JWKS = await getRemoteJwks();
 
     const { payload } = await jwtVerify(token, JWKS, {
-      issuer: AUTH_ISSUER,
+      issuer: AUTH_ISSUERS,
       algorithms: ['EdDSA']
     });
 
-    if (typeof payload.sub !== 'string' || !payload.sub.trim()) {
+    if (
+      typeof payload.sub !== 'string' ||
+      !payload.sub.trim()
+    ) {
       res.status(401).json({
-        error: 'Your account identity is missing. Please sign in again.'
+        error: 'Your account identity is missing.'
       });
       return null;
     }
@@ -60,17 +65,15 @@ export async function requireUser(req, res) {
     };
 
   } catch (error) {
-    console.error('Neon Auth JWT verification failed:', {
-      name: error?.name || 'Error',
-      code: error?.code || 'unknown',
-      message: error?.message || 'Token verification failed'
+    console.error('Neon token verification diagnostic:', {
+      name: error?.name,
+      code: error?.code,
+      message: error?.message
     });
 
-    res.status(401).json({
-      error: 'Your login token could not be verified. Please sign in again.'
+    return res.status(401).json({
+      error: 'Neon token verification failed. Please sign in again.'
     });
-
-    return null;
   }
 }
 
