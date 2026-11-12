@@ -7,11 +7,24 @@ const RETAIL_PRICES = {
     6: 2850, 8: 3800, 10: 4750, 15: 7125,
     20: 9300, 25: 11625, 30: 13950, 40: 18600, 50: 23250
   },
-  AirtelTigo: {
+
+  'AirtelTigo iShare': {
     1: 430, 2: 860, 3: 1290, 4: 1720, 5: 2150,
     6: 2580, 7: 3010, 8: 3440, 10: 4300,
     15: 6450, 20: 8600
   },
+
+  'AirtelTigo BigTime': {
+    20: 7400,
+    25: 7900,
+    30: 8400,
+    40: 9900,
+    50: 10900,
+    100: 17900,
+    200: 32300,
+    250: 41600
+  },
+
   Telecel: {
     10: 4200, 15: 6300, 20: 8400, 25: 10500,
     30: 12600, 40: 16800, 50: 21000
@@ -20,14 +33,17 @@ const RETAIL_PRICES = {
 
 const SUPPLIER_NETWORK = {
   MTN: 'MTN',
-  AirtelTigo: 'AT-iShare',
+  'AirtelTigo iShare': 'AT-iShare',
+  'AirtelTigo BigTime': 'AT-BigTime',
   Telecel: 'Telecel'
 };
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
-    return res.status(405).json({ error: 'Method not allowed.' });
+    return res.status(405).json({
+      error: 'Method not allowed.'
+    });
   }
 
   const user = await requireUser(req, res);
@@ -68,7 +84,6 @@ export default async function handler(req, res) {
   try {
     const sql = await getDatabase();
 
-    // Reusing a reference must never create another customer debit.
     const existing = await sql`
       SELECT reference, network, volume_gb, recipient, status
       FROM public.data_orders
@@ -98,7 +113,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Reserve the customer's money before contacting the supplier.
     const reserved = await sql`
       WITH debit AS (
         UPDATE public.wallets
@@ -140,8 +154,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Submit the order using the same unique reference.
-    // A timeout is treated as pending, never as an automatic refund.
     try {
       const supplierResponse = await fetch(
         'https://api.kingflexygh.com/api/v2/data/purchase',
@@ -192,8 +204,6 @@ export default async function handler(req, res) {
         });
       }
 
-      // Keep the order reserved until the status endpoint confirms
-      // whether KiNG FLEXY accepted it or rejected it.
       await sql`
         UPDATE public.data_orders
         SET supplier_response = ${JSON.stringify(supplierResult)}::jsonb,
