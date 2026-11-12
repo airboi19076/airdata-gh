@@ -94,22 +94,38 @@ export default function App() {
     localStorage.setItem('airdata-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
+  // Moolre return handling: recover the order reference from the URL.
   useEffect(() => {
     const syncPage = () => {
-      setPage(
-        new URLSearchParams(window.location.search).get('page') ||
-        'dashboard'
-      );
+      const params = new URLSearchParams(window.location.search);
+      const nextPage = params.get('page') || 'dashboard';
+      const returnedReference = params.get('reference');
+
+      setPage(nextPage);
+
+      if (returnedReference) {
+        setReference(returnedReference);
+        setOrderStatus('processing');
+        setMessage('Payment return received. Checking your order...');
+      }
     };
+
+    syncPage();
 
     window.addEventListener('popstate', syncPage);
     return () => window.removeEventListener('popstate', syncPage);
   }, []);
 
+  // Check immediately and keep checking while payment/delivery is pending.
   useEffect(() => {
-    if (!reference || !['pending', 'processing'].includes(orderStatus)) {
+    if (
+      !reference ||
+      !['pending', 'processing', 'awaiting_payment'].includes(orderStatus)
+    ) {
       return;
     }
+
+    checkOrderStatus(true);
 
     const timer = setInterval(() => {
       checkOrderStatus(true);
