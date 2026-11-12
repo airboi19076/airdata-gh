@@ -163,29 +163,29 @@ const [orderReference, setOrderReference] = useState('');
     localStorage.setItem('airdata-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
-
+    
 
 async function getWalletToken() {
   try {
-    const { data, error } = await authClient.token();
+    const { data, error } = await authClient.getSession();
 
     if (error) {
-      throw new Error(error.message || 'Could not retrieve login token.');
+      throw new Error(error.message || 'Could not retrieve your login session.');
     }
 
-    if (!data?.token) {
-      throw new Error('Your session has expired. Please log in again.');
+    const token = data?.session?.token;
+
+    if (!token) {
+      throw new Error('Your session has expired. Please sign in again.');
     }
 
-    return data.token;
+    return token;
   } catch (error) {
     throw new Error(
       error.message || 'Could not verify your login session.'
     );
   }
 }
-
-    
 
 
 
