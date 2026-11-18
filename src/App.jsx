@@ -1247,10 +1247,10 @@ export default function App() {
                 )}
 
                 <p className="muted">
-                  Payments are handled through Moolre. Your data order
-                  is sent to the supplier only after payment confirmation.
-                  Delivery is shown only after supplier confirmation.
-                </p>
+  Your data order is sent to the supplier only after
+  payment confirmation. Delivery is shown only after
+  supplier confirmation.
+</p>
               </section>
             </div>
           )}
