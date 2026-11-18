@@ -9,6 +9,5 @@ export default async function handler(req, res) {
 
   return res.status(410).json({
     received: false,
-    error: 'This payment callback has been retired. Moolre is no longer supported.'
-  });
-}
+    error: 'This payment callback is temporarily unavailable.'
+});
