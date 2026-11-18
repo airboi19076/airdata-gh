@@ -11,3 +11,4 @@ export default async function handler(req, res) {
     received: false,
     error: 'This payment callback is temporarily unavailable.'
 });
+}
