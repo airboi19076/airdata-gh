@@ -1,3 +1,4 @@
+
 import { getDatabase } from '../_lib/wallet.js';
 
 const ALLOWED_STATUSES = [
@@ -50,7 +51,6 @@ export default async function handler(req, res) {
       SELECT
         reference,
         payment_status,
-        payment_provider,
         status,
         supplier_status,
         supplier_order_id,
@@ -68,16 +68,11 @@ export default async function handler(req, res) {
 
     const order = orders[0];
 
-    if (order.payment_provider !== 'moolre') {
-      return res.status(400).json({
-        error: 'Invalid payment provider for this order.'
-      });
-    }
-
-    // Never check or submit a supplier order before payment is confirmed.
+    // Never check supplier orders before payment is confirmed.
     if (order.payment_status !== 'paid') {
-      const currentStatus = String(order.status || 'awaiting_payment')
-        .toLowerCase();
+      const currentStatus = String(
+        order.status || 'awaiting_payment'
+      ).toLowerCase();
 
       return res.status(200).json({
         success: true,
@@ -101,26 +96,21 @@ export default async function handler(req, res) {
       });
     }
 
-    // Do not repeatedly query orders that are already in a final state.
     const savedStatus = String(
       order.supplier_status || order.status || ''
     ).toLowerCase();
 
     if (['completed', 'failed', 'refunded'].includes(savedStatus)) {
-      const finalStatus =
-        savedStatus === 'refunded' ? 'refunded' : savedStatus;
-
       return res.status(200).json({
         success: true,
         reference,
         payment_status: 'paid',
-        status: finalStatus,
+        status: savedStatus,
         supplier_status: savedStatus,
-        message: getMessage(finalStatus)
+        message: getMessage(savedStatus)
       });
     }
 
-    // Ask KiNG FLEXY for the latest status using the order reference.
     let supplierResponse;
 
     try {
@@ -181,12 +171,9 @@ export default async function handler(req, res) {
       });
     }
 
-    const displayStatus =
-      supplierStatus === 'refunded' ? 'refunded' : supplierStatus;
-
     await sql`
       UPDATE public.guest_data_orders
-      SET status = ${displayStatus},
+      SET status = ${supplierStatus},
           supplier_status = ${supplierStatus},
           supplier_order_id = COALESCE(
             ${data.order_id ? String(data.order_id) : null},
@@ -202,9 +189,9 @@ export default async function handler(req, res) {
       success: true,
       reference,
       payment_status: 'paid',
-      status: displayStatus,
+      status: supplierStatus,
       supplier_status: supplierStatus,
-      message: getMessage(displayStatus)
+      message: getMessage(supplierStatus)
     });
 
   } catch (error) {
