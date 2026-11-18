@@ -1078,7 +1078,7 @@ export default function App() {
                   </div>
                   <div className="dash-highlight">
                     <strong>Secure Checkout</strong>
-                    <span>Payments handled through Moolre.</span>
+                    <span>Secure payment processing.</span>
                   </div>
                   <div className="dash-highlight">
                     <strong>Order Tracking</strong>
