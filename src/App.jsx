@@ -1250,9 +1250,17 @@ export default function App() {
                       className={`network-button ${network === item ? 'active' : ''}`}
                       onClick={() => changeNetwork(item)}
                     >
-                      <span className="network-mark">
-                        {item === 'MTN' ? 'MTN' : item === 'Telecel' ? 'TEL' : 'AT'}
-                      </span>
+                      <img
+  className="network-logo"
+  src={
+    item === 'MTN'
+      ? 'https://cdn.brandfetch.io/id-4xm-GCy/theme/dark/logo.svg'
+      : item === 'Telecel'
+        ? 'https://www.telecel.com.gh/img/Telecel-Icon-Red.png'
+        : 'https://static.africa-press.net/ghana/sites/18/2023/06/sm_1687706784.824922.jpg'
+  }
+  alt={`${item} logo`}
+/>
                       {item}
                     </button>
                   ))}
