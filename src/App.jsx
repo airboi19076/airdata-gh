@@ -192,8 +192,9 @@ export default function App() {
       }
 
       setReference(result.reference);
-      setOrderStatus('awaiting_payment');
+            setOrderStatus('awaiting_payment');
       setMessage('Your order has been created. Redirecting to payment...');
+      setShowOrderModal(false);
       window.location.href = result.payment_url;
     } catch (error) {
       setOrderStatus('error');
