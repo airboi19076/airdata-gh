@@ -57,8 +57,10 @@ export default function App() {
 
   const [network, setNetwork] = useState('MTN');
   const [selected, setSelected] = useState(networkBundles.MTN[0]);
+  const [showOrderModal, setShowOrderModal] = useState(false);
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
