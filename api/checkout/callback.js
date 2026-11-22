@@ -1,10 +1,17 @@
 
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import {
+  createHmac,
+  timingSafeEqual
+} from 'node:crypto';
+
 import { getDatabase } from '../_lib/wallet.js';
 
-const SITE_MODE = String(process.env.PAYSTACK_MODE || 'test')
-  .trim()
-  .toLowerCase();
+// Vercel must not parse the request body before signature verification.
+export const config = {
+  api: {
+    bodyParser: false
+  }
+};
 
 const NETWORK_MAP = {
   MTN: 'MTN',
@@ -13,32 +20,141 @@ const NETWORK_MAP = {
   Telecel: 'Telecel'
 };
 
-function verifyPaystackSignature(req, secretKey) {
-  const signature = req.headers['x-paystack-signature'];
+const SITE_MODE = String(process.env.PAYSTACK_MODE || 'test')
+  .trim()
+  .toLowerCase();
 
-  if (!signature || typeof signature !== 'string') {
+async function readRawBody(req) {
+  if (Buffer.isBuffer(req.rawBody)) {
+    return req.rawBody;
+  }
+
+  const chunks = [];
+  let total = 0;
+
+  for await (const chunk of req) {
+    const buffer = Buffer.isBuffer(chunk)
+      ? chunk
+      : Buffer.from(chunk);
+
+    total += buffer.length;
+
+    if (total > 1024 * 1024) {
+      throw new Error('Webhook request is too large.');
+    }
+
+    chunks.push(buffer);
+  }
+
+  return Buffer.concat(chunks);
+}
+
+function safeCompare(expected, receivedHex) {
+  if (
+    typeof receivedHex !== 'string' ||
+    !/^[0-9a-f]{128}$/i.test(receivedHex)
+  ) {
     return false;
   }
 
-  const rawBody = req.rawBody
-    ? Buffer.from(req.rawBody)
-    : Buffer.from(JSON.stringify(req.body || {}));
+  const received = Buffer.from(receivedHex, 'hex');
+
+  return (
+    expected.length === received.length &&
+    timingSafeEqual(expected, received)
+  );
+}
+
+function verifyLegacySignature(rawBody, signature, secretKey) {
+  if (
+    typeof signature !== 'string' ||
+    !/^[0-9a-f]{128}$/i.test(signature)
+  ) {
+    return false;
+  }
 
   const expected = createHmac('sha512', secretKey)
     .update(rawBody)
-    .digest('hex');
+    .digest();
 
-  try {
-    const receivedBuffer = Buffer.from(signature, 'hex');
-    const expectedBuffer = Buffer.from(expected, 'hex');
+  return safeCompare(expected, signature);
+}
 
-    return (
-      receivedBuffer.length === expectedBuffer.length &&
-      timingSafeEqual(receivedBuffer, expectedBuffer)
-    );
-  } catch {
+function verifyNewSignature(rawBody, header, webhookSecret) {
+  if (
+    typeof header !== 'string' ||
+    !webhookSecret
+  ) {
     return false;
   }
+
+  let timestamp = null;
+  const signatures = [];
+
+  for (const part of header.split(',')) {
+    const separator = part.indexOf('=');
+
+    if (separator === -1) continue;
+
+    const key = part.slice(0, separator).trim();
+    const value = part.slice(separator + 1).trim();
+
+    if (key === 't') {
+      if (
+        timestamp !== null ||
+        !/^\d+$/.test(value)
+      ) {
+        return false;
+      }
+
+      timestamp = Number(value);
+    }
+
+    if (key === 'v1') {
+      const colon = value.indexOf(':');
+
+      if (colon !== -1) {
+        signatures.push(value.slice(colon + 1));
+      }
+    }
+  }
+
+  if (
+    timestamp === null ||
+    signatures.length === 0 ||
+    Math.abs(Math.floor(Date.now() / 1000) - timestamp) > 300
+  ) {
+    return false;
+  }
+
+  const expected = createHmac('sha512', webhookSecret)
+    .update(`${timestamp}.`)
+    .update(rawBody)
+    .digest();
+
+  return signatures.some(signature =>
+    safeCompare(expected, signature)
+  );
+}
+
+function verifyPaystackSignature(req, rawBody, secretKey) {
+  const newSignature = req.headers['paystack-signature'];
+
+  // Prefer Paystack's newer signing-secret format when supplied.
+  if (newSignature) {
+    return verifyNewSignature(
+      rawBody,
+      newSignature,
+      process.env.PAYSTACK_WEBHOOK_SECRET
+    );
+  }
+
+  // Continue supporting the existing secret-key signature.
+  return verifyLegacySignature(
+    rawBody,
+    req.headers['x-paystack-signature'],
+    secretKey
+  );
 }
 
 async function verifyTransaction(reference, secretKey) {
@@ -81,25 +197,48 @@ export default async function handler(req, res) {
   const secretKey = process.env.PAYSTACK_SECRET_KEY;
 
   if (!secretKey) {
-    console.error('PAYSTACK_SECRET_KEY is missing.');
-
     return res.status(500).json({
       received: false,
       error: 'Payment configuration is incomplete.'
     });
   }
 
-  if (!verifyPaystackSignature(req, secretKey)) {
-    return res.status(401).json({
+  if (
+    (SITE_MODE === 'test' && !secretKey.startsWith('sk_test_')) ||
+    (SITE_MODE === 'live' && !secretKey.startsWith('sk_live_')) ||
+    !['test', 'live'].includes(SITE_MODE)
+  ) {
+    return res.status(500).json({
       received: false,
-      error: 'Invalid payment notification signature.'
+      error: 'Paystack payment mode configuration is invalid.'
     });
   }
 
-  const event = req.body?.event;
+  let rawBody;
+  let event;
 
-  // Ignore other Paystack events.
-  if (event !== 'charge.success') {
+  try {
+    rawBody = await readRawBody(req);
+
+    if (!verifyPaystackSignature(req, rawBody, secretKey)) {
+      return res.status(401).json({
+        received: false,
+        error: 'Invalid payment notification signature.'
+      });
+    }
+
+    event = JSON.parse(rawBody.toString('utf8'));
+  } catch (error) {
+    console.error('Webhook request error:', error.message);
+
+    return res.status(400).json({
+      received: false,
+      error: 'Invalid webhook request.'
+    });
+  }
+
+  // Acknowledge other valid Paystack events without processing them.
+  if (event?.event !== 'charge.success') {
     return res.status(200).json({
       received: true,
       ignored: true
@@ -107,7 +246,7 @@ export default async function handler(req, res) {
   }
 
   const reference = String(
-    req.body?.data?.reference || ''
+    event?.data?.reference || ''
   ).trim();
 
   if (!/^ADGH-[a-f0-9-]{20,50}$/i.test(reference)) {
@@ -120,7 +259,7 @@ export default async function handler(req, res) {
   try {
     const sql = await getDatabase();
 
-    // Confirm payment directly with Paystack.
+    // Verify the transaction directly with Paystack.
     const transaction = await verifyTransaction(
       reference,
       secretKey
@@ -138,7 +277,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Find the original order and compare its expected amount.
+    // Find the original AirData GH order.
     const orders = await sql`
       SELECT
         reference,
@@ -163,14 +302,16 @@ export default async function handler(req, res) {
 
     const order = orders[0];
 
-    if (Number(order.retail_price_pesewas) !== amountPesewas) {
+    if (
+      Number(order.retail_price_pesewas) !== amountPesewas
+    ) {
       return res.status(400).json({
         received: false,
         error: 'Payment amount does not match the order.'
       });
     }
 
-    // Do not process an order more than once.
+    // Prevent duplicate processing.
     if (order.payment_status === 'paid') {
       return res.status(200).json({
         received: true,
@@ -178,7 +319,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Atomically claim this order as paid.
+    // Atomically claim the order after payment verification.
     const claimed = await sql`
       UPDATE public.guest_data_orders
       SET payment_status = 'paid',
@@ -204,7 +345,7 @@ export default async function handler(req, res) {
 
     const paidOrder = claimed[0];
 
-    // Test payments must NEVER trigger real data delivery.
+    // Test payments NEVER trigger real data delivery.
     if (SITE_MODE === 'test') {
       await sql`
         UPDATE public.guest_data_orders
@@ -218,21 +359,6 @@ export default async function handler(req, res) {
         received: true,
         test_payment: true,
         delivery: 'disabled_in_test_mode'
-      });
-    }
-
-    if (SITE_MODE !== 'live') {
-      await sql`
-        UPDATE public.guest_data_orders
-        SET status = 'processing',
-            supplier_status = 'awaiting_confirmation',
-            updated_at = now()
-        WHERE reference = ${reference}
-      `;
-
-      return res.status(200).json({
-        received: true,
-        delivery: 'awaiting_configuration'
       });
     }
 
@@ -270,7 +396,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Submit the paid order to KingFlexy.
+    // Submit paid orders to KingFlexy only in live mode.
     const supplierResponse = await fetch(
       'https://api.kingflexygh.com/api/v2/data/purchase',
       {
