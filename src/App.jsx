@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import InScopeAI from './InScopeAI';
 import Admin from './Admin';
+import { authClient } from './auth-client';
 
 const WHATSAPP_NUMBER = '233548206175';
 
@@ -47,6 +48,7 @@ const navigation = [
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
+  const [customerUser, setCustomerUser] = useState(null);
   const [page, setPage] = useState(
     new URLSearchParams(window.location.search).get('page') || 'dashboard'
   );
