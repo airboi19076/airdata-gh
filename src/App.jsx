@@ -475,6 +475,105 @@ export default function App() {
           font-weight: 850;
         }
 
+        .bundle-cards {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+          gap: 13px;
+          margin: 18px 0;
+        }
+
+        .bundle-card {
+          padding: 17px 13px;
+          border: 1px solid #dce6f2;
+          border-radius: 17px;
+          text-align: center;
+          background: #f8faff;
+        }
+
+        .bundle-card strong {
+          display: block;
+          font-size: 22px;
+          color: #14243d;
+        }
+
+        .bundle-card-price {
+          display: block;
+          margin: 8px 0 13px;
+          color: #087cff;
+          font-weight: 900;
+        }
+
+        .bundle-card button {
+          width: 100%;
+          padding: 11px 8px;
+          border: 0;
+          border-radius: 11px;
+          color: white;
+          background: linear-gradient(110deg, #087cff, #0754c7);
+          font-weight: 850;
+          cursor: pointer;
+        }
+
+        .network-mark {
+          display: inline-grid;
+          place-items: center;
+          min-width: 34px;
+          height: 27px;
+          padding: 0 7px;
+          margin-right: 8px;
+          border-radius: 7px;
+          color: #10213b;
+          background: #ffd500;
+          font-size: 11px;
+          font-weight: 950;
+        }
+
+        .order-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 1200;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 18px;
+          background: #031126c9;
+        }
+
+        .order-modal {
+          width: min(470px, 100%);
+          max-height: 90vh;
+          overflow: auto;
+          padding: 25px;
+          border-radius: 22px;
+          background: white;
+          color: #14243d;
+          box-shadow: 0 25px 80px #0005;
+        }
+
+        .order-modal-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .order-close {
+          border: 0;
+          background: #edf3fa;
+          border-radius: 10px;
+          padding: 9px 13px;
+          font-size: 18px;
+        }
+
+        .dark-mode .bundle-card {
+          background: #10233b;
+          border-color: #294766;
+        }
+
+        .dark-mode .bundle-card strong {
+          color: #edf5ff;
+        }
+
         .primary {
           width: 100%;
           padding: 16px 20px;
