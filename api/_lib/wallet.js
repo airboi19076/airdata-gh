@@ -61,7 +61,8 @@ export async function requireUser(req, res) {
     }
 
     return {
-      id: payload.sub
+      id: payload.sub,
+      email: String(payload.email || '').trim().toLowerCase()
     };
 
   } catch (error) {
