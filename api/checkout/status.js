@@ -16,6 +16,7 @@ function getMessage(status) {
     awaiting_payment: 'Waiting for your payment confirmation.',
     payment_failed: 'Your payment was not successful. No data order was submitted.',
     submitting: 'Payment confirmed. Submitting your data order.',
+    test_payment_received: 'Test payment received. No real data bundle was purchased.',
     pending: 'Your order has been received and is awaiting processing.',
     queued: 'Your order is queued and waiting for processing.',
     blacklisted: 'Your order is on hold with the supplier. Please contact support.',
@@ -31,6 +32,7 @@ function getMessage(status) {
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
+
     return res.status(405).json({
       error: 'Method not allowed.'
     });
@@ -51,6 +53,7 @@ export default async function handler(req, res) {
       SELECT
         reference,
         payment_status,
+        payment_provider,
         status,
         supplier_status,
         supplier_order_id,
@@ -68,7 +71,7 @@ export default async function handler(req, res) {
 
     const order = orders[0];
 
-    // Never check supplier orders before payment is confirmed.
+    // Do not check supplier orders before payment is confirmed.
     if (order.payment_status !== 'paid') {
       const currentStatus = String(
         order.status || 'awaiting_payment'
@@ -80,6 +83,25 @@ export default async function handler(req, res) {
         payment_status: order.payment_status,
         status: currentStatus,
         message: getMessage(currentStatus)
+      });
+    }
+
+    const mode = String(process.env.PAYSTACK_MODE || 'test')
+      .trim()
+      .toLowerCase();
+
+    // Test-mode Paystack payments must never cause real bundle delivery.
+    if (
+      order.payment_provider === 'paystack' &&
+      mode === 'test'
+    ) {
+      return res.status(200).json({
+        success: true,
+        reference,
+        payment_status: 'paid',
+        status: 'test_payment_received',
+        supplier_status: 'test_mode_no_delivery',
+        message: getMessage('test_payment_received')
       });
     }
 
@@ -125,7 +147,10 @@ export default async function handler(req, res) {
         }
       );
     } catch (error) {
-      console.error('Supplier status request failed:', error.message);
+      console.error(
+        'Supplier status request failed:',
+        error.message
+      );
 
       return res.status(200).json({
         success: true,
@@ -159,7 +184,9 @@ export default async function handler(req, res) {
     }
 
     const data = supplierResult.data;
-    const supplierStatus = String(data.status || '').toLowerCase();
+    const supplierStatus = String(
+      data.status || ''
+    ).toLowerCase();
 
     if (!ALLOWED_STATUSES.includes(supplierStatus)) {
       return res.status(200).json({
@@ -195,7 +222,10 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('Checkout status check failed:', error.message);
+    console.error(
+      'Checkout status check failed:',
+      error.message
+    );
 
     return res.status(500).json({
       error: 'Could not check this order. Please try again.'
