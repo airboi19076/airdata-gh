@@ -88,19 +88,24 @@ export default function Admin() {
         throw new Error(result.error.message);
       }
 
-      stage = 'Requesting administrator access token';
+      stage = 'Getting administrator access token';
 
-      const tokenResult = await authClient.token();
+let token = result.data?.token;
 
-      if (tokenResult.error) {
-        throw new Error(tokenResult.error.message);
-      }
+if (!token) {
+  const tokenResult = await authClient.token();
 
-      const token = tokenResult.data?.token;
+  if (tokenResult.error) {
+    throw new Error(tokenResult.error.message);
+  }
 
-      if (!token) {
-        throw new Error('Neon Auth did not return an access token.');
-      }
+  token = tokenResult.data?.token;
+}
+
+if (!token) {
+  throw new Error('No administrator access token was returned. Please sign in again.');
+},
+    });
 
       stage = 'Verifying administrator access';
 
