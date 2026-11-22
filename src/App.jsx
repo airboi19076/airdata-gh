@@ -1622,7 +1622,7 @@ export default function App() {
         </>
       )}
 
-      <InScopeAI />
+      {!showSplash && <InScopeAI />}
     </main>
   );
 }
