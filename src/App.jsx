@@ -1133,13 +1133,13 @@ export default function App() {
             </div>
           )}
 
+     
           {page === 'buy-data' && (
             <div className="content">
               <section className="panel">
                 <h2>Buy Data Bundles</h2>
                 <p className="muted">
-                  Select your network, choose a package and enter the
-                  number that should receive the data.
+                  Choose your network and tap Buy Now on your preferred bundle.
                 </p>
 
                 <label>Select Network</label>
@@ -1150,29 +1150,103 @@ export default function App() {
                       className={`network-button ${network === item ? 'active' : ''}`}
                       onClick={() => changeNetwork(item)}
                     >
+                      <span className="network-mark">
+                        {item === 'MTN' ? 'MTN' : item === 'Telecel' ? 'TEL' : 'AT'}
+                      </span>
                       {item}
                     </button>
                   ))}
                 </div>
 
-                <label>Select Data Bundle</label>
-                <div className="bundle-grid">
+                <label>Available Bundles</label>
+                <div className="bundle-cards">
                   {bundles.map(bundle => (
-                    <button
-                      key={`${network}-${bundle[0]}`}
-                      className={`bundle-button ${activeBundle[0] === bundle[0] ? 'active' : ''}`}
-                      onClick={() => setSelected(bundle)}
-                    >
-                      {bundle[0]}
-                      <span>GH₵{bundle[1]}</span>
-                    </button>
+                    <div className="bundle-card" key={`${network}-${bundle[0]}`}>
+                      <strong>{bundle[0]}</strong>
+                      <span className="bundle-card-price">
+                        GH₵{bundle[1]}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelected(bundle);
+                          setMessage('');
+                          setOrderStatus('');
+                          setShowOrderModal(true);
+                        }}
+                      >
+                        Buy Now
+                      </button>
+                    </div>
                   ))}
+                </div>
+
+                {message && !showOrderModal && (
+                  <div className="status" role="status">
+                    <strong>
+                      {orderStatus === 'completed'
+                        ? 'Order Delivered'
+                        : orderStatus === 'failed'
+                          ? 'Order Failed'
+                          : orderStatus === 'error'
+                            ? 'Unable to Continue'
+                            : 'Order Update'}
+                    </strong>
+                    <p>{message}</p>
+                    {reference && (
+                      <>
+                        <small>Order reference: {reference}</small>
+                        <button
+                          className="primary"
+                          onClick={() => checkOrderStatus(false)}
+                          disabled={loading}
+                        >
+                          Check Order Status
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                <p className="muted">
+                  Secure payment is handled by Paystack. Your order is processed
+                  after payment confirmation.
+                </p>
+              </section>
+            </div>
+          )}
+
+          {showOrderModal && (
+            <div
+              className="order-overlay"
+              onClick={event => {
+                if (event.target === event.currentTarget && !loading) {
+                  setShowOrderModal(false);
+                }
+              }}
+            >
+              <section
+                className="order-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Confirm data bundle"
+              >
+                <div className="order-modal-head">
+                  <h2>Confirm Your Order</h2>
+                  <button
+                    className="order-close"
+                    type="button"
+                    onClick={() => setShowOrderModal(false)}
+                    disabled={loading}
+                  >
+                    ×
+                  </button>
                 </div>
 
                 <div className="price">
                   Network: <strong>{network}</strong><br />
-                  Bundle: <strong>{activeBundle[0]}</strong><br />
-                  Total payment: <strong>GH₵{activeBundle[1]}</strong>
+                  Bundle: <strong>{selected[0]}</strong><br />
+                  Total: <strong>GH₵{selected[1]}</strong>
                 </div>
 
                 <label htmlFor="recipient-phone">Recipient Phone Number</label>
@@ -1189,7 +1263,9 @@ export default function App() {
                   }}
                 />
 
-                <label htmlFor="customer-email">Email Address for Paystack Payment</label>
+                <label htmlFor="customer-email">
+                  Email Address for Paystack Payment
+                </label>
                 <input
                   id="customer-email"
                   type="email"
@@ -1208,46 +1284,21 @@ export default function App() {
                   onClick={orderNow}
                   disabled={loading}
                 >
-                  {loading ? 'Please wait...' : `Pay GH₵${activeBundle[1]} and Buy Data`}
+                  {loading ? 'Please wait...' : `Pay GH₵${selected[1]} and Buy Data`}
                 </button>
 
                 {message && (
                   <div className="status" role="status">
                     <strong>
-                      {orderStatus === 'completed'
-                        ? 'Order Delivered'
-                        : orderStatus === 'failed'
-                          ? 'Order Failed'
-                          : orderStatus === 'error'
-                            ? 'Unable to Continue'
-                            : 'Order Update'}
+                      {orderStatus === 'error' ? 'Unable to Continue' : 'Order Update'}
                     </strong>
-
                     <p>{message}</p>
-
-                    {reference && (
-                      <>
-                        <small>Order reference: {reference}</small>
-                        <button
-                          className="primary"
-                          onClick={() => checkOrderStatus(false)}
-                          disabled={loading}
-                        >
-                          Check Order Status
-                        </button>
-                      </>
-                    )}
                   </div>
                 )}
-
-                <p className="muted">
-                  Your data order is sent to the supplier only after
-                  payment confirmation. Delivery is shown only after
-                  supplier confirmation.
-                </p>
               </section>
             </div>
           )}
+
 
           {page === 'digital-services' && (
             <div className="content">
