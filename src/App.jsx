@@ -1351,12 +1351,12 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="dash-networks">
+                              <div className="dash-networks">
                   {[
-                    { name: 'MTN', icon: '📶', description: 'MTN data bundles' },
-                    { name: 'AirtelTigo iShare', icon: '🌐', description: 'iShare bundles' },
-                    { name: 'AirtelTigo BigTime', icon: '⚡', description: 'BigTime bundles' },
-                    { name: 'Telecel', icon: '📱', description: 'Telecel data bundles' }
+                    { name: 'MTN', description: 'MTN data bundles', logo: 'https://cdn.brandfetch.io/id-4xm-GCy/theme/dark/logo.svg' },
+                    { name: 'AirtelTigo iShare', description: 'iShare bundles', logo: 'https://static.africa-press.net/ghana/sites/18/2023/06/sm_1687706784.824922.jpg' },
+                    { name: 'AirtelTigo BigTime', description: 'BigTime bundles', logo: 'https://static.africa-press.net/ghana/sites/18/2023/06/sm_1687706784.824922.jpg' },
+                    { name: 'Telecel', description: 'Telecel data bundles', logo: 'https://www.telecel.com.gh/img/Telecel-Icon-Red.png' }
                   ].map(item => (
                     <button
                       key={item.name}
@@ -1366,7 +1366,18 @@ export default function App() {
                         navigate('buy-data');
                       }}
                     >
-                      <div className="dash-network-icon">{item.icon}</div>
+                      <div
+                        className="dash-network-logo-wrap"
+                        style={{
+                          backgroundColor: item.name === 'MTN' ? '#ffcc00' : '#ffffff'
+                        }}
+                      >
+                        <img
+                          className="dash-network-logo"
+                          src={item.logo}
+                          alt={`${item.name} logo`}
+                        />
+                      </div>
                       <strong>{item.name}</strong>
                       <span>{item.description}</span>
                     </button>
