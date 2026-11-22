@@ -93,6 +93,35 @@ export default function App() {
 
   const checkerTotal = selectedChecker.price * Number(checkerQuantity);
 
+useEffect(() => {
+  let active = true;
+
+  async function loadCustomerAccount() {
+    try {
+      const result = await authClient.getSession();
+
+      if (!active || result.error) return;
+
+      setCustomerUser(
+        result.data?.user ||
+        result.data?.session?.user ||
+        null
+      );
+    } catch {
+      if (active) setCustomerUser(null);
+    }
+  }
+
+  loadCustomerAccount();
+
+  return () => {
+    active = false;
+  };
+}, []);
+
+const customerFirstName =
+  String(customerUser?.name || '').trim().split(/\s+/)[0] || 'there';
+  
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 2500);
     return () => clearTimeout(timer);
