@@ -88,57 +88,43 @@ export default function Admin() {
         throw new Error(result.error.message);
       }
 
+      
       stage = 'Getting administrator access token';
 
-let token =
-  result.data?.token ||
-  result.data?.session?.token ||
-  result.data?.sessionToken;
+      let token =
+        result.data?.token ||
+        result.data?.session?.token ||
+        result.data?.sessionToken;
 
-if (!token) {
-  const sessionResult = await authClient.getSession();
+      if (!token) {
+        const sessionResult = await authClient.getSession();
 
-  if (sessionResult.error) {
-    throw new Error(
-      `Session check failed: ${sessionResult.error.message}`
-    );
-  }
+        if (sessionResult.error) {
+          throw new Error(
+            `Session check failed: ${sessionResult.error.message}`
+          );
+        }
 
-  if (!sessionResult.data?.session) {
-    throw new Error(
-      'Sign-in did not create an active session. Please check the administrator account.'
-    );
-  }
+        if (!sessionResult.data?.session) {
+          throw new Error(
+            'Sign-in did not create an active session. Please check the administrator account.'
+          );
+        }
 
-  const tokenResult = await authClient.token();
+        const tokenResult = await authClient.token();
 
-  if (tokenResult.error) {
-    throw new Error(
-      `Neon Auth token request failed: ${tokenResult.error.message}`
-    );
-  }
+        if (tokenResult.error) {
+          throw new Error(
+            `Neon Auth token request failed: ${tokenResult.error.message}`
+          );
+        }
 
-  token = tokenResult.data?.token;
-}
+        token = tokenResult.data?.token;
+      }
 
-if (!token) {
-  throw new Error('No administrator JWT was issued.');
-}
-
-if (!token) {
-  const tokenResult = await authClient.token();
-
-  if (tokenResult.error) {
-    throw new Error(tokenResult.error.message);
-  }
-
-  token = tokenResult.data?.token;
-}
-
-if (!token) {
-  throw new Error('No administrator access token was returned. Please sign in again.');
-},
-    });
+      if (!token) {
+        throw new Error('No administrator access token was returned. Please sign in again.');
+      }
 
       stage = 'Verifying administrator access';
 
