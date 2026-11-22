@@ -58,6 +58,7 @@ export default function App() {
   const [network, setNetwork] = useState('MTN');
   const [selected, setSelected] = useState(networkBundles.MTN[0]);
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -120,11 +121,10 @@ export default function App() {
   useEffect(() => {
     if (
       !reference ||
-      !['pending', 'processing', 'awaiting_payment'].includes(orderStatus)
+      !['pending', 'processing', 'awaiting_payment', 'submitting'].includes(orderStatus)
     ) return;
 
     checkOrderStatus(true);
-
     const timer = setInterval(() => checkOrderStatus(true), 15000);
     return () => clearInterval(timer);
   }, [reference, orderStatus]);
@@ -135,7 +135,6 @@ export default function App() {
       '',
       nextPage === 'dashboard' ? '/' : `/?page=${nextPage}`
     );
-
     setPage(nextPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -158,6 +157,12 @@ export default function App() {
       return;
     }
 
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setMessage('Enter a valid email address for your Paystack payment.');
+      setOrderStatus('error');
+      return;
+    }
+
     setLoading(true);
     setMessage('Preparing your secure payment...');
     setOrderStatus('pending');
@@ -169,7 +174,8 @@ export default function App() {
         body: JSON.stringify({
           network,
           volume_gb: Number.parseInt(activeBundle[0], 10),
-          recipient: phone
+          recipient: phone,
+          email: email.trim()
         })
       });
 
@@ -227,7 +233,7 @@ export default function App() {
       );
     } catch (error) {
       if (!silent) {
-        setMessage(error.message || 'Unable to check order status.');
+        setMessage(error.message || 'Unable to check your order status.');
       }
     } finally {
       if (!silent) setLoading(false);
@@ -603,8 +609,6 @@ export default function App() {
           to { transform: scale(1.04); box-shadow: 0 0 45px #1689e5; }
         }
 
-        /* PREMIUM DASHBOARD */
-
         .dashboard {
           width: min(1180px, 100%);
           margin: 0 auto;
@@ -764,28 +768,25 @@ export default function App() {
           height: 45px;
           display: grid;
           place-items: center;
-          margin-bottom: 15px;
+          margin-bottom: 13px;
           border-radius: 14px;
           background: #eaf4ff;
-          font-size: 22px;
+          font-size: 23px;
         }
 
-        .dash-network strong, .dash-shortcut strong {
+        .dash-network strong, .dash-network span {
           display: block;
-          font-size: 14px;
-          font-weight: 900;
         }
 
-        .dash-network span, .dash-shortcut span {
-          display: block;
-          margin-top: 6px;
+        .dash-network span {
+          margin-top: 7px;
           color: #8292a8;
           font-size: 12px;
         }
 
         .dash-shortcuts {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-columns: 1fr 1fr;
           gap: 15px;
         }
 
@@ -793,19 +794,13 @@ export default function App() {
           display: flex;
           align-items: center;
           gap: 15px;
-          padding: 20px;
-          border: 1px solid #e1eaf5;
-          border-radius: 19px;
-          color: #14243d;
-          background: white;
+          padding: 19px;
           text-align: left;
+          border: 1px solid #e1eaf5;
+          border-radius: 18px;
+          background: white;
+          color: #14243d;
           cursor: pointer;
-          transition: .2s;
-        }
-
-        .dash-shortcut:hover {
-          transform: translateY(-3px);
-          border-color: #168bff;
         }
 
         .dash-shortcut-icon {
@@ -813,67 +808,28 @@ export default function App() {
           margin: 0;
         }
 
-        /* DARK MODE */
-
-        .dark-mode .panel,
-        .dark-mode .dash-network,
-        .dark-mode .dash-shortcut {
-          color: #edf5ff;
-          background: #10243c;
-          border-color: #294766;
+        .dash-shortcut strong, .dash-shortcut span {
+          display: block;
         }
 
-        .dark-mode input,
-        .dark-mode select,
-        .dark-mode textarea {
-          color: white;
-          background: #091a2d;
-          border-color: #34516f;
+        .dash-shortcut span {
+          margin-top: 6px;
+          color: #8292a8;
+          font-size: 12px;
+          line-height: 1.5;
         }
-
-        .dark-mode .network-button,
-        .dark-mode .bundle-button,
-        .dark-mode .digital-tabs button {
-          color: #e5efff;
-          background: #0c2037;
-          border-color: #294766;
-        }
-
-        .dark-mode .network-button.active,
-        .dark-mode .bundle-button.active,
-        .dark-mode .digital-tabs button.active {
-          color: white;
-          background: #075db9;
-          border-color: #38aaff;
-        }
-
-        .dark-mode .price,
-        .dark-mode .status {
-          color: #c7e2ff;
-          background: #193755;
-          border-color: #34516f;
-        }
-
-        .dark-mode .muted { color: #a9bbd0; }
-
-        .dark-mode .dash-network-icon,
-        .dark-mode .dash-shortcut-icon {
-          background: #193755;
-        }
-
-        /* COMPACT FIXED BOTTOM NAVIGATION */
 
         .bottom-nav {
           position: fixed;
+          z-index: 100;
           left: 50%;
-          bottom: 12px;
-          z-index: 500;
+          bottom: 14px;
           transform: translateX(-50%);
-          width: min(540px, calc(100% - 24px));
-          min-height: 72px;
+          width: min(570px, calc(100% - 28px));
+          min-height: 70px;
           display: grid;
-          grid-template-columns: repeat(5, minmax(0, 1fr));
-          align-items: center;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 5px;
           padding: 8px 7px;
           border: 1px solid #dce7f5;
           border-radius: 22px;
@@ -906,9 +862,7 @@ export default function App() {
           background: #eaf4ff;
         }
 
-        .bottom-nav button:active {
-          transform: scale(.94);
-        }
+        .bottom-nav button:active { transform: scale(.94); }
 
         .bottom-nav .nav-icon {
           font-size: 21px;
@@ -929,13 +883,38 @@ export default function App() {
           box-shadow: 0 12px 40px #0007;
         }
 
-        .dark-mode .bottom-nav button {
-          color: #9eb1c8;
-        }
+        .dark-mode .bottom-nav button { color: #9eb1c8; }
 
         .dark-mode .bottom-nav button.active {
           color: #58baff;
           background: #17395c;
+        }
+
+        .dark-mode .panel {
+          color: #edf5ff;
+          background: #10233b;
+          border-color: #294766;
+        }
+
+        .dark-mode .panel input,
+        .dark-mode .panel select {
+          color: #edf5ff;
+          background: #0a1b30;
+          border-color: #294766;
+        }
+
+        .dark-mode .dash-network,
+        .dark-mode .dash-shortcut {
+          color: #edf5ff;
+          background: #10233b;
+          border-color: #294766;
+        }
+
+        .dark-mode .price,
+        .dark-mode .status {
+          color: #d7eaff;
+          background: #102d4b;
+          border-color: #294766;
         }
 
         @media (max-width: 750px) {
@@ -1035,7 +1014,6 @@ export default function App() {
         <>
           <header className="topbar">
             <div className="brand">AIRDATA <span>GH</span></div>
-
             <button
               className="theme-button"
               aria-label="Toggle theme"
@@ -1209,6 +1187,20 @@ export default function App() {
                   }}
                 />
 
+                <label htmlFor="customer-email">Email Address for Paystack Payment</label>
+                <input
+                  id="customer-email"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={event => {
+                    setEmail(event.target.value);
+                    setMessage('');
+                  }}
+                />
+
                 <button
                   className="primary"
                   onClick={orderNow}
@@ -1247,10 +1239,10 @@ export default function App() {
                 )}
 
                 <p className="muted">
-  Your data order is sent to the supplier only after
-  payment confirmation. Delivery is shown only after
-  supplier confirmation.
-</p>
+                  Your data order is sent to the supplier only after
+                  payment confirmation. Delivery is shown only after
+                  supplier confirmation.
+                </p>
               </section>
             </div>
           )}
