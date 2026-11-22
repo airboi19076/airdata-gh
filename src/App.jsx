@@ -175,7 +175,7 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           network,
-          volume_gb: Number.parseInt(activeBundle[0], 10),
+                    volume_gb: Number.parseInt(selected[0], 10),
           recipient: phone,
           email: email.trim()
         })
