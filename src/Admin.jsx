@@ -5,6 +5,71 @@ import './Admin.css';
 
 const ADMIN_EMAIL = 'samasumadu33@gmail.com';
 
+const AUTH_BASE_URL =
+  'https://ep-crimson-cloud-bfxxocl4.neonauth.c-5.us-west-2.aws.neon.tech/neondb/auth';
+
+// Get a real JWT directly from Neon Auth.
+async function getAdminAccessToken() {
+  const response = await fetch(`${AUTH_BASE_URL}/token`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  let data;
+
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(
+      `Neon Auth returned an invalid response (HTTP ${response.status}).`
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      data?.message ||
+      data?.error ||
+      `Could not obtain administrator token (HTTP ${response.status}).`
+    );
+  }
+
+  const token = data?.token;
+
+  if (
+    typeof token !== 'string' ||
+    token.split('.').length !== 3
+  ) {
+    throw new Error(
+      'Neon Auth did not return a valid administrator JWT. Please sign in again.'
+    );
+  }
+
+  return token;
+}
+
+async function readApiResponse(response, fallbackMessage) {
+  let data;
+
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(
+      `${fallbackMessage} (HTTP ${response.status}).`
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error || data?.message || fallbackMessage
+    );
+  }
+
+  return data;
+}
+
 export default function Admin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,17 +91,7 @@ export default function Admin() {
     setUsersError('');
 
     try {
-      const tokenResult = await authClient.token();
-
-      if (tokenResult.error) {
-        throw new Error(tokenResult.error.message);
-      }
-
-      const token = tokenResult.data?.token;
-
-      if (!token) {
-        throw new Error('No access token received. Please sign in again.');
-      }
+      const token = await getAdminAccessToken();
 
       const response = await fetch('/api/admin/users', {
         method: 'GET',
@@ -45,13 +100,12 @@ export default function Admin() {
         },
       });
 
-      const data = await response.json();
+      const data = await readApiResponse(
+        response,
+        'Could not load registered users.'
+      );
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Could not load registered users.');
-      }
-
-      setUsers(data.users || []);
+      setUsers(Array.isArray(data.users) ? data.users : []);
     } catch (error) {
       setUsersError(error.message || 'Failed to load users.');
     } finally {
@@ -73,14 +127,20 @@ export default function Admin() {
     let stage = 'Checking administrator email';
 
     try {
-      if (email.trim().toLowerCase() !== ADMIN_EMAIL) {
+      const cleanEmail = email.trim().toLowerCase();
+
+      if (cleanEmail !== ADMIN_EMAIL) {
         throw new Error('Administrator email required.');
+      }
+
+      if (!password) {
+        throw new Error('Please enter your password.');
       }
 
       stage = 'Signing in through Neon Auth';
 
       const result = await authClient.signIn.email({
-        email: email.trim(),
+        email: cleanEmail,
         password,
       });
 
@@ -88,44 +148,9 @@ export default function Admin() {
         throw new Error(result.error.message);
       }
 
-      
       stage = 'Getting administrator access token';
 
-      
-      const sessionResult = await authClient.getSession();
-
-      if (sessionResult.error) {
-        throw new Error(
-          `Session check failed: ${sessionResult.error.message}`
-        );
-      }
-
-      if (!sessionResult.data?.session) {
-        throw new Error(
-          'No active administrator session was found. Please sign in again.'
-        );
-      }
-
-      const tokenResult = await authClient.token();
-
-      if (tokenResult.error) {
-        throw new Error(
-          `Neon Auth JWT request failed: ${tokenResult.error.message}`
-        );
-      }
-
-      const token = tokenResult.data?.token;
-
-      if (!token || token.split('.').length !== 3) {
-        throw new Error(
-          'Neon Auth did not return a valid JWT. Please sign in again.'
-        );
-      }
-
-
-      if (!token) {
-        throw new Error('No administrator access token was returned. Please sign in again.');
-      }
+      const token = await getAdminAccessToken();
 
       stage = 'Verifying administrator access';
 
@@ -136,19 +161,23 @@ export default function Admin() {
         },
       });
 
-      const verificationData = await verification.json();
+      const verificationData = await readApiResponse(
+        verification,
+        'Administrator verification failed.'
+      );
 
-      if (!verification.ok || !verificationData.authorised) {
+      if (!verificationData.authorised) {
         throw new Error(
-          `Verification API returned ${verification.status}: ${
-            verificationData.error || 'Access denied'
-          }`
+          'This account is not authorised as an administrator.'
         );
       }
 
       setLoggedIn(true);
+      setMessage('');
     } catch (error) {
-      setMessage(`${stage}: ${error.message || 'Login failed.'}`);
+      setMessage(
+        `${stage}: ${error.message || 'Login failed.'}`
+      );
     } finally {
       setLoading(false);
     }
@@ -167,6 +196,7 @@ export default function Admin() {
     setActiveSection('Dashboard');
     setDeleteError('');
     setDeleteSuccess('');
+    setUsersError('');
   };
 
   const handleDeleteUser = async (user) => {
@@ -193,17 +223,7 @@ export default function Admin() {
     setDeleteSuccess('');
 
     try {
-      const tokenResult = await authClient.token();
-
-      if (tokenResult.error) {
-        throw new Error(tokenResult.error.message);
-      }
-
-      const token = tokenResult.data?.token;
-
-      if (!token) {
-        throw new Error('No access token received. Please sign in again.');
-      }
+      const token = await getAdminAccessToken();
 
       const response = await fetch('/api/admin/delete-user', {
         method: 'POST',
@@ -216,11 +236,10 @@ export default function Admin() {
         }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Could not delete customer account.');
-      }
+      await readApiResponse(
+        response,
+        'Could not delete customer account.'
+      );
 
       setUsers((currentUsers) =>
         currentUsers.filter((item) => item.id !== user.id)
@@ -502,6 +521,7 @@ export default function Admin() {
               AIRDATA <span>GH</span>
             </div>
           </div>
+
           <div className="admin-header-status">
             <span className="admin-status-dot" />
             ADMINISTRATOR PORTAL
@@ -614,6 +634,7 @@ export default function Admin() {
               <span>
                 {loading ? 'VERIFYING ACCESS...' : 'SIGN IN TO ADMIN PORTAL'}
               </span>
+
               {loading ? (
                 <span className="admin-spinner" />
               ) : (
