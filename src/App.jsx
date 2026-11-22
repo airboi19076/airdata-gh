@@ -529,6 +529,14 @@ export default function App() {
           font-weight: 950;
         }
 
+        .network-logo {
+  width: 75px;
+  height: 42px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 8px;
+}
+
         .order-overlay {
           position: fixed;
           inset: 0;
