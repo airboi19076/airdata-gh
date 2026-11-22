@@ -955,42 +955,83 @@ export default function App() {
           gap: 15px;
         }
 
-        .dash-network {
-          min-height: 145px;
+               .dash-network {
+          position: relative;
+          min-height: 165px;
           padding: 20px;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          justify-content: center;
           text-align: left;
-          border: 1px solid #e1eaf5;
-          border-radius: 20px;
-          background: white;
+          border: 1px solid #e3ebf6;
+          border-radius: 22px;
+          background: linear-gradient(145deg, #ffffff, #f4f8ff);
           color: #14243d;
           cursor: pointer;
-          transition: .25s;
-          box-shadow: 0 8px 25px #18304f08;
+          overflow: hidden;
+          transition: all .28s ease;
+          box-shadow: 0 8px 24px rgba(20, 50, 90, .07);
+        }
+
+        .dash-network::after {
+          content: '';
+          position: absolute;
+          width: 110px;
+          height: 110px;
+          right: -45px;
+          top: -45px;
+          border-radius: 50%;
+          background: rgba(22, 139, 255, .06);
         }
 
         .dash-network:hover {
-          transform: translateY(-5px);
+          transform: translateY(-6px);
           border-color: #168bff;
-          box-shadow: 0 15px 32px #168bff18;
+          box-shadow: 0 16px 34px rgba(22, 139, 255, .15);
         }
 
-        .dash-network-icon, .dash-shortcut-icon {
-          width: 45px;
-          height: 45px;
-          display: grid;
-          place-items: center;
-          margin-bottom: 13px;
-          border-radius: 14px;
-          background: #eaf4ff;
-          font-size: 23px;
+        .dash-network-logo-wrap {
+          width: 112px;
+          height: 55px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 15px;
+          padding: 7px 12px;
+          border-radius: 13px;
+          background: #ffffff;
+          box-shadow: 0 4px 12px rgba(20, 50, 90, .07);
+          z-index: 1;
         }
 
-        .dash-network strong, .dash-network span {
+        .dash-network-logo-wrap.mtn-logo-bg {
+          background: #ffcc00;
+        }
+
+        .dash-network-logo {
           display: block;
+          max-width: 100%;
+          max-height: 42px;
+          width: auto;
+          height: auto;
+          object-fit: contain;
+        }
+
+        .dash-network strong,
+        .dash-network span {
+          display: block;
+          z-index: 1;
+        }
+
+        .dash-network strong {
+          font-size: 15px;
+          font-weight: 800;
+          letter-spacing: -.3px;
         }
 
         .dash-network span {
-          margin-top: 7px;
+          margin-top: 6px;
           color: #8292a8;
           font-size: 12px;
         }
