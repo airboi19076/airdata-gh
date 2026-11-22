@@ -1035,19 +1035,26 @@ export default function App() {
             flex-direction: column;
           }
 
-          .dash-hero {
-            grid-template-columns: 1fr;
-            padding: 25px 21px;
-            gap: 20px;
-            border-radius: 22px;
-          }
+         .dash-hero {
+  grid-template-columns: 1fr;
+  padding: 29px 21px;
+  gap: 10px;
+  border-radius: 23px;
+}
 
-          .dash-side {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-          }
+.dash-hero-visual {
+  min-height: 245px;
+  margin-top: 5px;
+}
 
-          .dash-highlight { padding: 13px; }
+.dash-visual-orbit {
+  width: 210px;
+  height: 210px;
+}
+
+.dash-visual-card {
+  width: 225px;
+}
 
           .dash-networks {
             grid-template-columns: repeat(2, minmax(0, 1fr));
