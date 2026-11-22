@@ -1150,37 +1150,56 @@ export default function App() {
                 </div>
               </div>
 
-              <section className="dash-hero">
-                <div>
-                  <div className="dash-hero-tag">AIRDATA GH • STAY CONNECTED</div>
-                  <h2>Stay connected. Do more with data.</h2>
-                  <p>
-                    Get your favourite data bundles with a simple checkout
-                    experience. Choose your network and get started in minutes.
-                  </p>
-                  <button
-                    className="primary"
-                    onClick={() => navigate('buy-data')}
-                  >
-                    Buy Data Now →
-                  </button>
-                </div>
+             <section className="dash-hero">
+  <div className="dash-hero-copy">
+    <div className="dash-hero-tag">
+      ✦ AIRDATA GH • STAY CONNECTED
+    </div>
 
-                <div className="dash-side">
-                  <div className="dash-highlight">
-                    <strong>Multiple Networks</strong>
-                    <span>MTN, AirtelTigo and Telecel bundles.</span>
-                  </div>
-                  <div className="dash-highlight">
-                    <strong>Secure Checkout</strong>
-                    <span>Secure payment processing.</span>
-                  </div>
-                  <div className="dash-highlight">
-                    <strong>Order Tracking</strong>
-                    <span>Check your order progress after payment.</span>
-                  </div>
-                </div>
-              </section>
+    <h2>
+      Your data.
+      <br />
+      Your connection.
+      <br />
+      Your freedom.
+    </h2>
+
+    <p>
+      Get your favourite data bundles from your preferred
+      network with a simple and convenient checkout experience.
+    </p>
+
+    <button
+      className="primary"
+      onClick={() => navigate('buy-data')}
+    >
+      Buy Data Now →
+    </button>
+  </div>
+
+  <div className="dash-hero-visual" aria-hidden="true">
+    <div className="dash-visual-orbit"></div>
+
+    <div className="dash-visual-card">
+      <div className="dash-visual-top">
+        <span>AIRDATA GH</span>
+        <span>● ONLINE</span>
+      </div>
+
+      <div className="dash-visual-icon">📶</div>
+
+      <div className="dash-visual-number">DATA</div>
+      <div className="dash-visual-caption">
+        Your connection starts here
+      </div>
+
+      <div className="dash-visual-bottom">
+        <span>MTN • AT • TELECEL</span>
+        <span>✦</span>
+      </div>
+    </div>
+  </div>
+</section>
 
               <section className="dash-section">
                 <div className="dash-section-head">
