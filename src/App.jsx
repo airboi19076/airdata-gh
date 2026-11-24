@@ -475,16 +475,6 @@ const customerFirstName =
     }
 
 
-      setMessage(
-        result.message || 'Your free replacement request has been submitted.'
-      );
-    } catch (error) {
-      setMessage(error.message || 'Unable to request replacement.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
   function updateAfa(field, value) {
     setAfaForm(previous => ({ ...previous, [field]: value }));
     setServiceMessage('');
