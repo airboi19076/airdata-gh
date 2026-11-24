@@ -3,6 +3,7 @@ import {
   createHmac,
   timingSafeEqual
 } from 'node:crypto';
+import { creditAgentCommission } from '../_lib/agent-commission.js';
 
 import { getDatabase } from '../_lib/wallet.js';
 
