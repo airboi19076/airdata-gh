@@ -50,14 +50,23 @@ export default async function handler(req, res) {
     const sql = await getDatabase();
 
     const orders = await sql`
-      SELECT
+            SELECT
         reference,
+        network,
+        volume_gb,
+        recipient,
+        retail_price_pesewas,
         payment_status,
         payment_provider,
         status,
         supplier_status,
         supplier_order_id,
-        supplier_response
+        supplier_response,
+        replacement_reference,
+        replacement_status,
+        replacement_order_id,
+        replacement_requested_at,
+        replacement_response
       FROM public.guest_data_orders
       WHERE reference = ${reference}
       LIMIT 1
