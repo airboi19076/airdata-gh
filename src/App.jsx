@@ -70,6 +70,11 @@ export default function App() {
   const [reference, setReference] = useState('');
   const [replacementStatus, setReplacementStatus] = useState('');
 
+    const [customerOrders, setCustomerOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState('');
+  const [ordersFilter, setOrdersFilter] = useState('all');
+  const [replacementBusyRef, setReplacementBusyRef] = useState('');
   const [digitalService, setDigitalService] = useState('afa');
   const [afaForm, setAfaForm] = useState({
     fullName: '',
@@ -119,6 +124,145 @@ useEffect(() => {
     active = false;
   };
 }, []);
+
+  
+async function getCustomerAccessToken() {
+  const response = await fetch(
+    'https://ep-crimson-cloud-bfxxocl4.neonauth.c-5.us-west-2.aws.neon.tech/neondb/auth/token',
+    {
+      method: 'GET',
+      credentials: 'include',
+      headers: { Accept: 'application/json' }
+    }
+  );
+
+  const data = await response.json();
+  const token = data?.token;
+
+  if (
+    !response.ok ||
+    typeof token !== 'string' ||
+    token.split('.').length !== 3
+  ) {
+    throw new Error('Please sign in again to view your orders.');
+  }
+
+  return token;
+}
+
+async function loadCustomerOrders() {
+  if (!customerUser) {
+    setCustomerOrders([]);
+    setOrdersError('Sign in to view your orders.');
+    return;
+  }
+
+  setOrdersLoading(true);
+  setOrdersError('');
+
+  try {
+    const token = await getCustomerAccessToken();
+
+    const response = await fetch('/api/checkout/orders', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json'
+      }
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Could not load your orders.');
+    }
+
+    setCustomerOrders(
+      Array.isArray(result.orders) ? result.orders : []
+    );
+  } catch (error) {
+    setOrdersError(error.message || 'Could not load your orders.');
+  } finally {
+    setOrdersLoading(false);
+  }
+}
+
+useEffect(() => {
+  if (page === 'orders' && customerUser) {
+    loadCustomerOrders();
+  }
+}, [page, customerUser?.id]);
+
+const visibleOrders = customerOrders.filter(order => {
+  const status = String(
+    order.supplier_status || order.status || ''
+  ).toLowerCase();
+
+  if (ordersFilter === 'processing') {
+    return !['completed', 'failed', 'refunded'].includes(status);
+  }
+
+  if (ordersFilter === 'delivered') {
+    return status === 'completed';
+  }
+
+  if (ordersFilter === 'failed') {
+    return ['failed', 'refunded'].includes(status);
+  }
+
+  return true;
+});
+
+function maskRecipient(value) {
+  const digits = String(value || '');
+
+  return digits.length >= 10
+    ? `${digits.slice(0, 3)}••••${digits.slice(-3)}`
+    : 'Not available';
+}
+
+async function requestOrderReplacement(orderReference) {
+  if (!customerUser || replacementBusyRef) return;
+
+  setReplacementBusyRef(orderReference);
+  setOrdersError('');
+
+  try {
+    const token = await getCustomerAccessToken();
+
+    const response = await fetch('/api/checkout/replace', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ reference: orderReference })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Replacement request failed.');
+    }
+
+    await loadCustomerOrders();
+  } catch (error) {
+    setOrdersError(
+      error.message || 'Unable to request a free replacement.'
+    );
+  } finally {
+    setReplacementBusyRef('');
+  }
+}
+
+const visibleNavigation = customerUser
+  ? [
+      navigation[0],
+      navigation[1],
+      { page: 'orders', icon: '▣', label: 'Orders' },
+      navigation[3],
+      navigation[4]
+    ]
+  : navigation;
 
 const customerFirstName =
   String(customerUser?.name || '').trim().split(/\s+/)[0] || 'there';
@@ -202,12 +346,21 @@ const customerFirstName =
     setOrderStatus('pending');
 
     try {
+            const checkoutHeaders = {
+        'Content-Type': 'application/json'
+      };
+
+      if (customerUser) {
+        checkoutHeaders.Authorization =
+          `Bearer ${await getCustomerAccessToken()}`;
+      }
+
       const response = await fetch('/api/checkout/initialize', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: checkoutHeaders,
         body: JSON.stringify({
           network,
-                    volume_gb: Number.parseInt(selected[0], 10),
+          volume_gb: Number.parseInt(selected[0], 10),
           recipient: phone,
           email: email.trim()
         })
@@ -690,6 +843,229 @@ const customerFirstName =
         .muted {
           color: #71839b;
           line-height: 1.8;
+        }
+
+
+        .orders-heading {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 14px;
+        }
+
+        .orders-eyebrow {
+          margin: 0 0 7px;
+          color: #168bff;
+          font-size: 11px;
+          font-weight: 900;
+          letter-spacing: 1.5px;
+        }
+
+        .orders-refresh {
+          border: 1px solid #cbd9eb;
+          border-radius: 11px;
+          padding: 10px 13px;
+          color: #1269c8;
+          background: #f4f8ff;
+          font-weight: 800;
+        }
+
+        .orders-summary {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 10px;
+          margin: 22px 0;
+        }
+
+        .orders-summary div {
+          padding: 15px 10px;
+          border: 1px solid #dce6f2;
+          border-radius: 14px;
+          background: #f7faff;
+          text-align: center;
+        }
+
+        .orders-summary strong,
+        .orders-summary span {
+          display: block;
+        }
+
+        .orders-summary strong {
+          font-size: 23px;
+          color: #087cff;
+        }
+
+        .orders-summary span {
+          margin-top: 4px;
+          color: #71839b;
+          font-size: 11px;
+          font-weight: 750;
+        }
+
+        .orders-filters {
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          padding: 3px 0 13px;
+        }
+
+        .orders-filters button {
+          flex: 0 0 auto;
+          border: 1px solid #dce6f2;
+          border-radius: 20px;
+          padding: 9px 14px;
+          background: #f8faff;
+          color: #526780;
+          font-weight: 800;
+        }
+
+        .orders-filters button.active {
+          background: #087cff;
+          border-color: #087cff;
+          color: white;
+        }
+
+        .orders-empty {
+          padding: 28px 12px;
+          text-align: center;
+          color: #71839b;
+        }
+
+        .orders-list {
+          display: grid;
+          gap: 13px;
+        }
+
+        .customer-order-card {
+          padding: 18px;
+          border: 1px solid #dce6f2;
+          border-radius: 17px;
+          background: #fbfdff;
+        }
+
+        .customer-order-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 10px;
+        }
+
+        .customer-order-top strong,
+        .customer-order-top span {
+          display: block;
+        }
+
+        .customer-order-top strong {
+          color: #14243d;
+          font-size: 16px;
+        }
+
+        .customer-order-top div span {
+          margin-top: 5px;
+          color: #71839b;
+          font-size: 13px;
+        }
+
+        .order-status-pill {
+          padding: 6px 9px;
+          border-radius: 20px;
+          font-size: 10px;
+          font-weight: 900;
+          text-transform: capitalize;
+          white-space: nowrap;
+        }
+
+        .order-status-pill.delivered {
+          background: #e3f8ed;
+          color: #167346;
+        }
+
+        .order-status-pill.failed {
+          background: #ffeded;
+          color: #b42318;
+        }
+
+        .order-status-pill.processing {
+          background: #eaf3ff;
+          color: #1765b7;
+        }
+
+        .customer-order-amount {
+          margin: 15px 0;
+          color: #087cff;
+          font-size: 22px;
+          font-weight: 950;
+        }
+
+        .customer-order-details {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .customer-order-details span {
+          color: #71839b;
+          font-size: 11px;
+        }
+
+        .customer-order-details strong {
+          display: block;
+          margin-top: 4px;
+          color: #263c58;
+          font-size: 12px;
+          overflow-wrap: anywhere;
+          text-transform: capitalize;
+        }
+
+        .replacement-note {
+          color: #167346;
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .replacement-button {
+          width: 100%;
+          margin-top: 15px;
+          padding: 13px;
+          border: 0;
+          border-radius: 12px;
+          color: white;
+          background: linear-gradient(110deg, #087cff, #0754c7);
+          font-weight: 900;
+        }
+
+        .replacement-button:disabled,
+        .orders-refresh:disabled {
+          opacity: .6;
+        }
+
+        .orders-footnote {
+          margin-top: 18px;
+          color: #8392a6;
+          font-size: 11px;
+          line-height: 1.6;
+        }
+
+        .dark-mode .orders-summary div,
+        .dark-mode .customer-order-card {
+          background: #10233b;
+          border-color: #294766;
+        }
+
+        .dark-mode .customer-order-top strong,
+        .dark-mode .customer-order-details strong {
+          color: #edf5ff;
+        }
+
+        .dark-mode .orders-filters button {
+          background: #10233b;
+          border-color: #294766;
+          color: #b9cce2;
+        }
+
+        .dark-mode .orders-filters button.active {
+          background: #087cff;
+          color: white;
         }
 
         .digital-tabs {
@@ -1680,6 +2056,218 @@ const customerFirstName =
           )}
 
 
+          {page === 'orders' && (
+            <div className="content">
+              <section className="panel orders-panel">
+                <div className="orders-heading">
+                  <div>
+                    <p className="orders-eyebrow">YOUR ACCOUNT</p>
+                    <h2>My Orders</h2>
+                    <p className="muted">
+                      Track your data bundle purchases and delivery updates.
+                    </p>
+                  </div>
+
+                  <button
+                    className="orders-refresh"
+                    onClick={loadCustomerOrders}
+                    disabled={ordersLoading}
+                  >
+                    {ordersLoading ? 'Loading…' : '↻ Refresh'}
+                  </button>
+                </div>
+
+                {!customerUser ? (
+                  <div className="orders-empty">
+                    <h3>Sign in to view your orders</h3>
+                    <p>
+                      Your order history is private and only available
+                      to the account used at checkout.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="orders-summary">
+                      <div>
+                        <strong>{customerOrders.length}</strong>
+                        <span>Total orders</span>
+                      </div>
+
+                      <div>
+                        <strong>
+                          {customerOrders.filter(o =>
+                            String(o.supplier_status || o.status)
+                              .toLowerCase() === 'completed'
+                          ).length}
+                        </strong>
+                        <span>Delivered</span>
+                      </div>
+
+                      <div>
+                        <strong>
+                          {customerOrders.filter(o =>
+                            ['failed', 'refunded'].includes(
+                              String(o.supplier_status || o.status)
+                                .toLowerCase()
+                            )
+                          ).length}
+                        </strong>
+                        <span>Failed</span>
+                      </div>
+                    </div>
+
+                    <div className="orders-filters">
+                      {[
+                        ['all', 'All'],
+                        ['processing', 'Processing'],
+                        ['delivered', 'Delivered'],
+                        ['failed', 'Failed']
+                      ].map(([value, label]) => (
+                        <button
+                          key={value}
+                          className={ordersFilter === value ? 'active' : ''}
+                          onClick={() => setOrdersFilter(value)}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {ordersError && (
+                      <div className="status" role="alert">
+                        {ordersError}
+                      </div>
+                    )}
+
+                    {ordersLoading && customerOrders.length === 0 ? (
+                      <div className="orders-empty">
+                        Loading your orders…
+                      </div>
+                    ) : visibleOrders.length === 0 ? (
+                      <div className="orders-empty">
+                        <h3>No orders to show</h3>
+                        <p>
+                          {customerOrders.length
+                            ? 'There are no orders in this filter.'
+                            : 'Your new purchases will appear here after checkout.'}
+                        </p>
+                        <button
+                          className="primary"
+                          onClick={() => navigate('buy-data')}
+                        >
+                          Buy Data
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="orders-list">
+                        {visibleOrders.map(order => {
+                          const status = String(
+                            order.supplier_status || order.status || 'processing'
+                          ).toLowerCase();
+
+                          const failed = ['failed', 'refunded'].includes(status);
+                          const delivered = status === 'completed';
+
+                          return (
+                            <article
+                              className="customer-order-card"
+                              key={order.reference}
+                            >
+                              <div className="customer-order-top">
+                                <div>
+                                  <strong>{order.network}</strong>
+                                  <span>
+                                    {Number(order.volume_gb)}GB Data Bundle
+                                  </span>
+                                </div>
+
+                                <span className={`order-status-pill ${
+                                  delivered ? 'delivered' :
+                                  failed ? 'failed' : 'processing'
+                                }`}>
+                                  {delivered
+                                    ? 'Delivered'
+                                    : failed
+                                      ? status
+                                      : 'Processing'}
+                                </span>
+                              </div>
+
+                              <div className="customer-order-amount">
+                                GH₵{(
+                                  Number(order.retail_price_pesewas || 0) / 100
+                                ).toFixed(2)}
+                              </div>
+
+                              <div className="customer-order-details">
+                                <span>
+                                  Recipient
+                                  <strong>{maskRecipient(order.recipient)}</strong>
+                                </span>
+
+                                <span>
+                                  Payment
+                                  <strong>
+                                    {String(order.payment_status || 'pending')
+                                      .replace(/_/g, ' ')}
+                                  </strong>
+                                </span>
+
+                                <span>
+                                  Reference
+                                  <strong>{order.reference}</strong>
+                                </span>
+
+                                <span>
+                                  Date
+                                  <strong>
+                                    {order.created_at
+                                      ? new Date(order.created_at).toLocaleString()
+                                      : '—'}
+                                  </strong>
+                                </span>
+                              </div>
+
+                              {order.replacement_reference && (
+                                <p className="replacement-note">
+                                  Free replacement: {String(
+                                    order.replacement_status || 'submitted'
+                                  )}
+                                </p>
+                              )}
+
+                              {failed && !order.replacement_reference && (
+                                <button
+                                  className="replacement-button"
+                                  disabled={
+                                    replacementBusyRef === order.reference
+                                  }
+                                  onClick={() =>
+                                    requestOrderReplacement(order.reference)
+                                  }
+                                >
+                                  {replacementBusyRef === order.reference
+                                    ? 'Submitting…'
+                                    : 'Replace Order — FREE'}
+                                </button>
+                              )}
+                            </article>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    <p className="orders-footnote">
+                      Only purchases made while signed in appear here.
+                      Earlier guest orders cannot be assigned automatically.
+                    </p>
+                  </>
+                )}
+              </section>
+            </div>
+          )}
+
+          
           {page === 'digital-services' && (
             <div className="content">
               <section className="panel">
@@ -1870,7 +2458,7 @@ const customerFirstName =
           </footer>
 
           <nav className="bottom-nav" aria-label="Main navigation">
-            {navigation.map(item => (
+         {visibleNavigation.map(item => (
               <button
                 key={item.page}
                 className={page === item.page ? 'active' : ''}
