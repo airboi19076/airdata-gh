@@ -68,7 +68,9 @@ export default function App() {
 );
 const [agentInfo, setAgentInfo] = useState(null);
 const [agentLoadError, setAgentLoadError] = useState('');
-
+const [agentLoading, setAgentLoading] = useState(
+  Boolean(new URLSearchParams(window.location.search).get('agent'))
+);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [orderStatus, setOrderStatus] = useState('');
@@ -96,8 +98,23 @@ const [agentLoadError, setAgentLoadError] = useState('');
   const [serviceMessage, setServiceMessage] = useState('');
 
   const bundles = networkBundles[network] || networkBundles.MTN;
-  const activeBundle =
-    bundles.find(item => item[0] === selected[0]) || bundles[0];
+
+const getBundlePrice = (bundle) => {
+  const basePrice = Number(bundle[1]);
+  const volume = Number.parseInt(bundle[0], 10);
+  const marginPesewas = Number(
+    agentInfo?.margins_pesewas?.[network] || 0
+  );
+
+  const agentProfit = agentInfo
+    ? (marginPesewas * volume) / 100
+    : 0;
+
+  return (basePrice + agentProfit).toFixed(2);
+};
+
+const activeBundle =
+  bundles.find(item => item[0] === selected[0]) || bundles[0];
 
   const selectedChecker =
     checkerServices.find(item => item.name === checkerType) ||
@@ -320,6 +337,9 @@ const customerFirstName =
   let active = true;
 
   async function loadAgentShop() {
+    setAgentLoading(true);
+    setAgentLoadError('');
+
     try {
       const response = await fetch(
         `/api/agent/shop?code=${encodeURIComponent(agentCode)}`
@@ -338,7 +358,13 @@ const customerFirstName =
       }
     } catch (error) {
       if (active) {
-        setAgentLoadError(error.message);
+        setAgentLoadError(
+          error.message || 'Could not load agent pricing.'
+        );
+      }
+    } finally {
+      if (active) {
+        setAgentLoading(false);
       }
     }
   }
@@ -349,7 +375,6 @@ const customerFirstName =
     active = false;
   };
 }, [agentCode]);
-
   function navigate(nextPage) {
   const params = new URLSearchParams(window.location.search);
 
@@ -1981,9 +2006,25 @@ const customerFirstName =
             <div className="content">
               <section className="panel">
                 <h2>Buy Data Bundles</h2>
-                <p className="muted">
-                  Choose your network and tap Buy Now on your preferred bundle.
-                </p>
+
+<p className="muted">
+  Choose your network and tap Buy Now on your preferred bundle.
+</p>
+
+{agentCode && (
+  <div className="status" role="status">
+    {agentLoading ? (
+      <p>Loading agent shop and prices...</p>
+    ) : agentLoadError ? (
+      <p>{agentLoadError}</p>
+    ) : agentInfo ? (
+      <p>
+        Shopping through:
+        <strong> {agentInfo.display_name}</strong>
+      </p>
+    ) : null}
+  </div>
+)}
 
                 <label>Select Network</label>
                 <div className="network-grid">
@@ -2014,19 +2055,13 @@ const customerFirstName =
                   {bundles.map(bundle => (
                     <div className="bundle-card" key={`${network}-${bundle[0]}`}>
                       <strong>{bundle[0]}</strong>
-                      <span className="bundle-card-price">
-                        GH₵{bundle[1]}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelected(bundle);
-                          setMessage('');
-                          setOrderStatus('');
-                          setShowOrderModal(true);
-                        }}
-                      >
-                        Buy Now
+                    <span className="bundle-card-price">
+  GH₵{getBundlePrice(bundle)}
+</span>
+                    <button
+  type="button"
+  disabled={agentLoading || Boolean(agentLoadError)}
+  onClick={() => {
                       </button>
                     </div>
                   ))}
@@ -2114,7 +2149,7 @@ const customerFirstName =
                 <div className="price">
                   Network: <strong>{network}</strong><br />
                   Bundle: <strong>{selected[0]}</strong><br />
-                  Total: <strong>GH₵{selected[1]}</strong>
+                  Total: <strong>GH₵{getBundlePrice(selected)}</strong>
                 </div>
 
                 <label htmlFor="recipient-phone">Recipient Phone Number</label>
