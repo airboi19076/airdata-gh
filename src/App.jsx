@@ -63,7 +63,11 @@ export default function App() {
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  
+  const [agentCode] = useState(
+  () => new URLSearchParams(window.location.search).get('agent') || ''
+);
+const [agentInfo, setAgentInfo] = useState(null);
+const [agentLoadError, setAgentLoadError] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -310,6 +314,41 @@ const customerFirstName =
     const timer = setInterval(() => checkOrderStatus(true), 15000);
     return () => clearInterval(timer);
   }, [reference, orderStatus]);
+  useEffect(() => {
+  if (!agentCode) return;
+
+  let active = true;
+
+  async function loadAgentShop() {
+    try {
+      const response = await fetch(
+        `/api/agent/shop?code=${encodeURIComponent(agentCode)}`
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.error || 'This agent shop is unavailable.'
+        );
+      }
+
+      if (active) {
+        setAgentInfo(result.agent);
+      }
+    } catch (error) {
+      if (active) {
+        setAgentLoadError(error.message);
+      }
+    }
+  }
+
+  loadAgentShop();
+
+  return () => {
+    active = false;
+  };
+}, [agentCode]);
 
   function navigate(nextPage) {
   const params = new URLSearchParams(window.location.search);
