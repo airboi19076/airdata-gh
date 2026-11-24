@@ -18,6 +18,7 @@ export default function InScopeAI() {
   const bottomRef = useRef(null);
   const recognitionRef = useRef(null);
   const voiceBaseRef = useRef('');
+  const voiceMessageRef = useRef(false);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -26,8 +27,36 @@ export default function InScopeAI() {
   useEffect(() => {
     return () => {
       recognitionRef.current?.stop();
+
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
     };
   }, []);
+
+  function speakReply(text) {
+    if (!('speechSynthesis' in window) || !text) return;
+
+    window.speechSynthesis.cancel();
+
+    const speech = new SpeechSynthesisUtterance(text);
+    speech.lang = 'en-GH';
+    speech.rate = 1;
+    speech.pitch = 1;
+    speech.volume = 1;
+
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoice =
+      voices.find(voice => voice.lang.toLowerCase() === 'en-gh') ||
+      voices.find(voice => voice.lang.toLowerCase() === 'en-us') ||
+      voices.find(voice => voice.lang.toLowerCase().startsWith('en'));
+
+    if (preferredVoice) {
+      speech.voice = preferredVoice;
+    }
+
+    window.speechSynthesis.speak(speech);
+  }
 
   function startVoiceRecognition() {
     const SpeechRecognition =
@@ -61,6 +90,8 @@ export default function InScopeAI() {
       for (let i = 0; i < event.results.length; i++) {
         transcript += event.results[i][0].transcript + ' ';
       }
+
+      voiceMessageRef.current = true;
 
       setMessage(
         `${voiceBaseRef.current} ${transcript}`.trim().slice(0, 1500)
@@ -106,8 +137,11 @@ export default function InScopeAI() {
     const question = message.trim();
     if (!question || loading) return;
 
+    const shouldSpeak = voiceMessageRef.current;
+
     stopVoiceRecognition();
     setVoiceError('');
+    voiceMessageRef.current = false;
 
     const updatedMessages = [
       ...messages,
@@ -135,10 +169,16 @@ export default function InScopeAI() {
         throw new Error(result.error || 'Please try again.');
       }
 
+      const reply = result.reply || 'Sorry, I could not generate a response.';
+
       setMessages(previous => [
         ...previous,
-        { role: 'model', text: result.reply }
+        { role: 'model', text: reply }
       ]);
+
+      if (shouldSpeak) {
+        speakReply(reply);
+      }
 
     } catch (error) {
       setMessages(previous => [
@@ -151,6 +191,16 @@ export default function InScopeAI() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function closeChat() {
+    stopVoiceRecognition();
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    setOpen(false);
   }
 
   return (
@@ -171,13 +221,7 @@ export default function InScopeAI() {
               <small>AirData GH Customer Assistant</small>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                stopVoiceRecognition();
-                setOpen(false);
-              }}
-            >
+            <button type="button" onClick={closeChat}>
               ✕
             </button>
           </div>
@@ -198,7 +242,7 @@ export default function InScopeAI() {
 
             {loading && (
               <div className="scope-message scope-bot">
-                In Scope AI is typing...
+                In Scope AI is thinking...
               </div>
             )}
 
@@ -208,7 +252,10 @@ export default function InScopeAI() {
           <form className="scope-form" onSubmit={sendMessage}>
             <input
               value={message}
-              onChange={event => setMessage(event.target.value)}
+              onChange={event => {
+                setMessage(event.target.value);
+                voiceMessageRef.current = false;
+              }}
               placeholder="Type or speak your question..."
               maxLength={1500}
               disabled={loading}
