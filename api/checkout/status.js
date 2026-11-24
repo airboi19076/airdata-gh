@@ -138,6 +138,8 @@ export default async function handler(req, res) {
         payment_status: 'paid',
         status: savedStatus,
         supplier_status: savedStatus,
+        replacement_reference: order.replacement_reference || null,
+replacement_status: order.replacement_status || null,
         message: getMessage(savedStatus)
       });
     }
@@ -226,6 +228,8 @@ export default async function handler(req, res) {
       reference,
       payment_status: 'paid',
       status: supplierStatus,
+      replacement_reference: order.replacement_reference || null,
+replacement_status: order.replacement_status || null,
       supplier_status: supplierStatus,
       message: getMessage(supplierStatus)
     });
