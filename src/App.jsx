@@ -68,6 +68,7 @@ export default function App() {
   const [message, setMessage] = useState('');
   const [orderStatus, setOrderStatus] = useState('');
   const [reference, setReference] = useState('');
+  const [replacementStatus, setReplacementStatus] = useState('');
 
   const [digitalService, setDigitalService] = useState('afa');
   const [afaForm, setAfaForm] = useState({
@@ -271,6 +272,41 @@ const customerFirstName =
       }
     } finally {
       if (!silent) setLoading(false);
+    }
+  }
+
+    async function requestReplacement() {
+    if (!reference || loading) return;
+
+    setLoading(true);
+    setMessage('Submitting your free replacement request...');
+
+    try {
+      const response = await fetch('/api/checkout/replace', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ reference })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Replacement request failed.');
+      }
+
+      setReplacementStatus(
+        result.replacement_status || 'processing'
+      );
+
+      setMessage(
+        result.message || 'Your free replacement request has been submitted.'
+      );
+    } catch (error) {
+      setMessage(error.message || 'Unable to request replacement.');
+    } finally {
+      setLoading(false);
     }
   }
 
