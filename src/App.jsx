@@ -71,6 +71,7 @@ export default function App() {
   const [replacementStatus, setReplacementStatus] = useState('');
 
     const [customerOrders, setCustomerOrders] = useState([]);
+  const [totalSpentPesewas, setTotalSpentPesewas] = useState(0);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState('');
   const [ordersFilter, setOrdersFilter] = useState('all');
