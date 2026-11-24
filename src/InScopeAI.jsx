@@ -30,7 +30,7 @@ export default function InScopeAI() {
   }, [messages]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    bottomRef.current?.scrollIntoView({ behavior: 'auto' });
   }, [messages, loading]);
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export default function InScopeAI() {
   function speakReply(text) {
     if (!('speechSynthesis' in window) || !text) {
       if (armedRef.current) {
-        setTimeout(startWakeRecognition, 500);
+        setTimeout(startWakeRecognition, 400);
       }
       return;
     }
@@ -76,7 +76,7 @@ export default function InScopeAI() {
 
     const speech = new SpeechSynthesisUtterance(text);
     speech.lang = 'en-GH';
-    speech.rate = 1;
+    speech.rate = 1.08;
     speech.pitch = 1;
     speech.volume = 1;
 
@@ -94,13 +94,13 @@ export default function InScopeAI() {
     speech.onend = () => {
       if (armedRef.current) {
         setVoiceStatus('Say Hey In Scope when you need me.');
-        setTimeout(startWakeRecognition, 500);
+        setTimeout(startWakeRecognition, 400);
       }
     };
 
     speech.onerror = () => {
       if (armedRef.current) {
-        setTimeout(startWakeRecognition, 500);
+        setTimeout(startWakeRecognition, 400);
       }
     };
 
@@ -110,11 +110,13 @@ export default function InScopeAI() {
   function startWakeRecognition() {
     const SpeechRecognition = getRecognition();
 
-    if (!SpeechRecognition || !armedRef.current || busyRef.current) {
-      return;
-    }
-
-    if (wakeRef.current || commandRef.current) {
+    if (
+      !SpeechRecognition ||
+      !armedRef.current ||
+      busyRef.current ||
+      wakeRef.current ||
+      commandRef.current
+    ) {
       return;
     }
 
@@ -132,7 +134,7 @@ export default function InScopeAI() {
         setVoiceStatus('Listening for Hey In Scope...');
       };
 
-      recognition.onresult = (event) => {
+      recognition.onresult = event => {
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
 
@@ -146,7 +148,7 @@ export default function InScopeAI() {
         }
       };
 
-      recognition.onerror = (event) => {
+      recognition.onerror = event => {
         if (event.error === 'not-allowed') {
           setVoiceError('Please allow microphone access.');
           deactivateHeyInScope();
@@ -167,12 +169,12 @@ export default function InScopeAI() {
         if (wakeTriggeredRef.current) {
           wakeTriggeredRef.current = false;
           setOpen(true);
-          setTimeout(startCommandRecognition, 350);
+          setTimeout(startCommandRecognition, 300);
           return;
         }
 
         if (!busyRef.current) {
-          setTimeout(startWakeRecognition, 500);
+          setTimeout(startWakeRecognition, 400);
         }
       };
 
@@ -188,7 +190,12 @@ export default function InScopeAI() {
   function startCommandRecognition() {
     const SpeechRecognition = getRecognition();
 
-    if (!SpeechRecognition || !armedRef.current || busyRef.current) {
+    if (
+      !SpeechRecognition ||
+      !armedRef.current ||
+      busyRef.current ||
+      commandRef.current
+    ) {
       return;
     }
 
@@ -204,11 +211,11 @@ export default function InScopeAI() {
 
       recognition.onstart = () => {
         setListening(true);
-        setVoiceStatus('🎙️ I am listening. Ask your question.');
+        setVoiceStatus('🎙️ Listening. Ask your question.');
         setVoiceError('');
       };
 
-      recognition.onresult = (event) => {
+      recognition.onresult = event => {
         let transcript = '';
 
         for (let i = 0; i < event.results.length; i++) {
@@ -219,7 +226,7 @@ export default function InScopeAI() {
         setMessage(commandTextRef.current);
       };
 
-      recognition.onerror = (event) => {
+      recognition.onerror = event => {
         setListening(false);
 
         if (event.error === 'not-allowed') {
@@ -243,7 +250,7 @@ export default function InScopeAI() {
           submitQuestion(question, true);
         } else if (armedRef.current && !busyRef.current) {
           setVoiceStatus('Say Hey In Scope when you are ready.');
-          setTimeout(startWakeRecognition, 500);
+          setTimeout(startWakeRecognition, 400);
         }
       };
 
@@ -260,9 +267,7 @@ export default function InScopeAI() {
     const SpeechRecognition = getRecognition();
 
     if (!SpeechRecognition) {
-      setVoiceError(
-        'Your browser does not support wake-word recognition. Try a supported browser.'
-      );
+      setVoiceError('Your browser does not support wake-word recognition.');
       return;
     }
 
@@ -305,8 +310,15 @@ export default function InScopeAI() {
       { role: 'user', text: question }
     ];
 
-    messagesRef.current = updatedMessages;
-    setMessages(updatedMessages);
+    const initialMessages = [
+      ...updatedMessages,
+      { role: 'model', text: '' }
+    ];
+
+    messagesRef.current = initialMessages;
+    setMessages(initialMessages);
+
+    let reply = '';
 
     try {
       const response = await fetch('/api/in-scope-chat', {
@@ -315,26 +327,108 @@ export default function InScopeAI() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          messages: updatedMessages.slice(-8)
+          messages: updatedMessages.slice(-6)
         })
       });
 
-      const result = await response.json();
-
       if (!response.ok) {
-        throw new Error(result.error || 'Please try again.');
+        let errorMessage = 'Please try again.';
+
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (error) {}
+
+        throw new Error(errorMessage);
       }
 
-      const reply =
-        result.reply || 'Sorry, I could not generate a response.';
+      const contentType = response.headers.get('content-type') || '';
 
-      const nextMessages = [
+      // Instant response path for greetings and simple answers.
+      if (contentType.includes('application/json')) {
+        const result = await response.json();
+        reply = result.reply || 'Sorry, I could not generate a response.';
+      } else {
+        // Stream the AI response as soon as text arrives.
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let finished = false;
+
+        while (!finished) {
+          const { value, done } = await reader.read();
+
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+
+          const events = buffer.split(/\r?\n\r?\n/);
+          buffer = events.pop() || '';
+
+          for (const eventText of events) {
+            const dataLine = eventText
+              .split(/\r?\n/)
+              .find(line => line.startsWith('data:'));
+
+            if (!dataLine) continue;
+
+            const rawData = dataLine.slice(5).trim();
+
+            if (rawData === '[DONE]') {
+              finished = true;
+              break;
+            }
+
+            try {
+              const data = JSON.parse(rawData);
+
+              if (data.text) {
+                reply += data.text;
+
+                const liveMessages = [
+                  ...updatedMessages,
+                  { role: 'model', text: reply }
+                ];
+
+                messagesRef.current = liveMessages;
+                setMessages(liveMessages);
+              }
+            } catch (error) {
+              // Ignore incomplete stream fragments.
+            }
+          }
+        }
+
+        buffer += decoder.decode();
+
+        if (buffer.trim()) {
+          const dataLine = buffer
+            .split(/\r?\n/)
+            .find(line => line.startsWith('data:'));
+
+          if (dataLine) {
+            try {
+              const data = JSON.parse(dataLine.slice(5).trim());
+
+              if (data.text) {
+                reply += data.text;
+              }
+            } catch (error) {}
+          }
+        }
+      }
+
+      if (!reply.trim()) {
+        reply = 'Sorry, I could not generate a response. Please try again.';
+      }
+
+      const finalMessages = [
         ...updatedMessages,
         { role: 'model', text: reply }
       ];
 
-      messagesRef.current = nextMessages;
-      setMessages(nextMessages);
+      messagesRef.current = finalMessages;
+      setMessages(finalMessages);
 
       busyRef.current = false;
       setLoading(false);
@@ -342,27 +436,26 @@ export default function InScopeAI() {
       if (shouldSpeak) {
         speakReply(reply);
       } else if (armedRef.current) {
-        setTimeout(startWakeRecognition, 500);
+        setTimeout(startWakeRecognition, 400);
       }
     } catch (error) {
-      const nextMessages = [
-        ...messagesRef.current,
-        {
-          role: 'model',
-          text: error.message || 'Sorry, something went wrong.'
-        }
+      const errorReply = error.message || 'Sorry, something went wrong.';
+
+      const errorMessages = [
+        ...updatedMessages,
+        { role: 'model', text: errorReply }
       ];
 
-      messagesRef.current = nextMessages;
-      setMessages(nextMessages);
+      messagesRef.current = errorMessages;
+      setMessages(errorMessages);
 
       busyRef.current = false;
       setLoading(false);
 
       if (shouldSpeak) {
-        speakReply(error.message || 'Sorry, something went wrong.');
+        speakReply(errorReply);
       } else if (armedRef.current) {
-        setTimeout(startWakeRecognition, 500);
+        setTimeout(startWakeRecognition, 400);
       }
     }
   }
@@ -372,7 +465,7 @@ export default function InScopeAI() {
 
     const question = message.trim();
 
-    if (!question || loading) return;
+    if (!question || busyRef.current) return;
 
     setMessage('');
     submitQuestion(question, false);
@@ -380,6 +473,7 @@ export default function InScopeAI() {
 
   function closeChat() {
     setOpen(false);
+
     commandRef.current?.stop();
     setListening(false);
 
@@ -388,7 +482,7 @@ export default function InScopeAI() {
     }
 
     if (armedRef.current) {
-      setTimeout(startWakeRecognition, 500);
+      setTimeout(startWakeRecognition, 400);
     }
   }
 
@@ -402,7 +496,7 @@ export default function InScopeAI() {
     wakeRef.current = null;
 
     setOpen(true);
-    setTimeout(startCommandRecognition, 350);
+    setTimeout(startCommandRecognition, 300);
   }
 
   return (
@@ -455,15 +549,13 @@ export default function InScopeAI() {
                     : 'scope-message scope-bot'
                 }
               >
-                {item.text}
+                {item.text || (
+                  <span className="scope-fast-dots">
+                    In Scope AI is thinking...
+                  </span>
+                )}
               </div>
             ))}
-
-            {loading && (
-              <div className="scope-message scope-bot">
-                In Scope AI is thinking...
-              </div>
-            )}
 
             <div ref={bottomRef} />
           </div>
