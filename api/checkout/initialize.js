@@ -1,7 +1,6 @@
 
 import { randomUUID } from 'node:crypto';
-import { getDatabase } from '../_lib/wallet.js';
-
+import { getDatabase, requireUser } from '../_lib/wallet.js';
 const RETAIL_PRICES = {
   MTN: {
   1: 495, 2: 990, 3: 1485, 4: 1980, 5: 2475,
@@ -36,7 +35,13 @@ export default async function handler(req, res) {
       error: 'Method not allowed.'
     });
   }
+  let customerUser = null;
 
+  if (req.headers.authorization) {
+    customerUser = await requireUser(req, res);
+    if (!customerUser) return;
+  }
+  
   const network = String(req.body?.network || '').trim();
   const volume = Number(req.body?.volume_gb);
   const recipient = String(req.body?.recipient || '').trim();
@@ -110,6 +115,7 @@ export default async function handler(req, res) {
 
     // Save the order before starting payment.
     await sql`
+          await sql`
       INSERT INTO public.guest_data_orders (
         reference,
         network,
@@ -118,7 +124,8 @@ export default async function handler(req, res) {
         retail_price_pesewas,
         payment_status,
         payment_provider,
-        status
+        status,
+        customer_user_id
       )
       VALUES (
         ${reference},
@@ -128,7 +135,8 @@ export default async function handler(req, res) {
         ${amountPesewas},
         'pending',
         'paystack',
-        'awaiting_payment'
+        'awaiting_payment',
+        ${customerUser?.id || null}
       )
     `;
 
