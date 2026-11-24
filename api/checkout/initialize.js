@@ -115,7 +115,6 @@ export default async function handler(req, res) {
 
     // Save the order before starting payment.
     await sql`
-          await sql`
       INSERT INTO public.guest_data_orders (
         reference,
         network,
