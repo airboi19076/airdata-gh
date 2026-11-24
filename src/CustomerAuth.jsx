@@ -12,7 +12,22 @@ export default function CustomerAuth({ children }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+const [guestMode, setGuestMode] = useState(
+  () => sessionStorage.getItem('airdata-guest-mode') === 'true'
+);
 
+function enterGuestMode() {
+  sessionStorage.setItem('airdata-guest-mode', 'true');
+  setGuestMode(true);
+}
+
+function exitGuestMode() {
+  sessionStorage.removeItem('airdata-guest-mode');
+  setGuestMode(false);
+  setMessage('');
+  setMode('login');
+}
+  
   useEffect(() => {
     async function checkSession() {
       try {
