@@ -429,30 +429,51 @@ const customerFirstName =
     }
   }
 
+    
     async function requestReplacement() {
-    if (!reference || loading) return;
+      if (!reference || loading) return;
 
-    setLoading(true);
-    setMessage('Submitting your free replacement request...');
-
-    try {
-      const response = await fetch('/api/checkout/replace', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ reference })
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Replacement request failed.');
+      if (!customerUser) {
+        setMessage('Please sign in to request a free replacement.');
+        setOrderStatus('error');
+        return;
       }
 
-      setReplacementStatus(
-        result.replacement_status || 'processing'
-      );
+      setLoading(true);
+      setMessage('Submitting your free replacement request...');
+
+      try {
+        const token = await getCustomerAccessToken();
+
+        if (!token) {
+          throw new Error('Please sign in again to continue.');
+        }
+
+        const response = await fetch('/api/checkout/replace', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ reference })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || data.error || 'Replacement request failed.');
+        }
+
+        setMessage(data.message || 'Your replacement request was submitted successfully.');
+        setOrderStatus('success');
+      } catch (error) {
+        setMessage(error.message || 'Unable to submit replacement request.');
+        setOrderStatus('error');
+      } finally {
+        setLoading(false);
+      }
+    }
+
 
       setMessage(
         result.message || 'Your free replacement request has been submitted.'
