@@ -33,9 +33,31 @@ export default async function handler(req, res) {
       LIMIT 100
     `;
 
+        const paystackMode = String(process.env.PAYSTACK_MODE || 'test')
+      .trim()
+      .toLowerCase();
+
+    // Test payments are not real data purchases.
+    const spendingRows = paystackMode === 'live'
+      ? await sql`
+          SELECT COALESCE(SUM(retail_price_pesewas), 0)::bigint AS total_spent_pesewas
+          FROM public.guest_data_orders
+          WHERE customer_user_id = ${customer.id}
+            AND payment_provider = 'paystack'
+            AND payment_status = 'paid'
+            AND COALESCE(status, '') NOT IN (
+              'failed', 'refunded', 'payment_failed', 'awaiting_payment'
+            )
+            AND COALESCE(supplier_status, '') NOT IN ('failed', 'refunded')
+        `
+      : [{ total_spent_pesewas: 0 }];
+
     return res.status(200).json({
       success: true,
-      orders
+      orders,
+      totalSpentPesewas: Number(
+        spendingRows[0]?.total_spent_pesewas || 0
+      )
     });
   } catch (error) {
     console.error(
