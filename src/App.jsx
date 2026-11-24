@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import InScopeAI from './InScopeAI';
 import Admin from './Admin';
 import { authClient } from './auth-client';
+import AgentShop from './AgentShop';
 
 const WHATSAPP_NUMBER = '233548206175';
 
@@ -261,6 +262,7 @@ const visibleNavigation = customerUser
       navigation[0],
       navigation[1],
       { page: 'orders', icon: '▣', label: 'Orders' },
+      { page: 'agent-shop', icon: '💼', label: 'Agent Shop' },
       navigation[3],
       navigation[4]
     ]
@@ -2472,6 +2474,9 @@ const customerFirstName =
             </div>
           )}
 
+          {page === 'agent-shop' && customerUser && (
+  <AgentShop />
+)}
           {page === 'support' && (
             <div className="content">
               <section className="panel">
