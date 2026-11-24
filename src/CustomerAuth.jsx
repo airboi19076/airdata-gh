@@ -129,7 +129,29 @@ function exitGuestMode() {
       setLoading(false);
     }
   }
+  async function handleSocialSignIn(provider) {
+    if (loading) return;
 
+    setLoading(true);
+    setMessage('');
+
+    try {
+      const result = await authClient.signIn.social({
+        provider,
+        callbackURL: window.location.origin
+      });
+
+      if (result?.error) {
+        throw new Error(result.error.message);
+      }
+    } catch (error) {
+      setMessage(
+        error.message || `Could not continue with ${provider}.`
+      );
+      setLoading(false);
+    }
+  }
+  
   async function handleLogout() {
     try {
       await authClient.signOut();
