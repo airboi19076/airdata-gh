@@ -21,21 +21,26 @@ const channelUrl = 'https://whatsapp.com/channel/0029VbE7DAs4Y9lwIZQcAU3b';
 const supportUrl = 'https://wa.me/233548206175';
 
 useEffect(() => {
-  if (!user?.id) {
+  if (!user?.id && !guestMode) {
     setShowChannelPrompt(false);
     return;
   }
 
-  const key = `airdata-channel-prompt-${user.id}`;
+  const key = user?.id
+    ? `airdata-channel-prompt-${user.id}`
+    : 'airdata-channel-prompt-guest';
+
   if (sessionStorage.getItem(key) !== 'seen') {
     setShowChannelPrompt(true);
   }
-}, [user?.id]);
+}, [user?.id, guestMode]);
 
 function dismissChannelPrompt() {
-  if (user?.id) {
-    sessionStorage.setItem(`airdata-channel-prompt-${user.id}`, 'seen');
-  }
+  const key = user?.id
+    ? `airdata-channel-prompt-${user.id}`
+    : 'airdata-channel-prompt-guest';
+
+  sessionStorage.setItem(key, 'seen');
   setShowChannelPrompt(false);
 }
   
@@ -220,15 +225,42 @@ function exitGuestMode() {
     );
   }
 
-  if (user) {
+  if (user || guestMode) {
     return (
       <>
-        <div className="customer-account-bar">
-          <span>
-            Signed in as <strong>{user.name || user.email}</strong>
-          </span>
-          <button onClick={handleLogout}>Sign Out</button>
-        </div>
+        {user ? (
+  <div className="customer-account-bar">
+    <span>
+      Signed in as <strong>{user.name || user.email}</strong>
+    </span>
+    <button onClick={handleLogout}>Sign Out</button>
+  </div>
+) : (
+  <div style={{
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '12px 6%',
+    background: '#071a36',
+    color: '#d8eaff',
+    fontSize: '12px'
+  }}>
+    <span>
+      Browsing as <strong style={{color: '#55d4ff'}}>Guest</strong>
+    </span>
+    <button onClick={exitGuestMode} style={{
+      padding: '9px 13px',
+      border: '1px solid #ffffff35',
+      borderRadius: '9px',
+      background: '#ffffff12',
+      color: 'white',
+      fontWeight: 800
+    }}>
+      Exit Guest Mode
+    </button>
+  </div>
+)}
         {children}
         {showChannelPrompt && (
   <div className="channel-overlay">
@@ -468,44 +500,7 @@ function exitGuestMode() {
       </>
     );
   }
-  if (guestMode) {
-    return (
-      <>
-        <div style={{
-          position: 'relative',
-          zIndex: 30,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '12px 6%',
-          background: '#071a36',
-          color: '#d8eaff',
-          fontSize: '12px'
-        }}>
-          <span>
-            Browsing as <strong style={{color: '#55d4ff'}}>Guest</strong>
-          </span>
-
-          <button
-            onClick={exitGuestMode}
-            style={{
-              padding: '9px 13px',
-              border: '1px solid #ffffff35',
-              borderRadius: '9px',
-              background: '#ffffff12',
-              color: 'white',
-              fontWeight: 800
-            }}
-          >
-            Exit Guest Mode
-          </button>
-        </div>
-
-        {children}
-      </>
-    );
-  }
+  
   
   return (
     <main className="customer-auth-page">
