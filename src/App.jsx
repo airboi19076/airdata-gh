@@ -187,7 +187,7 @@ async function loadCustomerOrders() {
 }
 
 useEffect(() => {
-  if (page === 'orders' && customerUser) {
+  if (['dashboard', 'orders'].includes(page) && customerUser) {
     loadCustomerOrders();
   }
 }, [page, customerUser?.id]);
