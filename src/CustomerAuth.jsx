@@ -214,7 +214,45 @@ function exitGuestMode() {
       </>
     );
   }
+  if (guestMode) {
+    return (
+      <>
+        <div style={{
+          position: 'relative',
+          zIndex: 30,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '12px',
+          padding: '12px 6%',
+          background: '#071a36',
+          color: '#d8eaff',
+          fontSize: '12px'
+        }}>
+          <span>
+            Browsing as <strong style={{color: '#55d4ff'}}>Guest</strong>
+          </span>
 
+          <button
+            onClick={exitGuestMode}
+            style={{
+              padding: '9px 13px',
+              border: '1px solid #ffffff35',
+              borderRadius: '9px',
+              background: '#ffffff12',
+              color: 'white',
+              fontWeight: 800
+            }}
+          >
+            Exit Guest Mode
+          </button>
+        </div>
+
+        {children}
+      </>
+    );
+  }
+  
   return (
     <main className="customer-auth-page">
       <style>{`
