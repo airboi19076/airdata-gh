@@ -1,25 +1,22 @@
-
 import { randomUUID } from 'node:crypto';
 import { getDatabase, requireUser } from '../_lib/wallet.js';
+
 const RETAIL_PRICES = {
   MTN: {
-  1: 495, 2: 990, 3: 1485, 4: 1980, 5: 2475,
-  6: 2970, 8: 3960, 10: 4950, 15: 7425,
-  20: 9900, 25: 12375, 30: 14850, 40: 19800,
-  50: 24750
-},
-
+    1: 495, 2: 990, 3: 1485, 4: 1980, 5: 2475,
+    6: 2970, 8: 3960, 10: 4950, 15: 7425,
+    20: 9900, 25: 12375, 30: 14850, 40: 19800,
+    50: 24750
+  },
   'AirtelTigo iShare': {
     1: 430, 2: 860, 3: 1290, 4: 1720, 5: 2150,
     6: 2580, 7: 3010, 8: 3440, 10: 4300,
     15: 6450, 20: 8600
   },
-
   'AirtelTigo BigTime': {
     20: 7400, 25: 7900, 30: 8400, 40: 9900,
     50: 10900, 100: 17900, 200: 32300, 250: 41600
   },
-
   Telecel: {
     10: 4200, 15: 6300, 20: 8400, 25: 10500,
     30: 12600, 40: 16800, 50: 21000
@@ -31,23 +28,23 @@ const SITE_URL = 'https://airdata-gh.vercel.app';
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
-    return res.status(405).json({
-      error: 'Method not allowed.'
-    });
+    return res.status(405).json({ error: 'Method not allowed.' });
   }
+
   let customerUser = null;
 
   if (req.headers.authorization) {
     customerUser = await requireUser(req, res);
     if (!customerUser) return;
   }
-  
+
   const network = String(req.body?.network || '').trim();
   const volume = Number(req.body?.volume_gb);
   const recipient = String(req.body?.recipient || '').trim();
+  const agentCode = String(req.body?.agent_code || '')
+    .trim()
+    .toUpperCase();
 
-  // Paystack requires an email address.
-  // The frontend can supply the customer's email.
   const email = String(
     req.body?.email ||
     process.env.PAYSTACK_CUSTOMER_EMAIL ||
@@ -60,10 +57,7 @@ export default async function handler(req, res) {
     });
   }
 
-  if (
-    !Number.isInteger(volume) ||
-    !RETAIL_PRICES[network][volume]
-  ) {
+  if (!Number.isInteger(volume) || !RETAIL_PRICES[network][volume]) {
     return res.status(400).json({
       error: 'The selected data bundle is not available.'
     });
@@ -101,19 +95,62 @@ export default async function handler(req, res) {
     });
   }
 
-  if (mode !== 'test' && mode !== 'live') {
+  if (!['test', 'live'].includes(mode)) {
     return res.status(500).json({
       error: 'Invalid Paystack payment mode.'
     });
   }
 
-  const amountPesewas = RETAIL_PRICES[network][volume];
-  const reference = `ADGH-${randomUUID()}`;
+  const basePricePesewas = RETAIL_PRICES[network][volume];
+  let agent = null;
+  let marginPerGbPesewas = 0;
+  let agentProfitPesewas = 0;
 
   try {
     const sql = await getDatabase();
 
-    // Save the order before starting payment.
+    if (agentCode) {
+      if (!/^[A-F0-9]{12}$/.test(agentCode)) {
+        return res.status(400).json({
+          error: 'Invalid agent shopping link.'
+        });
+      }
+
+      const agents = await sql`
+        SELECT id, agent_code, margins_pesewas
+        FROM public.airdata_agents
+        WHERE agent_code = ${agentCode}
+          AND status = 'active'
+        LIMIT 1
+      `;
+
+      if (!agents.length) {
+        return res.status(400).json({
+          error: 'This agent shop is no longer available.'
+        });
+      }
+
+      agent = agents[0];
+
+      const margins = agent.margins_pesewas || {};
+      marginPerGbPesewas = Number(margins[network] || 0);
+
+      if (
+        !Number.isInteger(marginPerGbPesewas) ||
+        marginPerGbPesewas < 0 ||
+        marginPerGbPesewas > 5000
+      ) {
+        return res.status(400).json({
+          error: 'The agent price configuration is invalid.'
+        });
+      }
+
+      agentProfitPesewas = marginPerGbPesewas * volume;
+    }
+
+    const amountPesewas = basePricePesewas + agentProfitPesewas;
+    const reference = `ADGH-${randomUUID()}`;
+
     await sql`
       INSERT INTO public.guest_data_orders (
         reference,
@@ -124,7 +161,13 @@ export default async function handler(req, res) {
         payment_status,
         payment_provider,
         status,
-        customer_user_id
+        customer_user_id,
+        agent_id,
+        agent_code,
+        base_price_pesewas,
+        agent_margin_per_gb_pesewas,
+        agent_profit_pesewas,
+        agent_commission_status
       )
       VALUES (
         ${reference},
@@ -135,7 +178,13 @@ export default async function handler(req, res) {
         'pending',
         'paystack',
         'awaiting_payment',
-        ${customerUser?.id || null}
+        ${customerUser?.id || null},
+        ${agent?.id || null},
+        ${agent?.agent_code || null},
+        ${basePricePesewas},
+        ${marginPerGbPesewas},
+        ${agentProfitPesewas},
+        ${agent ? 'pending' : null}
       )
     `;
 
@@ -160,7 +209,8 @@ export default async function handler(req, res) {
             order_reference: reference,
             network,
             volume_gb: volume,
-            recipient
+            recipient,
+            agent_code: agent?.agent_code || null
           }
         })
       }
@@ -190,8 +240,7 @@ export default async function handler(req, res) {
       `;
 
       return res.status(502).json({
-        error:
-          result?.message ||
+        error: result?.message ||
           'Could not start Paystack checkout. Please try again.'
       });
     }
