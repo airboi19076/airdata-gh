@@ -1,6 +1,6 @@
 
 import { getDatabase } from '../_lib/wallet.js';
-
+import { creditAgentCommission } from '../_lib/agent-commission.js';
 const ALLOWED_STATUSES = [
   'pending',
   'queued',
