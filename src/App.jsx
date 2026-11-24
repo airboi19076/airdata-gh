@@ -2052,19 +2052,30 @@ const customerFirstName =
 
                 <label>Available Bundles</label>
                 <div className="bundle-cards">
-                  {bundles.map(bundle => (
-                    <div className="bundle-card" key={`${network}-${bundle[0]}`}>
-                      <strong>{bundle[0]}</strong>
-                    <span className="bundle-card-price">
-  GH₵{getBundlePrice(bundle)}
-</span>
-                    <button
-  type="button"
-  disabled={agentLoading || Boolean(agentLoadError)}
-  onClick={() => {
-                      </button>
-                    </div>
-                  ))}
+                
+{bundles.map(bundle => (
+  <div className="bundle-card" key={`${network}-${bundle[0]}`}>
+    <strong>{bundle[0]}</strong>
+
+    <span className="bundle-card-price">
+      GH₵{getBundlePrice(bundle)}
+    </span>
+
+    <button
+      type="button"
+      disabled={agentLoading || Boolean(agentLoadError)}
+      onClick={() => {
+        setSelected(bundle);
+        setMessage('');
+        setOrderStatus('');
+        setShowOrderModal(true);
+      }}
+    >
+      Buy Now
+    </button>
+  </div>
+))}
+
                 </div>
 
                 {message && !showOrderModal && (
