@@ -1798,6 +1798,52 @@ const customerFirstName =
   </div>
 </section>
 
+                            {customerUser && (
+                <section
+                  style={{
+                    margin: '22px 0 30px',
+                    padding: '22px 25px',
+                    borderRadius: 22,
+                    border: '1px solid #168bff55',
+                    background: darkMode
+                      ? 'linear-gradient(120deg, #102b49, #0b1c32)'
+                      : 'linear-gradient(120deg, #eaf5ff, #f8fbff)',
+                    boxShadow: '0 12px 32px rgba(8, 85, 170, .09)'
+                  }}
+                >
+                  <div style={{
+                    color: '#168bff',
+                    fontSize: 11,
+                    fontWeight: 900,
+                    letterSpacing: 1.4
+                  }}>
+                    YOUR DATA SPENDING
+                  </div>
+
+                  <div style={{
+                    marginTop: 8,
+                    fontSize: 12,
+                    color: darkMode ? '#b9cce2' : '#71839b'
+                  }}>
+                    Total amount spent on data purchases
+                  </div>
+
+                  <div style={{
+                    marginTop: 7,
+                    fontSize: 32,
+                    fontWeight: 950,
+                    color: darkMode ? '#ffffff' : '#10213b'
+                  }}>
+                    GH₵{(totalSpentPesewas / 100).toLocaleString(
+                      'en-GH',
+                      {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      }
+                    )}
+                  </div>
+                </section>
+              )}
               <section className="dash-section">
                 <div className="dash-section-head">
                   <div>
