@@ -474,6 +474,26 @@ function exitGuestMode() {
             {mode === 'login' ? 'Sign Up' : 'Sign In'}
           </button>
         </div>
+                {mode === 'login' && (
+          <button
+            type="button"
+            onClick={enterGuestMode}
+            style={{
+              width: '100%',
+              marginTop: '14px',
+              padding: '15px',
+              border: '1px solid #38c7ff',
+              borderRadius: '12px',
+              background: '#ffffff0d',
+              color: '#55d4ff',
+              fontSize: '14px',
+              fontWeight: 900,
+              cursor: 'pointer'
+            }}
+          >
+            CONTINUE AS GUEST →
+          </button>
+        )}
       </section>
     </main>
   );
