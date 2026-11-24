@@ -179,6 +179,7 @@ async function loadCustomerOrders() {
     setCustomerOrders(
       Array.isArray(result.orders) ? result.orders : []
     );
+        setTotalSpentPesewas(Number(result.totalSpentPesewas || 0));
   } catch (error) {
     setOrdersError(error.message || 'Could not load your orders.');
   } finally {
