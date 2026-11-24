@@ -363,11 +363,12 @@ const customerFirstName =
         method: 'POST',
         headers: checkoutHeaders,
         body: JSON.stringify({
-          network,
-          volume_gb: Number.parseInt(selected[0], 10),
-          recipient: phone,
-          email: email.trim()
-        })
+  network,
+  volume_gb: Number.parseInt(selected[0], 10),
+  recipient: phone,
+  email: email.trim(),
+  agent_code: agentCode || null
+})
       });
 
       const result = await response.json();
