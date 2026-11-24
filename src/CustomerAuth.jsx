@@ -390,6 +390,35 @@ function exitGuestMode() {
             : 'Join AirData GH and enjoy convenient data bundle purchases.'}
         </p>
 
+                <div className="customer-social-buttons">
+          <button
+            type="button"
+            className="customer-social-button"
+            onClick={() => handleSocialSignIn('google')}
+            disabled={loading}
+          >
+            <span className="customer-social-icon">G</span>
+            Continue with Google
+          </button>
+
+          <button
+            type="button"
+            className="customer-social-button"
+            disabled
+            title="Apple sign-in setup is required"
+          >
+            <span className="customer-social-icon"></span>
+            Continue with Apple
+          </button>
+        </div>
+
+        <p className="customer-social-note">
+          Apple sign-in requires additional setup.
+        </p>
+
+        <div className="customer-social-divider">
+          OR CONTINUE WITH EMAIL
+        </div>
         <form onSubmit={handleSubmit}>
           {mode === 'signup' && (
             <>
