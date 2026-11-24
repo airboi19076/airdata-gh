@@ -15,7 +15,30 @@ export default function CustomerAuth({ children }) {
 const [guestMode, setGuestMode] = useState(
   () => sessionStorage.getItem('airdata-guest-mode') === 'true'
 );
+const [showChannelPrompt, setShowChannelPrompt] = useState(false);
 
+const channelUrl = 'https://whatsapp.com/channel/0029VbE7DAs4Y9lwIZQcAU3b';
+const supportUrl = 'https://wa.me/233548206175';
+
+useEffect(() => {
+  if (!user?.id) {
+    setShowChannelPrompt(false);
+    return;
+  }
+
+  const key = `airdata-channel-prompt-${user.id}`;
+  if (sessionStorage.getItem(key) !== 'seen') {
+    setShowChannelPrompt(true);
+  }
+}, [user?.id]);
+
+function dismissChannelPrompt() {
+  if (user?.id) {
+    sessionStorage.setItem(`airdata-channel-prompt-${user.id}`, 'seen');
+  }
+  setShowChannelPrompt(false);
+}
+  
 function enterGuestMode() {
   sessionStorage.setItem('airdata-guest-mode', 'true');
   setGuestMode(true);
@@ -207,7 +230,216 @@ function exitGuestMode() {
           <button onClick={handleLogout}>Sign Out</button>
         </div>
         {children}
+        {showChannelPrompt && (
+  <div className="channel-overlay">
+    <section className="channel-modal" role="dialog" aria-modal="true">
+      <div className="channel-header">
+        <button className="channel-close" onClick={dismissChannelPrompt}>×</button>
+        <div className="channel-icon">◉</div>
+        <div className="channel-eyebrow">STAY CONNECTED</div>
+        <h2>Join AirData GH on WhatsApp</h2>
+      </div>
 
+      <div className="channel-body">
+        <p>
+          Join our WhatsApp channel for data bundle price updates,
+          new bundles, special promotions and important service
+          announcements. Stay informed and never miss an offer!
+        </p>
+
+        <a className="channel-card" href={channelUrl} target="_blank"
+          rel="noopener noreferrer" onClick={dismissChannelPrompt}>
+          <span className="channel-card-icon">◉</span>
+          <span>
+            <strong>Join our WhatsApp Channel</strong>
+            <small>Updates, promos & announcements</small>
+          </span>
+          <b>↗</b>
+        </a>
+
+        <a className="channel-card support" href={supportUrl}
+          target="_blank" rel="noopener noreferrer">
+          <span className="channel-card-icon">☏</span>
+          <span>
+            <strong>Message AirData GH</strong>
+            <small>Customer support on WhatsApp</small>
+          </span>
+          <b>↗</b>
+        </a>
+      </div>
+
+      <div className="channel-actions">
+        <button onClick={dismissChannelPrompt}>Maybe Later</button>
+        <a href={channelUrl} target="_blank" rel="noopener noreferrer"
+          onClick={dismissChannelPrompt}>
+          Join Channel
+        </a>
+      </div>
+    </section>
+  </div>
+)}
+<style>{`
+.channel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 14px;
+  background: rgba(5,13,27,.62);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  font-family: Inter, Arial, sans-serif;
+}
+.channel-modal {
+  width: min(560px,100%);
+  overflow: hidden;
+  border-radius: 27px;
+  background: white;
+  color: #172338;
+  box-shadow: 0 28px 90px #0006;
+  animation: channelIn .25s ease-out;
+}
+@keyframes channelIn {
+  from {opacity:0;transform:translateY(14px) scale(.98)}
+  to {opacity:1;transform:translateY(0) scale(1)}
+}
+.channel-header {
+  position: relative;
+  min-height: 190px;
+  padding: 35px 28px 28px 125px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: white;
+  background: linear-gradient(120deg,#08a9df,#087cff 65%,#174fe5);
+}
+.channel-icon {
+  position: absolute;
+  left: 27px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #ffffff55;
+  border-radius: 22px;
+  background: #ffffff20;
+  font-size: 37px;
+}
+.channel-close {
+  position: absolute;
+  top: 13px;
+  right: 16px;
+  border: 0;
+  background: transparent;
+  color: white;
+  font-size: 29px;
+  cursor: pointer;
+}
+.channel-eyebrow {
+  margin-bottom: 10px;
+  color: #d8f4ff;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+.channel-header h2 {
+  margin: 0;
+  color: white;
+  font-size: 27px;
+  line-height: 1.3;
+}
+.channel-body { padding: 25px 28px; }
+.channel-body p {
+  margin: 0 0 20px;
+  color: #465267;
+  font-size: 15px;
+  line-height: 1.65;
+}
+.channel-card {
+  min-height: 85px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px;
+  border: 1px solid #d8edfb;
+  border-radius: 20px;
+  background: #f2faff;
+  color: #172338;
+  text-decoration: none;
+}
+.channel-card + .channel-card { margin-top: 13px; }
+.channel-card.support {
+  border-color: #e8ebf0;
+  background: white;
+}
+.channel-card-icon {
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: #0bbd65;
+  color: white;
+  font-size: 27px;
+}
+.channel-card.support .channel-card-icon { background: #2878ed; }
+.channel-card span:nth-child(2) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.channel-card strong { font-size: 14px; }
+.channel-card small { color: #778397; font-size: 11px; }
+.channel-card b { color: #2878aa; font-size: 23px; }
+.channel-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 21px 28px 25px;
+  border-top: 1px solid #edf0f4;
+}
+.channel-actions button,
+.channel-actions a {
+  min-height: 59px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  text-decoration: none;
+  cursor: pointer;
+}
+.channel-actions button {
+  border: 1px solid #dce1e8;
+  background: white;
+  color: #566174;
+}
+.channel-actions a {
+  background: linear-gradient(105deg,#08a9df,#087cff);
+  color: white;
+  box-shadow: 0 8px 20px #087cff35;
+}
+@media(max-width:480px) {
+  .channel-header { min-height:170px;padding:30px 42px 25px 105px; }
+  .channel-icon { left:17px;width:68px;height:68px; }
+  .channel-header h2 { font-size:23px; }
+  .channel-body { padding:21px 17px; }
+  .channel-body p { font-size:14px; }
+  .channel-card { gap:10px;padding:11px; }
+  .channel-card strong { font-size:12px; }
+  .channel-card small { font-size:10px; }
+  .channel-actions { padding:17px;gap:9px; }
+  .channel-actions button,.channel-actions a { min-height:55px;font-size:12px; }
+}
+`}</style>
         <style>{`
           .customer-account-bar {
             position: relative;
