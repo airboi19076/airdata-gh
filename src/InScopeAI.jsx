@@ -7,21 +7,18 @@ export default function InScopeAI() {
   const [messages, setMessages] = useState([
     {
       role: 'model',
-      text: 'Hello! I am In Scope AI. Say Hey In Scope whenever you need me.'
+      text: 'Hello! I am In Scope AI. How can I help you today?'
     }
   ]);
   const [loading, setLoading] = useState(false);
-  const [armed, setArmed] = useState(false);
   const [listening, setListening] = useState(false);
   const [voiceError, setVoiceError] = useState('');
   const [voiceStatus, setVoiceStatus] = useState('');
 
   const bottomRef = useRef(null);
-  const wakeRef = useRef(null);
-  const commandRef = useRef(null);
-  const armedRef = useRef(false);
-  const wakeTriggeredRef = useRef(false);
-  const commandTextRef = useRef('');
+  const recognitionRef = useRef(null);
+  const voiceQuestionRef = useRef('');
+  const voiceSessionRef = useRef(false);
   const busyRef = useRef(false);
   const messagesRef = useRef(messages);
 
@@ -35,9 +32,8 @@ export default function InScopeAI() {
 
   useEffect(() => {
     return () => {
-      armedRef.current = false;
-      wakeRef.current?.stop();
-      commandRef.current?.stop();
+      voiceSessionRef.current = false;
+      recognitionRef.current?.abort();
 
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
@@ -50,33 +46,14 @@ export default function InScopeAI() {
       window.webkitSpeechRecognition;
   }
 
-  function isWakePhrase(text) {
-    const normalized = text
-      .toLowerCase()
-      .replace(/[^a-z\s]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    return (
-      normalized.includes('hey in scope') ||
-      normalized.includes('hi in scope') ||
-      normalized.includes('hello in scope')
-    );
-  }
-
   function speakReply(text) {
-    if (!('speechSynthesis' in window) || !text) {
-      if (armedRef.current) {
-        setTimeout(startWakeRecognition, 400);
-      }
-      return;
-    }
+    if (!('speechSynthesis' in window) || !text) return;
 
     window.speechSynthesis.cancel();
 
     const speech = new SpeechSynthesisUtterance(text);
     speech.lang = 'en-GH';
-    speech.rate = 1.08;
+    speech.rate = 1.05;
     speech.pitch = 1;
     speech.volume = 1;
 
@@ -91,113 +68,25 @@ export default function InScopeAI() {
       speech.voice = preferredVoice;
     }
 
-    speech.onend = () => {
-      if (armedRef.current) {
-        setVoiceStatus('Say Hey In Scope when you need me.');
-        setTimeout(startWakeRecognition, 400);
-      }
-    };
-
-    speech.onerror = () => {
-      if (armedRef.current) {
-        setTimeout(startWakeRecognition, 400);
-      }
-    };
-
     window.speechSynthesis.speak(speech);
   }
 
-  function startWakeRecognition() {
+  function startVoiceInput() {
     const SpeechRecognition = getRecognition();
 
-    if (
-      !SpeechRecognition ||
-      !armedRef.current ||
-      busyRef.current ||
-      wakeRef.current ||
-      commandRef.current
-    ) {
+    if (!SpeechRecognition) {
+      setVoiceError(
+        'Voice input is not supported by this browser. Please use Safari or Chrome with microphone access enabled.'
+      );
       return;
     }
 
-    try {
-      const recognition = new SpeechRecognition();
+    if (busyRef.current || recognitionRef.current) return;
 
-      recognition.lang = 'en-GH';
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 1;
-
-      recognition.onstart = () => {
-        setListening(false);
-        setVoiceError('');
-        setVoiceStatus('Listening for Hey In Scope...');
-      };
-
-      recognition.onresult = event => {
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-
-          if (isWakePhrase(transcript)) {
-            wakeTriggeredRef.current = true;
-            setOpen(true);
-            setVoiceStatus('Hello! I am listening to you.');
-            recognition.stop();
-            break;
-          }
-        }
-      };
-
-      recognition.onerror = event => {
-        if (event.error === 'not-allowed') {
-          setVoiceError('Please allow microphone access.');
-          deactivateHeyInScope();
-        } else if (
-          event.error !== 'no-speech' &&
-          event.error !== 'aborted'
-        ) {
-          setVoiceError('Wake-word listening stopped. Please activate it again.');
-          deactivateHeyInScope();
-        }
-      };
-
-      recognition.onend = () => {
-        wakeRef.current = null;
-
-        if (!armedRef.current) return;
-
-        if (wakeTriggeredRef.current) {
-          wakeTriggeredRef.current = false;
-          setOpen(true);
-          setTimeout(startCommandRecognition, 300);
-          return;
-        }
-
-        if (!busyRef.current) {
-          setTimeout(startWakeRecognition, 400);
-        }
-      };
-
-      wakeRef.current = recognition;
-      recognition.start();
-    } catch (error) {
-      wakeRef.current = null;
-      setVoiceError('Could not start listening. Please try again.');
-      deactivateHeyInScope();
-    }
-  }
-
-  function startCommandRecognition() {
-    const SpeechRecognition = getRecognition();
-
-    if (
-      !SpeechRecognition ||
-      !armedRef.current ||
-      busyRef.current ||
-      commandRef.current
-    ) {
-      return;
-    }
+    setVoiceError('');
+    setVoiceStatus('Starting microphone...');
+    voiceQuestionRef.current = '';
+    voiceSessionRef.current = true;
 
     try {
       const recognition = new SpeechRecognition();
@@ -207,12 +96,9 @@ export default function InScopeAI() {
       recognition.interimResults = true;
       recognition.maxAlternatives = 1;
 
-      commandTextRef.current = '';
-
       recognition.onstart = () => {
         setListening(true);
-        setVoiceStatus('🎙️ Listening. Ask your question.');
-        setVoiceError('');
+        setVoiceStatus('Listening. Speak your question now.');
       };
 
       recognition.onresult = event => {
@@ -222,80 +108,55 @@ export default function InScopeAI() {
           transcript += event.results[i][0].transcript + ' ';
         }
 
-        commandTextRef.current = transcript.trim();
-        setMessage(commandTextRef.current);
+        voiceQuestionRef.current = transcript.trim();
+        setMessage(voiceQuestionRef.current);
       };
 
       recognition.onerror = event => {
-        setListening(false);
-
-        if (event.error === 'not-allowed') {
-          setVoiceError('Please allow microphone access.');
-          deactivateHeyInScope();
+        if (event.error === 'not-allowed' ||
+            event.error === 'service-not-allowed') {
+          setVoiceError('Microphone permission was denied. Allow microphone access in your browser settings.');
         } else if (event.error === 'no-speech') {
-          setVoiceStatus('I did not hear anything. Say Hey In Scope again.');
+          setVoiceStatus('I did not hear anything. Tap the microphone and try again.');
         } else if (event.error !== 'aborted') {
-          setVoiceError('I could not hear that. Please try again.');
+          setVoiceError('Voice recognition stopped. Please try again.');
         }
       };
 
       recognition.onend = () => {
-        commandRef.current = null;
+        recognitionRef.current = null;
         setListening(false);
 
-        const question = commandTextRef.current.trim();
+        const question = voiceQuestionRef.current.trim();
+        const shouldSend = voiceSessionRef.current;
 
-        if (question && armedRef.current) {
+        voiceSessionRef.current = false;
+
+        if (question && shouldSend) {
+          voiceQuestionRef.current = '';
           setMessage('');
+          setVoiceStatus('Processing your voice question...');
           submitQuestion(question, true);
-        } else if (armedRef.current && !busyRef.current) {
-          setVoiceStatus('Say Hey In Scope when you are ready.');
-          setTimeout(startWakeRecognition, 400);
+        } else if (shouldSend) {
+          setVoiceStatus('No question detected. Tap the microphone to try again.');
         }
       };
 
-      commandRef.current = recognition;
+      recognitionRef.current = recognition;
       recognition.start();
     } catch (error) {
-      commandRef.current = null;
+      recognitionRef.current = null;
+      voiceSessionRef.current = false;
       setListening(false);
       setVoiceError('Could not start the microphone. Please try again.');
     }
   }
 
-  function activateHeyInScope() {
-    const SpeechRecognition = getRecognition();
+  function stopVoiceInput() {
+    if (!recognitionRef.current) return;
 
-    if (!SpeechRecognition) {
-      setVoiceError('Your browser does not support wake-word recognition.');
-      return;
-    }
-
-    setVoiceError('');
-    armedRef.current = true;
-    setArmed(true);
-    wakeTriggeredRef.current = false;
-
-    startWakeRecognition();
-  }
-
-  function deactivateHeyInScope() {
-    armedRef.current = false;
-    setArmed(false);
-    wakeTriggeredRef.current = false;
-
-    wakeRef.current?.stop();
-    commandRef.current?.stop();
-
-    wakeRef.current = null;
-    commandRef.current = null;
-
-    setListening(false);
-    setVoiceStatus('Hey In Scope is turned off.');
-
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
+    setVoiceStatus('Finishing your voice question...');
+    recognitionRef.current.stop();
   }
 
   async function submitQuestion(question, shouldSpeak) {
@@ -304,6 +165,7 @@ export default function InScopeAI() {
     busyRef.current = true;
     setLoading(true);
     setVoiceError('');
+    setVoiceStatus(shouldSpeak ? 'Preparing your spoken answer...' : '');
 
     const updatedMessages = [
       ...messagesRef.current,
@@ -344,12 +206,10 @@ export default function InScopeAI() {
 
       const contentType = response.headers.get('content-type') || '';
 
-      // Instant response path for greetings and simple answers.
       if (contentType.includes('application/json')) {
         const result = await response.json();
         reply = result.reply || 'Sorry, I could not generate a response.';
       } else {
-        // Stream the AI response as soon as text arrives.
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
@@ -393,9 +253,7 @@ export default function InScopeAI() {
                 messagesRef.current = liveMessages;
                 setMessages(liveMessages);
               }
-            } catch (error) {
-              // Ignore incomplete stream fragments.
-            }
+            } catch (error) {}
           }
         }
 
@@ -409,10 +267,7 @@ export default function InScopeAI() {
           if (dataLine) {
             try {
               const data = JSON.parse(dataLine.slice(5).trim());
-
-              if (data.text) {
-                reply += data.text;
-              }
+              if (data.text) reply += data.text;
             } catch (error) {}
           }
         }
@@ -432,11 +287,10 @@ export default function InScopeAI() {
 
       busyRef.current = false;
       setLoading(false);
+      setVoiceStatus('');
 
       if (shouldSpeak) {
         speakReply(reply);
-      } else if (armedRef.current) {
-        setTimeout(startWakeRecognition, 400);
       }
     } catch (error) {
       const errorReply = error.message || 'Sorry, something went wrong.';
@@ -451,11 +305,10 @@ export default function InScopeAI() {
 
       busyRef.current = false;
       setLoading(false);
+      setVoiceStatus('');
 
       if (shouldSpeak) {
         speakReply(errorReply);
-      } else if (armedRef.current) {
-        setTimeout(startWakeRecognition, 400);
       }
     }
   }
@@ -474,29 +327,24 @@ export default function InScopeAI() {
   function closeChat() {
     setOpen(false);
 
-    commandRef.current?.stop();
+    voiceSessionRef.current = false;
+    recognitionRef.current?.abort();
+    recognitionRef.current = null;
+
     setListening(false);
+    setVoiceStatus('');
 
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
-
-    if (armedRef.current) {
-      setTimeout(startWakeRecognition, 400);
-    }
   }
 
-  function manualVoiceInput() {
-    if (!armedRef.current) {
-      activateHeyInScope();
-      return;
+  function handleMicrophone() {
+    if (listening) {
+      stopVoiceInput();
+    } else {
+      startVoiceInput();
     }
-
-    wakeRef.current?.stop();
-    wakeRef.current = null;
-
-    setOpen(true);
-    setTimeout(startCommandRecognition, 300);
   }
 
   return (
@@ -508,22 +356,6 @@ export default function InScopeAI() {
         >
           {open ? '✕ Close' : '💬 Ask In Scope AI'}
         </button>
-
-        <button
-          type="button"
-          onClick={armed ? deactivateHeyInScope : activateHeyInScope}
-          style={{
-            marginLeft: '8px',
-            background: armed ? '#dc2626' : '#0879e8',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '12px',
-            padding: '10px 14px',
-            cursor: 'pointer'
-          }}
-        >
-          {armed ? '🔴 Turn Wake Word Off' : '🎙️ Activate Hey In Scope'}
-        </button>
       </div>
 
       {open && (
@@ -531,7 +363,7 @@ export default function InScopeAI() {
           <div className="scope-header">
             <div>
               <strong>In Scope AI</strong>
-              <small>AirData GH Voice Assistant</small>
+              <small>AirData GH Customer Assistant</small>
             </div>
 
             <button type="button" onClick={closeChat}>
@@ -566,21 +398,21 @@ export default function InScopeAI() {
               onChange={event => setMessage(event.target.value)}
               placeholder="Type your question..."
               maxLength={1500}
-              disabled={loading}
+              disabled={loading || listening}
             />
 
             <button
               type="button"
-              onClick={manualVoiceInput}
+              onClick={handleMicrophone}
               disabled={loading}
-              title="Speak your question"
+              title={listening ? 'Stop recording' : 'Speak your question'}
             >
-              🎙️
+              {listening ? '⏹️' : '🎙️'}
             </button>
 
             <button
               type="submit"
-              disabled={loading || !message.trim()}
+              disabled={loading || listening || !message.trim()}
             >
               Send
             </button>
@@ -588,7 +420,7 @@ export default function InScopeAI() {
 
           {listening && (
             <div className="scope-note">
-              🎙️ Listening to your question...
+              🎙️ Listening to your question. Tap stop when you finish.
             </div>
           )}
 
@@ -603,10 +435,6 @@ export default function InScopeAI() {
               {voiceError}
             </div>
           )}
-
-          <div className="scope-note">
-            Say Hey In Scope, Hi In Scope or Hello In Scope to activate your assistant.
-          </div>
         </section>
       )}
     </>
