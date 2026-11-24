@@ -222,6 +222,9 @@ replacement_status: order.replacement_status || null,
       WHERE reference = ${reference}
         AND payment_status = 'paid'
     `;
+    if (supplierStatus === 'completed') {
+  await creditAgentCommission(sql, reference);
+}
 
     return res.status(200).json({
       success: true,
