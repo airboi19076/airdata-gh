@@ -312,14 +312,25 @@ const customerFirstName =
   }, [reference, orderStatus]);
 
   function navigate(nextPage) {
-    window.history.pushState(
-      {},
-      '',
-      nextPage === 'dashboard' ? '/' : `/?page=${nextPage}`
-    );
-    setPage(nextPage);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const params = new URLSearchParams(window.location.search);
+
+  if (nextPage === 'dashboard') {
+    params.delete('page');
+  } else {
+    params.set('page', nextPage);
   }
+
+  const query = params.toString();
+
+  window.history.pushState(
+    {},
+    '',
+    query ? `/?${query}` : '/'
+  );
+
+  setPage(nextPage);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
   function changeNetwork(value) {
     setNetwork(value);
