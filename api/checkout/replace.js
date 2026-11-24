@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { getDatabase } from '../_lib/wallet.js';
+import { getDatabase, requireUser } from '../_lib/wallet.js';
 
 const NETWORK_MAP = {
   MTN: 'MTN',
@@ -18,7 +18,9 @@ export default async function handler(req, res) {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed.' });
   }
-
+  const customerUser = await requireUser(req, res);
+  if (!customerUser) return;
+  
   const reference = String(req.body?.reference || '').trim();
 
   if (!/^ADGH-[a-f0-9-]{20,50}$/i.test(reference)) {
@@ -49,8 +51,9 @@ export default async function handler(req, res) {
         reference, network, volume_gb, recipient,
         retail_price_pesewas, payment_status, payment_provider,
         replacement_reference, replacement_status
-      FROM public.guest_data_orders
+            FROM public.guest_data_orders
       WHERE reference = ${reference}
+        AND customer_user_id = ${customerUser.id}
       LIMIT 1
     `;
 
