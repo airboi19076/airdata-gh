@@ -350,6 +350,62 @@ function exitGuestMode() {
         .customer-auth-submit:disabled {
           opacity: .6;
         }
+                .customer-social-buttons {
+          display: grid;
+          gap: 11px;
+          margin: 20px 0;
+        }
+
+        .customer-social-button {
+          width: 100%;
+          min-height: 49px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          border: 1px solid #45617e;
+          border-radius: 12px;
+          background: #ffffff;
+          color: #172b43;
+          font-size: 14px;
+          font-weight: 800;
+          cursor: pointer;
+        }
+
+        .customer-social-button:disabled {
+          opacity: .45;
+          cursor: not-allowed;
+        }
+
+        .customer-social-icon {
+          font-size: 19px;
+          font-weight: 900;
+        }
+
+        .customer-social-divider {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin: 19px 0;
+          color: #a9c5e2;
+          font-size: 10px;
+          font-weight: 800;
+        }
+
+        .customer-social-divider::before,
+        .customer-social-divider::after {
+          content: "";
+          flex: 1;
+          height: 1px;
+          background: #ffffff25;
+        }
+
+        .customer-social-note {
+          margin-top: -7px;
+          color: #a9c5e2;
+          font-size: 10px;
+          text-align: center;
+        }
         .customer-auth-switch {
           margin-top: 20px;
           text-align: center;
