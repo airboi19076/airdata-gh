@@ -257,6 +257,7 @@ const customerFirstName =
 
       const status = String(result.status || 'pending').toLowerCase();
       setOrderStatus(status);
+      setReplacementStatus(result.replacement_status || '');
 
       setMessage(
         result.message ||
@@ -1565,6 +1566,23 @@ const customerFirstName =
                         >
                           Check Order Status
                         </button>
+                                             {(orderStatus === 'failed' ||
+                          orderStatus === 'refunded') &&
+                          !replacementStatus && (
+                            <button
+                              className="primary"
+                              onClick={requestReplacement}
+                              disabled={loading}
+                            >
+                              {loading ? 'Please wait...' : 'Replace Order — FREE'}
+                            </button>
+                          )}
+
+                        {replacementStatus && (
+                          <p>
+                            Replacement status: {replacementStatus}
+                          </p>
+                        )}
                       </>
                     )}
                   </div>
