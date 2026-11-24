@@ -474,7 +474,9 @@ export default async function handler(req, res) {
           updated_at = now()
       WHERE reference = ${reference}
     `;
-
+if (supplierStatus === 'completed') {
+  await creditAgentCommission(sql, reference);
+}
     return res.status(200).json({
       received: true,
       delivery: supplierStatus
