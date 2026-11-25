@@ -1,4 +1,4 @@
-import { getDatabase, requireUser } from '../_lib/wallet.js';
+import { getDatabase, requireUser } from './wallet.js';
 
 const NETWORKS = ['MTN', 'Telecel', 'AirtelTigo'];
 
