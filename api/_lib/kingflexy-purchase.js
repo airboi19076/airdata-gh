@@ -1,5 +1,6 @@
 
-import { requireUser, getDatabase } from '../_lib/wallet.js';
+import { requireUser, getDatabase } from './wallet.js';
+
 
 const RETAIL_PRICES = {
   MTN: {
