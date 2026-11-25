@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { getDatabase, requireUser } from '../_lib/wallet.js';
+import { getDatabase, requireUser } from './wallet.js';
 
 const NETWORKS = [
   'MTN',
