@@ -2,6 +2,38 @@
 {
   "rewrites": [
     {
+      "source": "/api/admin/delete-user",
+      "destination": "/api/handler?path=admin/delete-user"
+    },
+    {
+      "source": "/api/admin/users",
+      "destination": "/api/handler?path=admin/users"
+    },
+    {
+      "source": "/api/admin/verify",
+      "destination": "/api/handler?path=admin/verify"
+    },
+    {
+      "source": "/api/agent/shop",
+      "destination": "/api/handler?path=agent/shop"
+    },
+    {
+      "source": "/api/agent/withdrawals",
+      "destination": "/api/handler?path=agent/withdrawals"
+    },
+    {
+      "source": "/api/kingflexy/packages",
+      "destination": "/api/handler?path=kingflexy/packages"
+    },
+    {
+      "source": "/api/kingflexy/purchase",
+      "destination": "/api/handler?path=kingflexy/purchase"
+    },
+    {
+      "source": "/api/kingflexy/status",
+      "destination": "/api/handler?path=kingflexy/status"
+    },
+    {
       "source": "/admin",
       "destination": "/"
     }
