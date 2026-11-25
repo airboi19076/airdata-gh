@@ -1,0 +1,22 @@
+
+{
+  "id": "/",
+  "name": "AirData GH",
+  "short_name": "AirData",
+  "description": "Your connection. Our priority.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#071a36",
+  "theme_color": "#071a36",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/airdata-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
