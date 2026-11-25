@@ -43,7 +43,6 @@ const navigation = [
   { page: 'dashboard', icon: '⌂', label: 'Home' },
   { page: 'buy-data', icon: '▤', label: 'Buy Data' },
   { page: 'digital-services', icon: '✦', label: 'Services' },
-  { page: 'support', icon: '◉', label: 'Support' },
   { page: 'settings', icon: '⚙', label: 'Settings' }
 ];
 
