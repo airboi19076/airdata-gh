@@ -1,5 +1,4 @@
-
-import { requireUser, getDatabase } from '../_lib/wallet.js';
+import { requireUser, getDatabase } from './wallet.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
