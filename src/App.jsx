@@ -284,8 +284,7 @@ const visibleNavigation = customerUser
       navigation[1],
       { page: 'orders', icon: '▣', label: 'Orders' },
       { page: 'agent-shop', icon: '💼', label: 'Agent Shop' },
-      navigation[3],
-      navigation[4]
+      navigation[3]
     ]
   : navigation;
 
