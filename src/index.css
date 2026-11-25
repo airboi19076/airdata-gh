@@ -2391,4 +2391,157 @@ footer small {
   }
 }
 
+/* =========================================
+   AIRDATA GH — INSTALLED MOBILE APP MODE
+   Only applies when opened from home screen.
+   The normal website remains unchanged.
+========================================= */
+
+@media (display-mode: standalone) {
+
+  html,
+  body {
+    min-height: 100%;
+    background: #071426;
+    overscroll-behavior-y: contain;
+  }
+
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  main {
+    min-height: 100dvh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+    background: #f1f5fb;
+  }
+
+  /* Native-style app header */
+  main .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 900;
+    min-height: 66px;
+    padding: 12px 18px;
+    padding-top: calc(12px + env(safe-area-inset-top));
+    background: linear-gradient(115deg, #06152e, #0b3970, #087dcc);
+    border-bottom: 1px solid #ffffff20;
+    box-shadow: 0 5px 22px #06152b20;
+  }
+
+  main .brand {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 1px;
+  }
+
+  main .brand span {
+    color: #42d4ff;
+  }
+
+  /* App-only content spacing */
+  main .content {
+    width: 100%;
+    max-width: 760px;
+    margin: 20px auto;
+    padding: 0 14px;
+  }
+
+  main .panel {
+    padding: 20px 16px;
+    margin-bottom: 16px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(7, 31, 65, .07);
+  }
+
+  /* Remove website footer inside the installed app */
+  main footer {
+    display: none !important;
+  }
+
+  /* Full-width native-style bottom navigation */
+  main .bottom-nav {
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: none;
+    width: 100%;
+    min-height: 70px;
+    padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 3px;
+    border: 0;
+    border-top: 1px solid #dce6f2;
+    border-radius: 20px 20px 0 0;
+    background: rgba(255, 255, 255, .97);
+    box-shadow: 0 -8px 30px rgba(5, 27, 58, .12);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+  }
+
+  main .bottom-nav button {
+    min-width: 0;
+    min-height: 52px;
+    border: 0;
+    border-radius: 13px;
+    background: transparent;
+    color: #71839c;
+    gap: 5px;
+  }
+
+  main .bottom-nav button.active {
+    color: #087cff;
+    background: #e9f3ff;
+  }
+
+  main .bottom-nav .nav-icon {
+    font-size: 21px;
+  }
+
+  main .bottom-nav .nav-label {
+    font-size: 9px;
+    font-weight: 800;
+  }
+
+  /* App dark mode */
+  main.dark-mode {
+    background: #071426;
+  }
+
+  main.dark-mode .bottom-nav {
+    background: rgba(7, 23, 42, .97);
+    border-top-color: #294766;
+  }
+
+  main.dark-mode .bottom-nav button {
+    color: #a9bdd4;
+  }
+
+  main.dark-mode .bottom-nav button.active {
+    color: #5fc2ff;
+    background: #17395c;
+  }
+
+  main.dark-mode .panel {
+    background: #10233b;
+    border-color: #294766;
+  }
+
+  /* Better touch feedback */
+  main button {
+    touch-action: manipulation;
+  }
+
+  main .bottom-nav button:active {
+    transform: scale(.94);
+  }
+}
+
 
