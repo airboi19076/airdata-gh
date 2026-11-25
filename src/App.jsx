@@ -2104,6 +2104,79 @@ const customerFirstName =
         .home-stat strong { font-size: 23px; }
         .home-stat-label { font-size: 12px; }
       }
+      
+      /* Compact typography — Databoss-style sizing */
+      .dashboard {
+        font-size: 13px;
+      }
+
+      .home-greeting h1 {
+        font-size: 19px !important;
+        letter-spacing: -0.4px;
+      }
+
+      .home-greeting p {
+        font-size: 12px !important;
+      }
+
+      .home-buy-button {
+        font-size: 14px !important;
+        padding: 12px 19px;
+      }
+
+      .home-stat-label {
+        font-size: 12px !important;
+      }
+
+      .home-stat strong {
+        font-size: 22px !important;
+        letter-spacing: -0.4px;
+      }
+
+      .home-stat small {
+        font-size: 11px !important;
+      }
+
+      .home-stat-icon {
+        font-size: 20px;
+      }
+
+      .home-link {
+        font-size: 12px !important;
+      }
+
+      .home-section h2 {
+        font-size: 17px !important;
+      }
+
+      .home-section > p {
+        font-size: 12px !important;
+      }
+
+      .home-action {
+        font-size: 12px !important;
+      }
+
+      .home-action-icon {
+        font-size: 17px;
+      }
+
+      .home-network {
+        font-size: 12px !important;
+      }
+
+      .home-network span {
+        font-size: 11px !important;
+      }
+
+      .home-date {
+        font-size: 10px;
+      }
+
+      .home-user-tag {
+        font-size: 10px;
+      }
+
     `}</style>
 
     {(() => {
