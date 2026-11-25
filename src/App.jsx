@@ -1815,191 +1815,496 @@ const customerFirstName =
             </button>
           </header>
 
-          {page === 'dashboard' && (
-            <div className="dashboard">
-              <div className="dash-heading">
-                <div>
-                  <div className="dash-eyebrow">WELCOME TO AIRDATA GH</div>
-                  <h1>Your connection starts here.</h1>
-                  <p>Simple, affordable and convenient digital services.</p>
-                </div>
+        
+{page === 'dashboard' && (
+  <div className="dashboard">
+    <style>{`
+      .dashboard {
+        width: min(1100px, 100%);
+        margin: 0 auto;
+        padding: 18px 15px 45px;
+        font-size: 15px;
+      }
+
+      .dashboard * { box-sizing: border-box; }
+
+      .home-welcome {
+        padding: 22px 20px;
+        margin-bottom: 22px;
+        border: 1px solid #e5ebf5;
+        border-radius: 23px;
+        background: #fff;
+        color: #111c32;
+        box-shadow: 0 5px 22px #142b4b0d;
+      }
+
+      .home-date {
+        margin-bottom: 12px;
+        color: #8793a6;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 1px;
+      }
+
+      .home-greeting-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .home-avatar {
+        width: 68px;
+        height: 68px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        border: 1px solid #dce8ff;
+        border-radius: 19px;
+        background: #edf4ff;
+        color: #1855d9;
+        font-size: 27px;
+        font-weight: 900;
+      }
+
+      .home-greeting h1 {
+        margin: 0;
+        font-size: 23px;
+        line-height: 1.25;
+        font-weight: 900;
+        letter-spacing: -.8px;
+      }
+
+      .home-greeting p {
+        margin: 8px 0 0;
+        color: #778397;
+        font-size: 14px;
+      }
+
+      .home-user-tag {
+        display: inline-block;
+        padding: 5px 11px;
+        margin-right: 8px;
+        border-radius: 20px;
+        background: #edf4ff;
+        color: #1855d9;
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .home-buy-button {
+        margin-top: 22px;
+        padding: 14px 22px;
+        border: 0;
+        border-radius: 15px;
+        background: linear-gradient(120deg, #1761f5, #1744c6);
+        color: #fff;
+        font-size: 16px;
+        font-weight: 850;
+        box-shadow: 0 7px 17px #1556dc35;
+      }
+
+      .home-stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 13px;
+        margin: 22px 0;
+      }
+
+      .home-stat {
+        position: relative;
+        min-height: 190px;
+        overflow: hidden;
+        padding: 20px 17px;
+        border-radius: 24px;
+        background: linear-gradient(135deg, #1760f5, #1942b5);
+        color: #fff;
+        box-shadow: 0 10px 25px #174bd52b;
+      }
+
+      .home-stat::after {
+        content: "";
+        position: absolute;
+        width: 130px;
+        height: 130px;
+        right: -55px;
+        bottom: -65px;
+        border: 1px solid #ffffff22;
+        border-radius: 50%;
+        box-shadow: 0 0 0 22px #ffffff08;
+      }
+
+      .home-stat-icon {
+        width: 48px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 17px;
+        border-radius: 14px;
+        background: #ffffff24;
+        font-size: 23px;
+      }
+
+      .home-stat-label {
+        display: block;
+        margin-bottom: 10px;
+        color: #e2edff;
+        font-size: 14px;
+        font-weight: 750;
+      }
+
+      .home-stat strong {
+        display: block;
+        font-size: 27px;
+        line-height: 1.2;
+        font-weight: 950;
+        letter-spacing: -.7px;
+      }
+
+      .home-stat small {
+        display: block;
+        margin-top: 8px;
+        color: #c4d8ff;
+        font-size: 12px;
+      }
+
+      .home-links {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin: 20px 0 28px;
+      }
+
+      .home-link {
+        min-height: 64px;
+        padding: 12px;
+        border: 1px solid #dce8f7;
+        border-radius: 17px;
+        background: #fff;
+        color: #1760c5;
+        font-size: 14px;
+        font-weight: 850;
+        cursor: pointer;
+      }
+
+      .home-link.primary-link {
+        border-color: transparent;
+        background: linear-gradient(120deg, #12a9ed, #1760f5);
+        color: #fff;
+        box-shadow: 0 7px 18px #1689e52b;
+      }
+
+      .home-section {
+        padding: 21px 17px;
+        margin: 20px 0;
+        border: 1px solid #e7edf5;
+        border-radius: 23px;
+        background: #fff;
+        color: #14243d;
+        box-shadow: 0 5px 22px #142b4b0a;
+      }
+
+      .home-section h2 {
+        margin: 0 0 5px;
+        font-size: 20px;
+        font-weight: 900;
+      }
+
+      .home-section > p {
+        margin: 0 0 17px;
+        color: #8a95a6;
+        font-size: 13px;
+      }
+
+      .home-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 11px;
+      }
+
+      .home-action {
+        min-height: 75px;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 12px;
+        border: 1px solid #e6ebf3;
+        border-radius: 16px;
+        background: #fff;
+        color: #14243d;
+        text-align: left;
+        font-size: 14px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .home-action-icon {
+        width: 42px;
+        height: 42px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: #edf4ff;
+        color: #1855d9;
+        font-size: 19px;
+      }
+
+      .home-network-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 11px;
+      }
+
+      .home-network {
+        min-height: 105px;
+        padding: 15px;
+        border: 1px solid #e4ebf5;
+        border-radius: 17px;
+        background: #f9fbff;
+        color: #172945;
+        text-align: left;
+        font-size: 14px;
+        font-weight: 850;
+        cursor: pointer;
+      }
+
+      .home-network span {
+        display: block;
+        margin-top: 7px;
+        color: #8290a4;
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .dark-mode .home-welcome,
+      .dark-mode .home-section,
+      .dark-mode .home-link:not(.primary-link),
+      .dark-mode .home-action,
+      .dark-mode .home-network {
+        background: #10233b;
+        border-color: #294766;
+        color: #edf5ff;
+      }
+
+      .dark-mode .home-greeting h1,
+      .dark-mode .home-section h2 {
+        color: #edf5ff;
+      }
+
+      @media (min-width: 800px) {
+        .dashboard { padding: 30px 24px 60px; }
+        .home-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .home-stat { min-height: 190px; }
+        .home-network-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      }
+
+      @media (max-width: 380px) {
+        .home-greeting h1 { font-size: 20px; }
+        .home-stat { padding: 16px 13px; min-height: 175px; }
+        .home-stat strong { font-size: 23px; }
+        .home-stat-label { font-size: 12px; }
+      }
+    `}</style>
+
+    {(() => {
+      const today = new Date().toDateString();
+
+      const todayOrders = customerOrders.filter(order =>
+        order.created_at &&
+        new Date(order.created_at).toDateString() === today
+      );
+
+      const validTodayOrders = todayOrders.filter(order =>
+        String(order.payment_status || '').toLowerCase() === 'paid' &&
+        !['failed', 'refunded'].includes(
+          String(order.supplier_status || order.status || '').toLowerCase()
+        )
+      );
+
+      const spentToday = validTodayOrders.reduce(
+        (sum, order) => sum + Number(order.retail_price_pesewas || 0),
+        0
+      );
+
+      const money = amount =>
+        `GH₵${(Number(amount || 0) / 100).toLocaleString('en-GH', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })}`;
+
+      const firstName =
+        String(customerUser?.name || customerUser?.email || 'there')
+          .split(/[\s@]/)[0];
+
+      return (
+        <>
+          <section className="home-welcome">
+            <div className="home-date">
+              {new Date().toLocaleDateString('en-GH', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+              }).toUpperCase()}
+            </div>
+
+            <div className="home-greeting-row">
+              <div className="home-avatar">
+                {customerUser
+                  ? firstName.charAt(0).toUpperCase()
+                  : 'A'}
               </div>
 
-             <section className="dash-hero">
-  <div className="dash-hero-copy">
-    <div className="dash-hero-tag">
-      ✦ AIRDATA GH • STAY CONNECTED
-    </div>
+              <div className="home-greeting">
+                <h1>
+                  Welcome {customerUser ? 'back, ' : 'to AirData GH, '}
+                  {firstName} 👋
+                </h1>
 
-    <h2>
-      Your data.
-      <br />
-      Your connection.
-      <br />
-      Your freedom.
-    </h2>
+                <p>
+                  <span className="home-user-tag">
+                    {customerUser ? 'CUSTOMER' : 'GUEST'}
+                  </span>
+                  Your data connection starts here.
+                </p>
+              </div>
+            </div>
 
-    <p>
-      Get your favourite data bundles from your preferred
-      network with a simple and convenient checkout experience.
-    </p>
+            <button
+              className="home-buy-button"
+              onClick={() => navigate('buy-data')}
+            >
+              ◉ &nbsp; Buy Data
+            </button>
+          </section>
 
-    <button
-      className="primary"
-      onClick={() => navigate('buy-data')}
-    >
-      Buy Data Now →
-    </button>
-  </div>
+          <section className="home-stats">
+            <div className="home-stat">
+              <div className="home-stat-icon">↗</div>
+              <span className="home-stat-label">Spent Today</span>
+              <strong>{money(spentToday)}</strong>
+              <small>Paid data orders today</small>
+            </div>
 
-  <div className="dash-hero-visual" aria-hidden="true">
-    <div className="dash-visual-orbit"></div>
+            <div className="home-stat">
+              <div className="home-stat-icon">▣</div>
+              <span className="home-stat-label">Data Purchased</span>
+              <strong>{todayOrders.length} orders</strong>
+              <small>Orders placed today</small>
+            </div>
 
-    <div className="dash-visual-card">
-      <div className="dash-visual-top">
-        <span>AIRDATA GH</span>
-        <span>● ONLINE</span>
-      </div>
+            <div className="home-stat">
+              <div className="home-stat-icon">♙</div>
+              <span className="home-stat-label">Agent Shop</span>
+              <strong>Explore</strong>
+              <small>Start selling data bundles</small>
+            </div>
 
-      <div className="dash-visual-icon">📶</div>
+            <div className="home-stat">
+              <div className="home-stat-icon">▤</div>
+              <span className="home-stat-label">Total Spent</span>
+              <strong>{money(totalSpentPesewas)}</strong>
+              <small>Verified live purchases</small>
+            </div>
+          </section>
 
-      <div className="dash-visual-number">DATA</div>
-      <div className="dash-visual-caption">
-        Your connection starts here
-      </div>
+          <section className="home-links">
+            <button
+              className="home-link primary-link"
+              onClick={() => navigate('buy-data')}
+            >
+              ◉ &nbsp; Buy Data Bundles
+            </button>
 
-      <div className="dash-visual-bottom">
-        <span>MTN • AT • TELECEL</span>
-        <span>✦</span>
-      </div>
-    </div>
-  </div>
-</section>
+            <button
+              className="home-link"
+              onClick={() => navigate('support')}
+            >
+              ☏ &nbsp; Contact Support
+            </button>
+          </section>
 
-                            {customerUser && (
-                <section
-                  style={{
-                    margin: '22px 0 30px',
-                    padding: '22px 25px',
-                    borderRadius: 22,
-                    border: '1px solid #168bff55',
-                    background: darkMode
-                      ? 'linear-gradient(120deg, #102b49, #0b1c32)'
-                      : 'linear-gradient(120deg, #eaf5ff, #f8fbff)',
-                    boxShadow: '0 12px 32px rgba(8, 85, 170, .09)'
+          <section className="home-section">
+            <h2>Quick Actions</h2>
+            <p>Your account shortcuts</p>
+
+            <div className="home-actions">
+              <button
+                className="home-action"
+                onClick={() => navigate('orders')}
+              >
+                <span className="home-action-icon">◷</span>
+                <span>My Orders</span>
+              </button>
+
+              <button
+                className="home-action"
+                onClick={() => navigate('agent-shop')}
+              >
+                <span className="home-action-icon">♙</span>
+                <span>Agent Shop</span>
+              </button>
+
+              <button
+                className="home-action"
+                onClick={() => navigate('deposit')}
+              >
+                <span className="home-action-icon">＋</span>
+                <span>Top Up Wallet</span>
+              </button>
+
+              <button
+                className="home-action"
+                onClick={() => navigate('settings')}
+              >
+                <span className="home-action-icon">⚙</span>
+                <span>Settings</span>
+              </button>
+            </div>
+          </section>
+
+          <section className="home-section">
+            <h2>Choose Your Network</h2>
+            <p>Select your preferred network to buy a bundle.</p>
+
+            <div className="home-network-grid">
+              {[
+                ['MTN', 'MTN data bundles'],
+                ['AirtelTigo iShare', 'iShare bundles'],
+                ['AirtelTigo BigTime', 'BigTime bundles'],
+                ['Telecel', 'Telecel data bundles']
+              ].map(([name, description]) => (
+                <button
+                  className="home-network"
+                  key={name}
+                  onClick={() => {
+                    changeNetwork(name);
+                    navigate('buy-data');
                   }}
                 >
-                  <div style={{
-                    color: '#168bff',
-                    fontSize: 11,
-                    fontWeight: 900,
-                    letterSpacing: 1.4
-                  }}>
-                    YOUR DATA SPENDING
-                  </div>
-
-                  <div style={{
-                    marginTop: 8,
-                    fontSize: 12,
-                    color: darkMode ? '#b9cce2' : '#71839b'
-                  }}>
-                    Total amount spent on data purchases
-                  </div>
-
-                  <div style={{
-                    marginTop: 7,
-                    fontSize: 32,
-                    fontWeight: 950,
-                    color: darkMode ? '#ffffff' : '#10213b'
-                  }}>
-                    GH₵{(totalSpentPesewas / 100).toLocaleString(
-                      'en-GH',
-                      {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      }
-                    )}
-                  </div>
-                </section>
-              )}
-              <section className="dash-section">
-                <div className="dash-section-head">
-                  <div>
-                    <h2>Choose your network</h2>
-                    <p>Select a network to explore available bundles.</p>
-                  </div>
-                </div>
-
-                              <div className="dash-networks">
-                  {[
-                    { name: 'MTN', description: 'MTN data bundles', logo: 'https://cdn.brandfetch.io/id-4xm-GCy/theme/dark/logo.svg' },
-                    { name: 'AirtelTigo iShare', description: 'iShare bundles', logo: 'https://static.africa-press.net/ghana/sites/18/2023/06/sm_1687706784.824922.jpg' },
-                    { name: 'AirtelTigo BigTime', description: 'BigTime bundles', logo: 'https://static.africa-press.net/ghana/sites/18/2023/06/sm_1687706784.824922.jpg' },
-                    { name: 'Telecel', description: 'Telecel data bundles', logo: 'https://www.telecel.com.gh/img/Telecel-Icon-Red.png' }
-                  ].map(item => (
-                    <button
-                      key={item.name}
-                      className="dash-network"
-                      onClick={() => {
-                        changeNetwork(item.name);
-                        navigate('buy-data');
-                      }}
-                    >
-                      <div
-                        className="dash-network-logo-wrap"
-                        style={{
-                          backgroundColor: item.name === 'MTN' ? '#ffcc00' : '#ffffff'
-                        }}
-                      >
-                        <img
-                          className="dash-network-logo"
-                          src={item.logo}
-                          alt={`${item.name} logo`}
-                        />
-                      </div>
-                      <strong>{item.name}</strong>
-                      <span>{item.description}</span>
-                    </button>
-                  ))}
-                </div>
-              </section>
-
-              <section className="dash-section">
-                <div className="dash-section-head">
-                  <div>
-                    <h2>More from AirData GH</h2>
-                    <p>Explore other services and get assistance.</p>
-                  </div>
-                </div>
-
-                <div className="dash-shortcuts">
-                  <button
-                    className="dash-shortcut"
-                    onClick={() => navigate('digital-services')}
-                  >
-                    <div className="dash-shortcut-icon">✨</div>
-                    <div>
-                      <strong>Digital Services</strong>
-                      <span>MTN AFA and examination results checkers</span>
-                    </div>
-                  </button>
-
-                  <button
-                    className="dash-shortcut"
-                    onClick={() => navigate('support')}
-                  >
-                    <div className="dash-shortcut-icon">💬</div>
-                    <div>
-                      <strong>Customer Support</strong>
-                      <span>Get help with your orders and payments</span>
-                    </div>
-                  </button>
-                </div>
-              </section>
+                  {name}
+                  <span>{description} →</span>
+                </button>
+              ))}
             </div>
-          )}
+          </section>
 
-     
+          <section className="home-section">
+            <h2>Need assistance?</h2>
+            <p>Our support team is available to help with your orders.</p>
+            <button
+              className="home-buy-button"
+              onClick={() => navigate('support')}
+            >
+              Contact Customer Support
+            </button>
+          </section>
+        </>
+      );
+    })()}
+  </div>
+)}
+
           {page === 'buy-data' && (
             <div className="content">
               <section className="panel">
