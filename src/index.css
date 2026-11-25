@@ -2544,4 +2544,135 @@ footer small {
   }
 }
 
+/* AIRDATA GH — iPHONE APP SCREEN FIT FIX */
+@media (display-mode: standalone) {
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 100%;
+    margin: 0;
+    overflow-x: hidden;
+  }
+
+  main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 100dvh;
+    overflow-x: clip;
+    padding-top: 0 !important;
+    padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+  }
+
+  /* Correct app header dimensions */
+  main > .topbar {
+    width: 100%;
+    min-height: 58px;
+    padding: calc(9px + env(safe-area-inset-top)) 16px 9px !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    overflow: visible;
+  }
+
+  main > .topbar .brand {
+    font-size: 19px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  /* Fit the dashboard to the actual phone width */
+  main > .dashboard {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0 auto;
+    padding: 14px 12px 30px !important;
+    overflow-x: clip;
+  }
+
+  main .content {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 14px auto;
+    padding: 0 12px;
+  }
+
+  main .panel {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 17px 14px;
+    margin-bottom: 15px;
+    border-radius: 17px;
+  }
+
+  main .dashboard *,
+  main .content *,
+  main .panel * {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  main img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  main input,
+  main select,
+  main textarea {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Keep all five navigation items inside the screen */
+  main > .bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    min-height: calc(66px + env(safe-area-inset-bottom));
+    padding: 6px 5px calc(6px + env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 2px;
+    border-radius: 16px 16px 0 0;
+    transform: none;
+    box-sizing: border-box;
+  }
+
+  main > .bottom-nav button {
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    padding: 4px 1px;
+    gap: 4px;
+  }
+
+  main > .bottom-nav .nav-icon {
+    font-size: 19px;
+  }
+
+  main > .bottom-nav .nav-label {
+    max-width: 100%;
+    font-size: 8px;
+    line-height: 1.1;
+    white-space: normal;
+    text-align: center;
+  }
+
+  main footer {
+    display: none !important;
+  }
+}
+
 
